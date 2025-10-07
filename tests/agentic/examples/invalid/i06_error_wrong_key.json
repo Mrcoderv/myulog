@@ -1,0 +1,11 @@
+{
+    "workflow_id": "wf-x",
+    "step_id": "s6",
+    "tool_name": "do_thing",
+    "input_summary": "—",
+    "output_summary": "—",
+    "status": "failed",
+    "duration_ms": 33,
+    "error": { "detail": "not allowed" }
+  }
+  

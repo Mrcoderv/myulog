@@ -1,0 +1,11 @@
+{
+    "workflow_id": "wf-x",
+    "step_id": "s8",
+    "parent_step_id": "",
+    "tool_name": "do_thing",
+    "input_summary": "—",
+    "output_summary": "—",
+    "status": "success",
+    "duration_ms": 5
+  }
+  

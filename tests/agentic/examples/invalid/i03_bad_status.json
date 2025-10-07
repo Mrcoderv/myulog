@@ -1,0 +1,10 @@
+{
+    "workflow_id": "wf-x",
+    "step_id": "s3",
+    "tool_name": "do_thing",
+    "input_summary": "—",
+    "output_summary": "—",
+    "status": "ok",
+    "duration_ms": 12
+  }
+  

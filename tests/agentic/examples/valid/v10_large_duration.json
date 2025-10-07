@@ -1,0 +1,10 @@
+{
+    "workflow_id": "wf-006",
+    "step_id": "etl-load",
+    "tool_name": "bulk_insert",
+    "input_summary": "load 2M rows",
+    "output_summary": "inserted 2,000,000 rows",
+    "status": "success",
+    "duration_ms": 12345.67
+  }
+  

@@ -1,0 +1,10 @@
+{
+    "workflow_id": "wf-004",
+    "step_id": "step-prepare",
+    "tool_name": "prepare_dataset_for_training_blah_blah_blah",
+    "input_summary": "select 5k rows, drop NAs, normalize numeric cols",
+    "output_summary": "prepared df with 4,832 rows",
+    "status": "success",
+    "duration_ms": 1450
+  }
+  

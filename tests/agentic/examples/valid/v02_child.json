@@ -1,0 +1,11 @@
+{
+    "workflow_id": "wf-001",
+    "step_id": "step-2",
+    "parent_step_id": "step-1",
+    "tool_name": "score_risk",
+    "input_summary": "customer 42 profile",
+    "output_summary": "risk_score=0.18",
+    "status": "success",
+    "duration_ms": 87
+  }
+  

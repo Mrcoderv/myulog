@@ -1,0 +1,10 @@
+{
+    "workflow_id": "wf-003",
+    "step_id": "step-a",
+    "tool_name": "noop",
+    "input_summary": "no-op",
+    "output_summary": "done instantly",
+    "status": "success",
+    "duration_ms": 0
+  }
+  
