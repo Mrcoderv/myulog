@@ -17,7 +17,6 @@ ENV/
 .Python
 
 # Testing & Coverage
-.python-version
 .pytest_cache/
 .coverage
 .coverage.*
@@ -51,14 +50,7 @@ coverage.xml
 *.sublime-project
 *.sublime-workspace
 
-
-# Test artifacts
-tests/reports/*
-!tests/reports/.gitkeep
-
-tests/perf_artifacts/
-
-# OS junk
+# OS-specific
 .DS_Store
 .DS_Store?
 ._*
@@ -76,8 +68,8 @@ ehthumbs.db
 *.log
 logs/
 
-# Poetry
-# poetry.lock
+# Poetry (optional)
+# poetry.lock  # Uncomment to ignore lock file
 
 # Documentation builds
 docs/_build/
@@ -88,12 +80,3 @@ site/
 *.bak
 *.swp
 .cache/
-
-# Output directory
-/out/**
-
-# Ignore local pipeline data
-local_pipeline/out/*
-!local_pipeline/out/.gitkeep
-local_pipeline/in/*
-!local_pipeline/in/.gitkeep

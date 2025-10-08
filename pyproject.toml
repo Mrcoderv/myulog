@@ -1,15 +1,14 @@
-[project]
+[tool.poetry]
 name = "ulog"
 version = "0.1.0"
 description = ""
-authors = [
-    { name = "timhazed", email = "thayes@oldzinsoftware.com" }
-]
+authors = ["Eunice Koid <koid.ernli@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
-dependencies = [
-    "jsonschema >=4.25.1,<5.0.0"
-]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.13"
+jsonschema = "^4.25.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

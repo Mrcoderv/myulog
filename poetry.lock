@@ -375,7 +375,6 @@ files = [
 [package.dependencies]
 attrs = ">=22.2.0"
 rpds-py = ">=0.7.0"
-typing-extensions = {version = ">=4.4.0", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "rpds-py"
@@ -573,14 +572,14 @@ files = [
 
 [[package]]
 name = "types-jsonschema"
-version = "4.25.1.20251009"
+version = "4.25.1.20251008"
 description = "Typing stubs for jsonschema"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "types_jsonschema-4.25.1.20251009-py3-none-any.whl", hash = "sha256:f30b329037b78e7a60146b1146feb0b6fb0b71628637584409bada83968dad3e"},
-    {file = "types_jsonschema-4.25.1.20251009.tar.gz", hash = "sha256:75d0f5c5dd18dc23b664437a0c1a625743e8d2e665ceaf3aecb29841f3a5f97f"},
+    {file = "types_jsonschema-4.25.1.20251008-py3-none-any.whl", hash = "sha256:5a01e1e104e3aac4f1d7ba2b1f000694297d7d63eae951213b0ebd65ee476525"},
+    {file = "types_jsonschema-4.25.1.20251008.tar.gz", hash = "sha256:f206abf739c2d84f46632b65db99474a2e3b2f651df417c491ff038022c89c10"},
 ]
 
 [package.dependencies]
@@ -592,7 +591,7 @@ version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
@@ -600,5 +599,5 @@ files = [
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.12,<3.13"
-content-hash = "ba4495c67c9e343ad28d1b8c6b8589db431a108a6061bfd8c122a11ed26e4553"
+python-versions = ">=3.13"
+content-hash = "b1afcb123a19d998f974b7be14c7bae15027aa56431a0cfccc3a30a1830288c5"
