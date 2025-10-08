@@ -1,0 +1,15 @@
+{
+  "phase": "training",
+  "model_name": "resnet50_v2",
+  "dataset_id": "imagenet_v2",
+  "image_count": 1280000,
+  "metrics": {
+    "accuracy": 0.76,
+    "loss": 0.84
+  },
+  "latency_ms": 150.2,
+  "batch_size": 64,
+  "hardware": { "device": "GPU", "memory_gb": 24 },
+  "result": "success",
+  "timestamp": "2025-10-04T09:00:00Z"
+}

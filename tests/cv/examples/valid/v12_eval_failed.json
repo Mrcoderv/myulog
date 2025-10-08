@@ -1,0 +1,14 @@
+{
+  "phase": "evaluation",
+  "model_name": "vit_large",
+  "dataset_id": "imagenet_v2",
+  "image_count": 20000,
+  "metrics": {
+    "accuracy": 0.0
+  },
+  "latency_ms": 550,
+  "batch_size": 64,
+  "hardware": { "device": "TPU", "memory_gb": 64 },
+  "result": "failure",
+  "error": { "message": "Missing ground truth labels" }
+}

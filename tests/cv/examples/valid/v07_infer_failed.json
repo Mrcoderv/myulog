@@ -1,0 +1,14 @@
+{
+  "phase": "inference",
+  "model_name": "yolov5",
+  "dataset_id": "coco_val",
+  "image_count": 2000,
+  "metrics": {
+    "mAP": 0.45
+  },
+  "latency_ms": 55.3,
+  "batch_size": 8,
+  "hardware": { "device": "GPU", "memory_gb": 12 },
+  "result": "failure",
+  "error": { "message": "Corrupted input images detected" }
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "training",
+  "model_name": "resnet50_v2",
+  "dataset_id": "imagenet_train",
+  "image_count": 10000,
+  "metrics": {
+    "loss": 0.45,
+    "accuracy": 0.82
+  },
+  "latency_ms": 120.5,
+  "batch_size": 32,
+  "hardware": {
+    "device": "GPU",
+    "memory_gb": 16
+  },
+  "result": "failure",
+  "error": {
+    "message": "Out of memory error during training."
+  }
+}

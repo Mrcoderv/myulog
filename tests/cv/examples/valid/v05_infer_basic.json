@@ -1,0 +1,13 @@
+{
+  "phase": "inference",
+  "model_name": "vit_base",
+  "dataset_id": "imagenet_val",
+  "image_count": 5000,
+  "metrics": {
+    "accuracy": 0.81
+  },
+  "latency_ms": 35.5,
+  "batch_size": 32,
+  "hardware": { "device": "GPU", "memory_gb": 16 },
+  "result": "success"
+}

@@ -1,0 +1,10 @@
+{
+  "phase": "training",
+  "model_name": "resnet50_v2",
+  "dataset_id": "imagenet_v2",
+  "image_count": 1000,
+  "latency_ms": 120,
+  "batch_size": 32,
+  "hardware": { "device": "GPU", "memory_gb": 16 },
+  "result": "success"
+}
