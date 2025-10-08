@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Computer Vision Log Entry",
+  "description": "Schema for standardized telemetry logs across training, inference, and evaluation phases of computer vision workflows.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "phase": {
+      "type": "string",
+      "description": "Phase of the CV lifecycle that generated this log entry.",
+      "enum": ["training", "inference", "evaluation"]
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Name or versioned identifier of the model (e.g., 'resnet50_v2').",
+      "minLength": 1
+    },
+    "dataset_id": {
+      "type": "string",
+      "description": "Identifier of the dataset used (e.g., 'imagenet_v2', 'coco_train').",
+      "minLength": 1
+    },
+    "image_count": {
+      "type": "integer",
+      "description": "Number of images processed during this run or batch.",
+      "minimum": 1
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Object containing phase-specific performance metrics.",
+      "properties": {
+        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "loss": { "type": "number", "minimum": 0 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "f1_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mAP": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Average per-batch latency measured in milliseconds.",
+      "minimum": 0
+    },
+    "batch_size": {
+      "type": "integer",
+      "description": "Number of images per batch during the process.",
+      "minimum": 1
+    },
+    "hardware": {
+      "type": "object",
+      "description": "Hardware configuration used for this phase.",
+      "additionalProperties": false,
+      "properties": {
+        "device": {
+          "type": "string",
+          "description": "Processing device used (e.g., GPU, CPU, TPU).",
+          "enum": ["CPU", "GPU", "TPU"]
+        },
+        "memory_gb": {
+          "type": "number",
+          "description": "Available memory for the process in gigabytes.",
+          "minimum": 0
+        }
+      },
+      "required": ["device", "memory_gb"]
+    },
+    "result": {
+      "type": "string",
+      "description": "Overall outcome of the phase execution.",
+      "enum": ["success", "partial", "failure"]
+    },
+    "error": {
+      "type": "object",
+      "description": "Error details required when the result is 'failure'.",
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message describing the issue.",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": ["message"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the log entry in ISO 8601 format."
+    }
+  },
+  "required": [
+    "phase",
+    "model_name",
+    "dataset_id",
+    "image_count",
+    "metrics",
+    "latency_ms",
+    "batch_size",
+    "hardware",
+    "result"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "result": { "enum": ["failure"] } },
+        "required": ["result"]
+      },
+      "then": { "required": ["error"] }
+    }
+  ]
+}
