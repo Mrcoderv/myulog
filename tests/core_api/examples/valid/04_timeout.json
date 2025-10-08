@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-10-08T16:45:30.000Z",
+  "service": "data-pipeline",
+  "endpoint": "/api/process-batch",
+  "action": "POST",
+  "request_id": "req_batch_123",
+  "result": "timeout",
+  "latency_ms": 30000,
+  "env": "production",
+  "http_status": 504,
+  "error": {
+    "code": "UPSTREAM_TIMEOUT",
+    "message": "Database query exceeded 30s timeout"
+  },
+  "metadata": {
+    "upstream_services": ["postgresql", "redis"],
+    "retry_count": "3"
+  }
+}

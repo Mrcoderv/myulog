@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-08T15:00:15.789Z",
+  "service": "auth-api",
+  "endpoint": "/v1/auth/login",
+  "action": "POST",
+  "request_id": "req_auth_001",
+  "result": "error",
+  "latency_ms": 12.3,
+  "env": "production",
+  "http_status": 401,
+  "error": {
+    "code": "AUTH_INVALID_CREDENTIALS",
+    "message": "Invalid username or password"
+  }
+}

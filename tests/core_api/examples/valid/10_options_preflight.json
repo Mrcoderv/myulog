@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-08T22:00:00.000Z",
+  "service": "api-gateway",
+  "endpoint": "/v1/users",
+  "action": "OPTIONS",
+  "request_id": "req_preflight_001",
+  "result": "success",
+  "latency_ms": 1.2,
+  "env": "production",
+  "http_status": 204
+}

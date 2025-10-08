@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-08T14:23:45.123Z",
+  "service": "user-service",
+  "endpoint": "/v1/users/123",
+  "action": "GET",
+  "request_id": "req_abc123",
+  "result": "success",
+  "latency_ms": 45.2,
+  "env": "production",
+  "http_status": 200
+}

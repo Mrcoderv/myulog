@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-08T12:00:00.000Z",
+  "service": "payment-service",
+  "endpoint": "/v1/payments",
+  "action": "POST",
+  "request_id": "req_payment_test",
+  "result": "success",
+  "latency_ms": 234.5,
+  "env": "staging",
+  "http_status": 200
+}

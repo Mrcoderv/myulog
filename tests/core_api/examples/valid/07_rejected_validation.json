@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-08T13:30:00.000Z",
+  "service": "validation-api",
+  "endpoint": "/v1/validate",
+  "action": "POST",
+  "request_id": "req_validate_001",
+  "result": "rejected",
+  "latency_ms": 5.2,
+  "env": "production",
+  "http_status": 400,
+  "error": {
+    "code": "INVALID_INPUT_FORMAT",
+    "message": "Required field 'email' missing or malformed"
+  }
+}

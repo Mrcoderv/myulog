@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-08T14:30:00.000Z",
+  "service": "content-api",
+  "endpoint": "/v1/posts",
+  "action": "POST",
+  "request_id": "req_post_xyz",
+  "result": "success",
+  "latency_ms": 123.7,
+  "env": "production",
+  "http_status": 201,
+  "metadata": {
+    "client_id": "mobile-ios-v3.2",
+    "request_size_bytes": "2048"
+  }
+}

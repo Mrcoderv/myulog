@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-08T18:00:00.000Z",
+  "service": "scheduler",
+  "endpoint": "/internal/cleanup-jobs",
+  "action": "INTERNAL",
+  "request_id": "req_sched_789",
+  "result": "success",
+  "latency_ms": 8567.4,
+  "env": "production"
+}

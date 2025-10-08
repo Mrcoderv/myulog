@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-10-09T00:00:00.000Z",
+  "service": "orchestrator",
+  "endpoint": "/v1/workflows/execute",
+  "action": "POST",
+  "request_id": "req_workflow_001",
+  "result": "success",
+  "latency_ms": 5432.1,
+  "env": "production",
+  "http_status": 200,
+  "metadata": {
+    "client_id": "automation-bot-v1",
+    "region": "us-east-1",
+    "upstream_services": ["database", "cache", "ml-model"],
+    "workflow_id": "wf_12345",
+    "priority": "high"
+  }
+}

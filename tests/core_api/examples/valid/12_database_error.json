@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-10-09T01:00:00.000Z",
+  "service": "data-api",
+  "endpoint": "/v1/analytics/report",
+  "action": "POST",
+  "request_id": "req_report_456",
+  "result": "error",
+  "latency_ms": 15234.5,
+  "env": "production",
+  "http_status": 500,
+  "error": {
+    "code": "DB_CONNECTION_FAILED",
+    "message": "Unable to establish connection to primary database after 3 retries"
+  },
+  "metadata": {
+    "retry_count": "3",
+    "upstream_services": ["postgresql"]
+  }
+}

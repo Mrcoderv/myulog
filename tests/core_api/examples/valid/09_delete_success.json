@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-08T21:00:00.000Z",
+  "service": "resource-manager",
+  "endpoint": "/v1/resources/old-data",
+  "action": "DELETE",
+  "request_id": "req_delete_001",
+  "result": "success",
+  "latency_ms": 456.7,
+  "env": "production",
+  "http_status": 204
+}
