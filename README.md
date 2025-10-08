@@ -32,7 +32,7 @@ The LLM Interaction Contract Schema defines the JSON structure for logging inter
 
 **Note:** `error_log` is not required but, if present, each entry should include error_type, message, and timestamp.
 
-### 🧩 PII & Anonymization Policy
+###  PII & Anonymization Policy
 
 Logs must **not** include personally identifiable information (PII) or sensitive text content.  
 If a prompt or response might contain private data:
