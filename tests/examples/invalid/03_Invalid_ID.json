@@ -1,0 +1,16 @@
+{
+  "log_id": 13,
+  "log_timestamp": "2025-10-07T12:12:00Z",
+  "model": "grok",
+  "prompt": {
+    "prompt_id": "prompt-013",
+    "input_tokens": 10,
+    "prompt_text": "Test"
+  },
+  "result": {
+    "result_id": "result-013",
+    "response_text": "Test response",
+    "output_tokens": 2,
+    "latency_ms": 40
+  }
+}

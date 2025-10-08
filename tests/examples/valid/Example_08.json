@@ -1,0 +1,17 @@
+{
+  "log_id": "log-008",
+  "log_timestamp": "2025-10-07T12:07:00Z",
+  "model": "gemini-2.5-flash",
+  "prompt": {
+    "prompt_id": "prompt-008",
+    "input_tokens": 30,
+    "prompt_text": "What is 2 x 10"
+  },
+  "result": {
+    "result_id": "result-008",
+    "response_text": "2 times 10 is 20",
+    "output_tokens": 11,
+    "latency_ms": 180,
+    "finish_reason": "stop"
+  }
+}

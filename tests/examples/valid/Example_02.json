@@ -1,0 +1,23 @@
+{
+  "log_id": "log-002",
+  "log_timestamp": "2025-10-07T12:01:00Z",
+  "model": "gpt-4",
+  "prompt": {
+    "prompt_id": "prompt-002",
+    "input_tokens": 20,
+    "prompt_text": "Translate to French.",
+    "parameters": {
+      "temperature": 0.5,
+      "top_p": 1.0,
+      "max_tokens": 50,
+      "stop_sequences": []
+    }
+  },
+  "result": {
+    "result_id": "result-002",
+    "response_text": "Ceci est la traduction.",
+    "output_tokens": 5,
+    "latency_ms": 200,
+    "finish_reason": "stop"
+  }
+}

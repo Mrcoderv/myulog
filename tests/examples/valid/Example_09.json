@@ -1,0 +1,17 @@
+{
+  "log_id": "log-009",
+  "log_timestamp": "2025-10-07T12:08:00Z",
+  "model": "llama",
+  "prompt": {
+    "prompt_id": "prompt-009",
+    "input_tokens": 10,
+    "prompt_text": "How did the stock market perform in the last week?"
+  },
+  "result": {
+    "result_id": "result-009",
+    "response_text": "The stock market rose in the last week.",
+    "output_tokens": 6,
+    "latency_ms": 90,
+    "finish_reason": "stop"
+  }
+}

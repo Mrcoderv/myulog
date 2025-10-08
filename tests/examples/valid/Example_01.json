@@ -1,0 +1,26 @@
+{
+  "log_id": "log-001",
+  "log_timestamp": "2025-10-07T12:00:00Z",
+  "model": "gpt-5-mini",
+  "prompt": {
+    "prompt_id": "prompt-001",
+    "input_tokens": 12,
+    "prompt_text": "Define capricious.",
+    "parameters": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "max_tokens": 100,
+      "stop_sequences": ["\n"]
+    }
+  },
+  "result": {
+    "result_id": "result-001",
+    "response_text": "Capricious means given to sudden and unaccountable changes in mood or behavior.",
+    "output_tokens": 20,
+    "latency_ms": 123.45,
+    "finish_reason": "stop",
+    "model_quality_flags": [],
+    "safety_flags": []
+  },
+  "error_log": []
+}
