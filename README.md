@@ -32,15 +32,18 @@ The LLM Interaction Contract Schema defines the JSON structure for logging inter
 
 **Note:** `error_log` is not required but, if present, each entry should include error_type, message, and timestamp.
 
-PII & Anonymization Policy 
+### 🧩 PII & Anonymization Policy
 
-Logs must not include personally identifiable information (PII) or sensitive text content.
+Logs must **not** include personally identifiable information (PII) or sensitive text content.  
 If a prompt or response might contain private data:
-	•	Truncate long text to a short snippet.
-	•	Redact or mask names, emails, IDs, or confidential values.
-	•	Optionally include a small note field such as
-"anonymization_note": "truncated 200 chars" to record that redaction was applied.
-Example of a privacy-safe log entry:
+
+- **Truncate** long text to a short snippet.  
+- **Redact** or mask names, emails, IDs, or confidential values.  
+- Optionally include a small note field such as  
+  `"anonymization_note": "truncated 200 chars"` to record that redaction was applied.
+
+#### Example — Privacy-safe log entry
+```json
 {
   "log_id": "11111111-1111-4111-8111-111111111111",
   "log_timestamp": "2025-10-08T09:00:00Z",
