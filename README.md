@@ -3,7 +3,7 @@ ULog is an initiative to standardize and make actionable the telemetry generated
 
 ## Schemas
 
-### Agentic Contract Schema (`schemas/agentic_contract.json`)
+### Agentic Contract Schema (`schemas/agentic.schema.json`)
 
 The **Agentic Contract Schema** defines a deterministic JSON structure for logging multi-step agent workflows.  
 It ensures that every step in an agentic process — tools, inputs, outputs, timing, and outcomes — can be traced from start to finish.

@@ -2,13 +2,14 @@ import json
 import pathlib
 import pytest
 from conftest import json_files
+from conftest import AGENTIC_SCHEMA
 
 EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples" / "valid"
 
 @pytest.mark.parametrize("path", json_files(EXAMPLES_DIR), ids=lambda p: p.name)
 def test_valid_examples(schema_validator, path: pathlib.Path):
     """Each valid JSON file should pass schema validation."""
-    validator = schema_validator("agentic_contract.json")
+    validator = schema_validator(AGENTIC_SCHEMA)
     instance = json.loads(path.read_text(encoding="utf-8"))
 
     try:

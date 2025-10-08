@@ -3,6 +3,7 @@ import pathlib
 import pytest
 from jsonschema import Draft7Validator
 
+AGENTIC_SCHEMA = "agentic.schema.json"
 
 @pytest.fixture(scope="session")
 def schema_validator():
