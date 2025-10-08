@@ -20,6 +20,11 @@
       "description": "Identifier of the dataset used (e.g., 'imagenet_v2', 'coco_train').",
       "minLength": 1
     },
+    "run_id": {
+    "type": "string",
+    "description": "Unique identifier for this CV run or job instance (e.g., UUID).",
+    "minLength": 1
+    },
     "image_count": {
       "type": "integer",
       "description": "Number of images processed during this run or batch.",
@@ -57,8 +62,14 @@
         "device": {
           "type": "string",
           "description": "Processing device used (e.g., GPU, CPU, TPU).",
-          "enum": ["CPU", "GPU", "TPU"]
+          "enum": ["CPU", "GPU", "TPU", "Jetson", "ASIC"]
         },
+        "framework": {
+        "type": "string",
+        "description": "Deep learning framework used for model training or inference.",
+        "enum": ["PyTorch", "TensorFlow", "ONNX", "Keras", "OpenVINO"]
+        },
+
         "memory_gb": {
           "type": "number",
           "description": "Available memory for the process in gigabytes.",
