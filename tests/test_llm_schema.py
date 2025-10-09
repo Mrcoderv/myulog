@@ -14,7 +14,7 @@ def load_json_files_from_folder(folder_path):
     return [json.load(file.open("r")) for file in folder.glob("*.json")]
 
 # Load examples
-EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples"
+EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples"/"llm"
 VALID_EXAMPLES = load_json_files_from_folder(EXAMPLES_DIR / "valid")
 INVALID_EXAMPLES = load_json_files_from_folder(EXAMPLES_DIR / "invalid")
 
