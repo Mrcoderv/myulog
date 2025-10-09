@@ -1,3 +1,11 @@
+[tool.ruff]
 line-length = 100
-target-version = "py311"
-select = ["E","F","I"]  # pycodestyle, pyflakes, isort
+target-version = "py310"   # safe for matrix 3.10–3.12
+src = ["src", "tests"]     # <-- let Ruff know where your code lives
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]   # pycodestyle, pyflakes, isort(imports)
+
+[tool.ruff.lint.isort]
+known-first-party = ["ulog"]   # <-- tell isort that 'ulog' is your package
+force-sort-within-sections = true
