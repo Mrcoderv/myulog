@@ -1,11 +1,17 @@
-[tool.ruff]
+# ruff.toml (top-level keys only)
 line-length = 100
-target-version = "py310"   # safe for matrix 3.10–3.12
-src = ["src", "tests"]     # <-- let Ruff know where your code lives
+target-version = "py310"   # good for 3.10–3.12 matrix
+src = ["src", "tests"]     # tell Ruff where your code lives
 
-[tool.ruff.lint]
-select = ["E", "F", "I"]   # pycodestyle, pyflakes, isort(imports)
+[lint]
+# E: pycodestyle, F: pyflakes, I: isort(import organization)
+select = ["E", "F", "I"]
 
-[tool.ruff.lint.isort]
-known-first-party = ["ulog"]   # <-- tell isort that 'ulog' is your package
+[lint.isort]
+# Mark 'ulog' as first-party so import grouping is correct
+known-first-party = ["ulog"]
 force-sort-within-sections = true
+
+# OPTIONAL: if you ever want to relax imports in tests only, uncomment:
+# [lint.per-file-ignores]
+# "tests/*" = ["I001"]
