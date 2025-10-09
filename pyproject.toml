@@ -1,0 +1,26 @@
+[project]
+name = "ulog"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "timhazed",email = "thayes@oldzinsoftware.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jsonschema (>=4.25.1,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+jsonschema = "^4.25.1"
+pytest = "^8.4.2"
+pytest-cov = "^7.0.0"
+ruff = "^0.14.0"
+mypy = "^1.18.2"
+types-jsonschema = "^4.25.1.20251009"
+

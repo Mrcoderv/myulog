@@ -1,0 +1,241 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/schemas/rules.schema.json",
+    "title": "Deterministic Rules (first-match-wins)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "rules_version",
+      "rules"
+    ],
+    "properties": {
+      "rules_version": {
+        "type": "string",
+        "pattern": "^v\\d+(\\.\\d+){0,2}$",
+        "description": "Semantic version of the ruleset (e.g., v1.0.0)."
+      },
+      "aliases": {
+        "type": "object",
+        "description": "Optional field alias mapping for schema-independent rule logic.",
+        "patternProperties": {
+          "^@.*$": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "default_action": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "enum": [
+              "info",
+              "warn",
+              "error"
+            ],
+            "description": "Severity level from the controlled vocabulary. info = low urgency, warn = needs attention, error = failure condition."
+          },
+          "category": {
+            "enum": [
+              "auth","network","data","model","service",
+              "system","storage","scheduler","deployment",
+              "security","third_party"
+            ],
+            "description": "Domain category from the controlled vocabulary describing the subsystem or concern area."
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "failure"
+            ],
+            "description": "Final disposition of the event according to the controlled vocabulary."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "rules": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/rule"
+        }
+      }
+    },
+    "$defs": {
+      "rule": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "when",
+          "then"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "minLength": 3
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "applies_to": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "computer_vision",
+                "agentic",
+                "llm",
+                "core_api"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "when": {
+            "$ref": "#/$defs/condition"
+          },
+          "then": {
+            "$ref": "#/$defs/action"
+          }
+        }
+      },
+      "condition": {
+        "type": "object",
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": [
+              "all"
+            ]
+          },
+          {
+            "required": [
+              "any"
+            ]
+          },
+          {
+            "required": [
+              "not"
+            ]
+          },
+          {
+            "required": [
+              "field",
+              "op"
+            ]
+          },
+          {
+            "required": [
+              "field_any",
+              "op"
+            ]
+          }
+        ],
+        "properties": {
+          "all": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/condition"
+            }
+          },
+          "any": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/condition"
+            }
+          },
+          "not": {
+            "$ref": "#/$defs/condition"
+          },
+          "field": {
+            "type": "string"
+          },
+          "field_any": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "op": {
+            "enum": [
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "in",
+              "nin",
+              "exists",
+              "regex",
+              "contains",
+              "starts_with",
+              "ends_with"
+            ]
+          },
+          "value": {}
+        }
+      },
+      "action": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "level": {
+            "enum": [
+              "info",
+              "warn",
+              "error"
+            ],
+            "description": "Severity level from the controlled vocabulary. info = low urgency, warn = needs attention, error = failure condition."
+          },
+          "category": {
+            "enum": [
+              "auth","network","data","model","service",
+              "system","storage","scheduler","deployment",
+              "security","third_party"
+            ],
+            "description": "Domain category from the controlled vocabulary describing the subsystem or concern area."
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "failure"
+            ],
+            "description": "Final disposition of the event according to the controlled vocabulary."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  }

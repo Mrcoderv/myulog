@@ -1,0 +1,9 @@
+{
+  "level": "info",
+  "category": "system",
+  "outcome": "failure",
+  "tags": [
+    "no_trace_id"
+  ],
+  "_rule_id": "all-missing-trace"
+}

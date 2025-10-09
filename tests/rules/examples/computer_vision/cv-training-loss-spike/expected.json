@@ -1,0 +1,10 @@
+{
+  "level": "warn",
+  "category": "model",
+  "outcome": "failure",
+  "tags": [
+    "cv",
+    "loss_spike"
+  ],
+  "_rule_id": "cv-training-loss-spike"
+}

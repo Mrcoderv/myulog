@@ -1,0 +1,10 @@
+{
+  "level": "error",
+  "category": "network",
+  "outcome": "failure",
+  "tags": [
+    "llm",
+    "rate_limit"
+  ],
+  "_rule_id": "llm-rate-limited"
+}

@@ -1,0 +1,10 @@
+{
+  "level": "error",
+  "category": "model",
+  "outcome": "failure",
+  "tags": [
+    "cv",
+    "map_low"
+  ],
+  "_rule_id": "cv-inference-map-low"
+}

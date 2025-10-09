@@ -1,0 +1,10 @@
+{
+  "level": "warn",
+  "category": "data",
+  "outcome": "failure",
+  "tags": [
+    "core_api",
+    "conflict"
+  ],
+  "_rule_id": "api-conflict-error"
+}

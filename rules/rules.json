@@ -1,0 +1,475 @@
+{
+    "rules_version": "v1.0.0",
+    "aliases": {
+      "@status": [
+        "status",
+        "result"
+      ],
+      "@latency": [
+        "latency_ms",
+        "duration_ms"
+      ],
+      "@errorCode": [
+        "error.code",
+        "response.status"
+      ]
+    },
+    "default_action": {
+      "level": "info",
+      "category": "system",
+      "outcome": "success",
+      "tags": []
+    },
+    "rules": [
+      {
+        "rule_id": "llm-safety-flag-critical",
+        "version": "1.0.0",
+        "name": "LLM safety flag violation",
+        "applies_to": [
+          "llm"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "safety_flags",
+              "op": "exists"
+            },
+            {
+              "field": "safety_flags",
+              "op": "contains",
+              "value": "policy_violation"
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "security",
+          "outcome": "failure",
+          "tags": [
+            "llm",
+            "safety"
+          ]
+        }
+      },
+      {
+        "rule_id": "llm-token-budget-exceeded",
+        "version": "1.0.0",
+        "name": "LLM token budget exceeded",
+        "applies_to": [
+          "llm"
+        ],
+        "when": {
+          "any": [
+            {
+              "field": "input_tokens",
+              "op": "gt",
+              "value": 8000
+            },
+            {
+              "field": "output_tokens",
+              "op": "gt",
+              "value": 8000
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "service",
+          "outcome": "failure",
+          "tags": [
+            "llm",
+            "token_budget"
+          ]
+        }
+      },
+      {
+        "rule_id": "llm-rate-limited",
+        "version": "1.0.0",
+        "name": "LLM provider rate limited",
+        "applies_to": [
+          "llm"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "@status",
+              "op": "eq",
+              "value": "failed"
+            },
+            {
+              "field": "@errorCode",
+              "op": "eq",
+              "value": 429
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "network",
+          "outcome": "failure",
+          "tags": [
+            "llm",
+            "rate_limit"
+          ]
+        }
+      },
+      {
+        "rule_id": "api-5xx-critical",
+        "version": "1.0.0",
+        "name": "Backend 5xx error critical",
+        "applies_to": [
+          "core_api"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "@errorCode",
+              "op": "gte",
+              "value": 500
+            },
+            {
+              "field": "@status",
+              "op": "eq",
+              "value": "failed"
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "service",
+          "outcome": "failure",
+          "tags": [
+            "core_api",
+            "5xx"
+          ]
+        }
+      },
+      {
+        "rule_id": "api-unauthorized",
+        "version": "1.0.0",
+        "name": "Unauthorized or forbidden",
+        "applies_to": [
+          "core_api"
+        ],
+        "when": {
+          "any": [
+            {
+              "field": "@errorCode",
+              "op": "eq",
+              "value": 401
+            },
+            {
+              "field": "@errorCode",
+              "op": "eq",
+              "value": 403
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "auth",
+          "outcome": "failure",
+          "tags": [
+            "core_api",
+            "authz"
+          ]
+        }
+      },
+      {
+        "rule_id": "api-conflict-error",
+        "version": "1.0.0",
+        "name": "Idempotency or version conflict",
+        "applies_to": [
+          "core_api"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "@status",
+              "op": "eq",
+              "value": "failed"
+            },
+            {
+              "field": "@errorCode",
+              "op": "eq",
+              "value": 409
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "data",
+          "outcome": "failure",
+          "tags": [
+            "core_api",
+            "conflict"
+          ]
+        }
+      },
+      {
+        "rule_id": "cv-training-loss-spike",
+        "version": "1.0.0",
+        "name": "CV training loss spike",
+        "applies_to": [
+          "computer_vision"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "phase",
+              "op": "eq",
+              "value": "training"
+            },
+            {
+              "field": "metrics.loss",
+              "op": "gt",
+              "value": 5.0
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "model",
+          "outcome": "failure",
+          "tags": [
+            "cv",
+            "loss_spike"
+          ]
+        }
+      },
+      {
+        "rule_id": "cv-inference-map-low",
+        "version": "1.0.0",
+        "name": "CV inference mAP below SLO",
+        "applies_to": [
+          "computer_vision"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "phase",
+              "op": "eq",
+              "value": "inference"
+            },
+            {
+              "field": "metrics.mAP",
+              "op": "lt",
+              "value": 0.3
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "model",
+          "outcome": "failure",
+          "tags": [
+            "cv",
+            "map_low"
+          ]
+        }
+      },
+      {
+        "rule_id": "cv-evaluation-map50_95-low",
+        "version": "1.0.0",
+        "name": "CV evaluation mAP50-95 low",
+        "applies_to": [
+          "computer_vision"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "phase",
+              "op": "eq",
+              "value": "evaluation"
+            },
+            {
+              "field": "metrics.mAP_50_95",
+              "op": "lt",
+              "value": 0.2
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "model",
+          "outcome": "failure",
+          "tags": [
+            "cv",
+            "map50_95_low"
+          ]
+        }
+      },
+      {
+        "rule_id": "agentic-planner-long-running",
+        "version": "1.0.0",
+        "name": "Agentic planner long-running",
+        "applies_to": [
+          "agentic"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "tool_name",
+              "op": "eq",
+              "value": "planner"
+            },
+            {
+              "field": "status",
+              "op": "eq",
+              "value": "running"
+            },
+            {
+              "field": "duration_ms",
+              "op": "gte",
+              "value": 60000
+            }
+          ]
+        },
+        "then": {
+          "level": "info",
+          "category": "scheduler",
+          "outcome": "failure",
+          "tags": [
+            "agentic",
+            "planner_long_run"
+          ]
+        }
+      },
+      {
+        "rule_id": "agentic-search-slow",
+        "version": "1.0.0",
+        "name": "Agentic search slow success",
+        "applies_to": [
+          "agentic"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "tool_name",
+              "op": "regex",
+              "value": "^search"
+            },
+            {
+              "field": "status",
+              "op": "eq",
+              "value": "succeeded"
+            },
+            {
+              "field": "duration_ms",
+              "op": "gte",
+              "value": 1500
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "service",
+          "outcome": "failure",
+          "tags": [
+            "agentic",
+            "search"
+          ]
+        }
+      },
+      {
+        "rule_id": "agentic-failed-missing-error",
+        "version": "1.0.0",
+        "name": "Agentic failed without error details",
+        "applies_to": [
+          "agentic"
+        ],
+        "when": {
+          "all": [
+            {
+              "field": "status",
+              "op": "eq",
+              "value": "failed"
+            },
+            {
+              "not": {
+                "field": "error",
+                "op": "exists"
+              }
+            }
+          ]
+        },
+        "then": {
+          "level": "warn",
+          "category": "data",
+          "outcome": "failure",
+          "tags": [
+            "agentic",
+            "missing_error"
+          ]
+        }
+      },
+      {
+        "rule_id": "all-failure-high",
+        "version": "1.0.0",
+        "name": "Universal failure",
+        "when": {
+          "any": [
+            {
+              "field": "@status",
+              "op": "eq",
+              "value": "failed"
+            },
+            {
+              "field": "@errorCode",
+              "op": "gte",
+              "value": 500
+            }
+          ]
+        },
+        "then": {
+          "level": "error",
+          "category": "service",
+          "outcome": "failure",
+          "tags": [
+            "failed"
+          ]
+        }
+      },
+      {
+        "rule_id": "all-latency-anomalous-2s",
+        "version": "1.0.0",
+        "name": "Latency > 2s",
+        "when": {
+          "field": "@latency",
+          "op": "gte",
+          "value": 2000
+        },
+        "then": {
+          "level": "warn",
+          "category": "service",
+          "outcome": "failure",
+          "tags": [
+            "latency>2s"
+          ]
+        }
+      },
+      {
+        "rule_id": "all-missing-trace",
+        "version": "1.0.0",
+        "name": "Missing trace identifier",
+        "when": {
+          "not": {
+            "field_any": [
+              "context.trace_id",
+              "traceId",
+              "tracing.id"
+            ],
+            "op": "exists"
+          }
+        },
+        "then": {
+          "level": "info",
+          "category": "system",
+          "outcome": "failure",
+          "tags": [
+            "no_trace_id"
+          ]
+        }
+      }
+    ]
+  }

@@ -1,0 +1,9 @@
+{
+  "level": "error",
+  "category": "service",
+  "outcome": "failure",
+  "tags": [
+    "failed"
+  ],
+  "_rule_id": "all-failure-high"
+}

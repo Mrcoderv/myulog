@@ -1,0 +1,10 @@
+{
+  "level": "warn",
+  "category": "service",
+  "outcome": "failure",
+  "tags": [
+    "llm",
+    "token_budget"
+  ],
+  "_rule_id": "llm-token-budget-exceeded"
+}

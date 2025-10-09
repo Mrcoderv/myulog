@@ -1,0 +1,6 @@
+{
+  "schema_id": "agentic",
+  "tool_name": "search_web",
+  "status": "succeeded",
+  "duration_ms": 2000
+}

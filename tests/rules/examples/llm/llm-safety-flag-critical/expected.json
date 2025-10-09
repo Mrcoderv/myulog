@@ -1,0 +1,10 @@
+{
+  "level": "error",
+  "category": "security",
+  "outcome": "failure",
+  "tags": [
+    "llm",
+    "safety"
+  ],
+  "_rule_id": "llm-safety-flag-critical"
+}
