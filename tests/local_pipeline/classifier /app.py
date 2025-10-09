@@ -6,9 +6,9 @@ This proves the local volumes + container wiring work for newcomers.
 """
 
 import os
+from pathlib import Path
 import shutil
 import sys
-from pathlib import Path
 
 IN_DIR = Path(os.getenv("IN_DIR", "/in"))
 OUT_DIR = Path(os.getenv("OUT_DIR", "/out"))
