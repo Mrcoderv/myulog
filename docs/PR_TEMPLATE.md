@@ -1,3 +1,5 @@
+<!-- This document mirrors .github/pull_request_template.md. Keep them in sync. -->
+
 # Pull Request
 
 **Title:** <concise summary>  
@@ -21,5 +23,6 @@
 - **Docs updated:** ☐ VERSIONING ☐ CHANGE_PROCESS ☐ RELEASE_NOTES_TEMPLATE ☐ CONTRIBUTING
 
 ## Checklist
+- [ ] I applied the appropriate `semver:major|minor|patch` label.
 - [ ] I confirm rule order did not change existing outcomes unless MAJOR.
 - [ ] I recorded a decision entry in `docs/DECISIONS_LOG.md` (or will upon merge).

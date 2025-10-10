@@ -1,5 +1,7 @@
 # CONTRIBUTING
 
+**Quick links:** [VERSIONING](./VERSIONING.md) · [CHANGE_PROCESS](./CHANGE_PROCESS.md)
+
 ## How we review (1 page)
 
 **Principles:** correctness, determinism, simplicity, privacy (synthetic-only).
