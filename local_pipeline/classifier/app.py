@@ -17,7 +17,7 @@ def main() -> int:
     IN_DIR.mkdir(parents=True, exist_ok=True)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    files = [p for p in IN_DIR.iterdir() if p.is_file()]
+    files = [p for p in IN_DIR.iterdir() if p.is_file() and not p.name.startswith(".")]
     if not files:
         print("classifier: no files found in /in. Tip: run `make generate`.", flush=True)
         return 0
