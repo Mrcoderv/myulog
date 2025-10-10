@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-09T12:36:00Z",
+  "request_id": "req_abc126",
+  "service": "auth-service",
+  "endpoint": "/v1/login",
+  "action": "POST",
+  "result": "error",
+  "latency_ms": 90,
+  "env": "production",
+  "http_status": 401,
+  "error": {
+    "message": "Invalid username or password"
+  }
+}

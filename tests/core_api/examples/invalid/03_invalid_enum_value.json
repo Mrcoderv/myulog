@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-09T12:35:10Z",
+  "request_id": "req_abc124",
+  "service": "auth-service",
+  "endpoint": "/v1/login",
+  "action": "POST",
+  "result": "partial_success",
+  "latency_ms": 80,
+  "env": "production"
+}

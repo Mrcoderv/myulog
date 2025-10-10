@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-09T12:42:00Z",
+  "request_id": "req_12345",
+  "service": "order-service",
+  "endpoint": "/v1/orders/23",
+  "action": "POST",
+  "result": "success",
+  "latency_ms": -45,
+  "env": "staging"
+}

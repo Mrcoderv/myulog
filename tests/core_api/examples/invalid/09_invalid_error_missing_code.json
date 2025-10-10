@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-10-09T12:45:00Z",
+  "request_id": "req_23456",
+  "service": "auth-service",
+  "endpoint": "/v1/login",
+  "action": "POST",
+  "result": "error",
+  "latency_ms": 120,
+  "env": "production",
+  "error": {
+    "message": "Invalid credentials"
+  }
+}

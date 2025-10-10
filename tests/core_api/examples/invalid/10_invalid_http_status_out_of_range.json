@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-09T12:46:00Z",
+  "request_id": "req_98765",
+  "service": "billing-service",
+  "endpoint": "/v1/invoice",
+  "action": "POST",
+  "result": "success",
+  "latency_ms": 300,
+  "env": "staging",
+  "http_status": 700
+}

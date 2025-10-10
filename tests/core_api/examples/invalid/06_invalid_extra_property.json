@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-09T12:40:00Z",
+  "request_id": "req_99999",
+  "service": "user-service",
+  "endpoint": "/v1/users/45",
+  "action": "GET",
+  "result": "success",
+  "latency_ms": 32,
+  "env": "production",
+  "extra_field": "should not exist"
+}

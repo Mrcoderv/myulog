@@ -1,0 +1,8 @@
+{
+  "service": "user-service",
+  "endpoint": "/v1/users/123",
+  "action": "GET",
+  "result": "success",
+  "latency_ms": 50,
+  "env": "staging"
+}

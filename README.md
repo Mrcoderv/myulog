@@ -85,3 +85,21 @@ Each event includes:
   }
 }
 ```
+
+#### Example 3 — schema validation error
+
+```json
+{
+  "timestamp": "2025-10-09T13:10:00Z",
+  "request_id": "req_33333",
+  "service": "payment-service",
+  "endpoint": "/v1/pay",
+  "action": "POST",
+  "result": "error",
+  "latency_ms": 300,
+  "env": "production",
+  "error": {
+    "message": "Invalid payment token"
+  }
+}
+```

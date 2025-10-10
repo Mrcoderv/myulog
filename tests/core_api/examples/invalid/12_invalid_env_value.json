@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-09T12:48:00Z",
+  "request_id": "req_22222",
+  "service": "inventory-service",
+  "endpoint": "/v1/items/stock",
+  "action": "GET",
+  "result": "success",
+  "latency_ms": 25,
+  "env": "sandbox"
+}

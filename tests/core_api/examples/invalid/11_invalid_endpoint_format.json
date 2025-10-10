@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-09T12:47:00Z",
+  "request_id": "req_11111",
+  "service": "catalog-service",
+  "endpoint": "v1/items",
+  "action": "GET",
+  "result": "success",
+  "latency_ms": 75,
+  "env": "development"
+}

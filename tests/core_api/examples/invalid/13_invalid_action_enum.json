@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-09T12:49:00Z",
+  "request_id": "req_33333",
+  "service": "search-service",
+  "endpoint": "/v1/query",
+  "action": "FETCH",
+  "result": "success",
+  "latency_ms": 110,
+  "env": "production"
+}
