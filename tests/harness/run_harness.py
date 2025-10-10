@@ -9,9 +9,8 @@ Usage: python run_harness.py
 from __future__ import annotations
 
 import json
-import os
-import sys
 from pathlib import Path
+import sys
 from typing import Tuple
 
 try:
@@ -129,7 +128,8 @@ def run() -> int:
             if schema_path is None:
                 total += 1
                 print(f"Testing {example}")
-                print(f"  - No schema found for example (expected under schemas/<name>/schema.json). Marked as failed")
+                print("  - No schema found for example; expected under schemas/<name>/schema.json")
+                print("    Marked as failed")
                 failed += 1
 
     print("\nSummary:")
