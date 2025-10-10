@@ -19,6 +19,9 @@ lint: ## Lint with ruff
 test: ## Run tests
 	@pytest -q
 
+test-harness: ## Run JSON Schema test harness
+	@python tests/harness/run_harness.py
+
 generate: ## Create a sample input file
 	@mkdir -p local_pipeline/in local_pipeline/out
 	@date > local_pipeline/in/example.log
