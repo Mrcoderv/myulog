@@ -7,7 +7,10 @@ import argparse
 
 class GenerateCVLog:
     def __init__(self,size,seed):
-        self.fields = ["phase","model_name","dataset_id","image_count","metrics","latency_ms","batch_size","hardware","result"]
+        self.fields = [
+            "phase","model_name","dataset_id","image_count",
+            "metrics","latency_ms","batch_size","hardware","result"
+            ]
         self.size = size
         self.seed = seed
 
@@ -59,8 +62,12 @@ class GenerateCVLog:
         models=["ResNet50", "VGG16", "InceptionV3", "MobileNetV2", "EfficientNetB0"]
         datasets=["ImageNet", "CIFAR-10", "COCO", "MNIST", "Pascal VOC"]
         
-        valid_logs = self.GenerateLogEntry(statuses,frameworks,devices,metrics,phases,models,datasets)
-        unvalid_logs = self.GenerateLogEntry(statuses,frameworks,devices,metrics,phases,models,datasets)
+        valid_logs = self.GenerateLogEntry(
+            statuses,frameworks,devices,metrics,phases,models,datasets
+            )
+        unvalid_logs = self.GenerateLogEntry(
+            statuses,frameworks,devices,metrics,phases,models,datasets
+        )
         for log in unvalid_logs:
             field_to_remove = self.select_eneum(self.fields)
             if field_to_remove in log:
