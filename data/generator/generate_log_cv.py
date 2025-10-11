@@ -4,8 +4,6 @@ import os
 from datetime import datetime
 from random import choice, randint, uniform
 from uuid import uuid4
-
-
 class GenerateCVLog:
     def __init__(self,size,seed):
         self.fields = [
