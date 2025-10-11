@@ -1,9 +1,10 @@
-import os
+import argparse
 import json
+import os
+from datetime import datetime
 from random import choice, randint, uniform
 from uuid import uuid4
-from datetime import datetime
-import argparse
+
 
 class GenerateCVLog:
     def __init__(self,size,seed):
