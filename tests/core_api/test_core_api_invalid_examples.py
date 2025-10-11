@@ -1,6 +1,7 @@
 import json
 import pathlib
 import pytest
+
 from jsonschema import ValidationError
 
 from conftest import json_files, CORE_API_SCHEMA
