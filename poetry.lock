@@ -161,6 +161,7 @@ description = "An implementation of JSON Schema validation for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "jsonschema-4.25.1-py3-none-any.whl", hash = "sha256:3fba0169e345c7175110351d456342c364814cfcf3b964ba4587f22915230a63"},
     {file = "jsonschema-4.25.1.tar.gz", hash = "sha256:e4a9655ce0da0c0b67a085847e00a3a51449e1157f4f75e9fb5aa545e122eb85"},
@@ -183,6 +184,7 @@ description = "The JSON Schema meta-schemas and vocabularies, exposed as a Regis
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe"},
     {file = "jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d"},
@@ -573,14 +575,14 @@ files = [
 
 [[package]]
 name = "types-jsonschema"
-version = "4.25.1.20251008"
+version = "4.25.1.20251009"
 description = "Typing stubs for jsonschema"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "types_jsonschema-4.25.1.20251008-py3-none-any.whl", hash = "sha256:5a01e1e104e3aac4f1d7ba2b1f000694297d7d63eae951213b0ebd65ee476525"},
-    {file = "types_jsonschema-4.25.1.20251008.tar.gz", hash = "sha256:f206abf739c2d84f46632b65db99474a2e3b2f651df417c491ff038022c89c10"},
+    {file = "types_jsonschema-4.25.1.20251009-py3-none-any.whl", hash = "sha256:f30b329037b78e7a60146b1146feb0b6fb0b71628637584409bada83968dad3e"},
+    {file = "types_jsonschema-4.25.1.20251009.tar.gz", hash = "sha256:75d0f5c5dd18dc23b664437a0c1a625743e8d2e665ceaf3aecb29841f3a5f97f"},
 ]
 
 [package.dependencies]
@@ -597,9 +599,8 @@ files = [
     {file = "typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"},
     {file = "typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466"},
 ]
-markers = {main = "python_version == \"3.12\""}
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.12"
-content-hash = "58a44b13071d6a985cea74afff2b36acd481545a0d6b4ceb49c66b94ec9c31c8"
+python-versions = ">=3.12,<3.13"
+content-hash = "ba4495c67c9e343ad28d1b8c6b8589db431a108a6061bfd8c122a11ed26e4553"
