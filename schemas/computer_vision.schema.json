@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Computer Vision Log Entry",
+  "description": "Expanded schema for standardized telemetry logs across all computer vision workflow phases.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "$defs": {
+    "vocab_level": { "type": "string", "enum": ["debug", "info", "warn", "error", "critical"] },
+    "vocab_outcome": { "type": "string", "enum": ["success", "partial", "failure"] }
+  },
+
+  "properties": {
+    "phase": {
+      "type": "string",
+      "enum": ["ingest", "preprocess", "inference", "postprocess", "eval", "serve", "track", "pose"],
+      "description": "Lifecycle phase of the computer vision process."
+    },
+
+    "model_name": { "type": "string", "minLength": 1 },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "image_count": { "type": "integer", "minimum": 1 },
+
+    "metrics": {
+      "type": "object",
+      "description": "Performance metrics for this phase.",
+      "properties": {
+        "fps": { "type": "number", "minimum": 0 },
+        "map": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ap": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ap50": { "type": "number", "minimum": 0, "maximum": 1 },
+        "iou": { "type": "number", "minimum": 0, "maximum": 1 },
+        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "f1_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "loss": { "type": "number", "minimum": 0 },
+        "extra": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+
+    "latency_ms": { "type": "number", "minimum": 0 },
+    "batch_size": { "type": "integer", "minimum": 1 },
+
+    "hardware": {
+      "description": "Hardware configuration used for the phase.",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "accelerator": { "type": "string" },
+            "runtime": { "type": "string" },
+            "memory_gb": { "type": "number", "minimum": 0 }
+          },
+          "required": ["accelerator", "memory_gb"],
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "meta": {
+      "type": "object",
+      "description": "Provenance metadata for parsing and source tracking.",
+      "properties": {
+        "raw_message": { "type": "string" },
+        "parse": {
+          "type": "object",
+          "properties": {
+            "parser_name": { "type": "string" },
+            "parser_version": { "type": "string" },
+            "pattern_id": { "type": "string" },
+            "ok": { "type": "boolean" }
+          },
+          "required": ["parser_name", "parser_version", "pattern_id"]
+        }
+      },
+      "required": ["raw_message", "parse"]
+    },
+
+    "level": { "$ref": "#/$defs/vocab_level" },
+    "result": { "$ref": "#/$defs/vocab_outcome" },
+
+    "error": {
+      "type": "object",
+      "properties": {
+        "message": { "type": "string", "minLength": 1, "maxLength": 4096 }
+      },
+      "required": ["message"],
+      "additionalProperties": false
+    },
+
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the log entry in ISO 8601 format."
+    }
+  },
+
+  "required": [
+    "phase",
+    "model_name",
+    "dataset_id",
+    "image_count",
+    "metrics",
+    "latency_ms",
+    "batch_size",
+    "hardware",
+    "result",
+    "meta"
+  ],
+
+  "allOf": [
+    {
+      "if": { "properties": { "result": { "const": "failure" } } },
+      "then": { "required": ["error"] }
+    }
+  ]
+}
