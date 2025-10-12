@@ -1,8 +1,8 @@
 import json
 import pathlib
-import pytest
 
 from jsonschema import Draft7Validator
+import pytest
 
 CORE_API_SCHEMA = "core_api.schema.json"
 

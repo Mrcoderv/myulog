@@ -1,9 +1,9 @@
 import json
 import pathlib
+
 import pytest
 
-from conftest import json_files
-from conftest import CORE_API_SCHEMA
+from conftest import CORE_API_SCHEMA, json_files
 
 EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples" / "valid"
 
