@@ -1,0 +1,16 @@
+{
+  "log_id": "11111111-1111-4111-8111-111111111111",
+  "log_timestamp": "2025-10-13T12:05:00Z",
+  "model": "gpt-4o",
+  "prompt": {
+    "prompt_id": "22222222-2222-4222-8222-222222222222",
+    "input_tokens": 42,
+    "prompt_text": "[SUMMARY: general QA question]"
+  },
+  "result": {
+    "result_id": "33333333-3333-4333-8333-333333333333",
+    "response_text": "[SUMMARY: helpful answer]",
+    "output_tokens": 88,
+    "latency_ms": 850
+  }
+}
