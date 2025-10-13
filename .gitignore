@@ -20,5 +20,5 @@ local_pipeline/in/*
 # OS junk
 .DS_Store
 
-# VS Code junk
+# VSCode junk
 .vscode/
