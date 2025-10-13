@@ -1,2 +1,1 @@
-line one
-line two
+{"message": "hello from raw"}

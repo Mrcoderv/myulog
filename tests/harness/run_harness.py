@@ -420,7 +420,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
         # Process example files
         example_dir = EXAMPLES_DIR / domain_name
         if example_dir.exists():
-            for example_file in sorted(example_dir.glob("*")):
+            for example_file in sorted(example_dir.glob("*.json")):
                 if example_file.is_file():
                     print(f"  🔸 Testing {example_file.name}")
                     result = process_test_case(schema, example_file, domain_name, parser)
@@ -454,7 +454,13 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                     result = process_test_case(schema, raw_file, domain_name, parser)
                     
                     if result.final_status == "PASS":
-                        print("     ✅ PASS (parsed + validated)")
+                        # Show more detail about what passed
+                        if not result.parse_result.success:
+                            print("     ✅ PASS (expected parse failure)")
+                        elif result.validation_result and not result.validation_result.success:
+                            print("     ✅ PASS (expected validation failure)")
+                        else:
+                            print("     ✅ PASS (parsed + validated)")
                     elif result.final_status == "FAIL":
                         error_msg = ""
                         if not result.parse_result.success:
