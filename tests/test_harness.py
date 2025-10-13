@@ -222,5 +222,180 @@ class TestProcessTestCase(unittest.TestCase):
             invalid_path.unlink()
 
 
+class TestEndToEnd(unittest.TestCase):
+    """End-to-end tests for the harness"""
+    
+    def test_end_to_end_with_junit_export(self):
+        """Test end-to-end: create schema+example, run harness, verify JUnit output"""
+        from run_harness import run
+        import xml.etree.ElementTree as ET
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            
+            # Create minimal schema
+            schema_dir = tmpdir / "schemas" / "testdomain"
+            schema_dir.mkdir(parents=True)
+            schema = {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {"value": {"type": "string"}},
+                "required": ["value"]
+            }
+            (schema_dir / "schema.json").write_text(json.dumps(schema))
+            
+            # Create valid example
+            examples_dir = tmpdir / "tests" / "examples" / "testdomain"
+            examples_dir.mkdir(parents=True)
+            (examples_dir / "valid1.json").write_text('{"value": "test"}')
+            
+            # Run harness with JUnit export
+            junit_output = tmpdir / "results.xml"
+            
+            # Temporarily override globals in run_harness module
+            import run_harness
+            old_schemas = run_harness.SCHEMAS_DIR
+            old_examples = run_harness.EXAMPLES_DIR
+            old_raw = run_harness.RAW_DIR
+            
+            try:
+                run_harness.SCHEMAS_DIR = tmpdir / "schemas"
+                run_harness.EXAMPLES_DIR = tmpdir / "tests" / "examples"
+                run_harness.RAW_DIR = tmpdir / "tests" / "raw"
+                
+                exit_code = run(format_type="junit", output_path=junit_output)
+                
+                # Verify exit code
+                self.assertEqual(exit_code, 0, "Expected harness to succeed")
+                
+                # Verify JUnit XML was created
+                self.assertTrue(junit_output.exists(), "JUnit XML should be created")
+                
+                # Parse and verify JUnit content
+                tree = ET.parse(junit_output)
+                root = tree.getroot()
+                self.assertEqual(root.tag, "testsuites")
+                
+                # Find testdomain suite (name is prefixed with "schema-")
+                suite = root.find(".//testsuite[@name='schema-testdomain']")
+                self.assertIsNotNone(suite, "Should have schema-testdomain suite")
+                self.assertEqual(suite.get("tests"), "1")
+                self.assertEqual(suite.get("failures"), "0")
+                
+                # Verify test case
+                testcase = suite.find("testcase")
+                self.assertIsNotNone(testcase)
+                self.assertEqual(testcase.get("name"), "valid1.json")
+                
+            finally:
+                run_harness.SCHEMAS_DIR = old_schemas
+                run_harness.EXAMPLES_DIR = old_examples
+                run_harness.RAW_DIR = old_raw
+    
+    def test_empty_raw_file_expected_fail(self):
+        """Test that empty raw file with invalid* prefix is PASS (expected parse failure)"""
+        parser = StubParser()
+        schema = {"type": "object"}
+        
+        with tempfile.NamedTemporaryFile(
+            mode='w', suffix='.txt', delete=False, prefix='invalid_'
+        ) as f:
+            # Write empty content
+            f.write("")
+            temp_path = Path(f.name)
+        
+        try:
+            result = process_test_case(schema, temp_path, "test", parser)
+            
+            # Parse should fail (empty input)
+            self.assertFalse(result.parse_result.success)
+            # But it's PASS because filename starts with 'invalid' (expected fail)
+            self.assertEqual(result.final_status, "PASS")
+            self.assertEqual(result.expected_outcome, "fail")
+        finally:
+            temp_path.unlink()
+    
+    def test_empty_raw_file_unexpected_fail(self):
+        """Test that empty raw file without invalid* prefix is FAIL (unexpected parse failure)"""
+        parser = StubParser()
+        schema = {"type": "object"}
+        
+        with tempfile.NamedTemporaryFile(
+            mode='w', suffix='.txt', delete=False, prefix='valid_'
+        ) as f:
+            # Write empty content
+            f.write("")
+            temp_path = Path(f.name)
+        
+        try:
+            result = process_test_case(schema, temp_path, "test", parser)
+            
+            # Parse should fail (empty input)
+            self.assertFalse(result.parse_result.success)
+            # It's FAIL because we expected it to pass
+            self.assertEqual(result.final_status, "FAIL")
+            self.assertEqual(result.expected_outcome, "pass")
+        finally:
+            temp_path.unlink()
+    
+    def test_json_export_shape(self):
+        """Test that JSON export has correct structure"""
+        from run_harness import export_json
+        
+        # Create sample results
+        results = [
+            TestResult(
+                file_path="test.json",
+                domain="sample",
+                test_type="valid",
+                expected_outcome="pass",
+                parse_result=ParseResult(success=True, normalized_json={"id": 1}),
+                validation_result=ValidationResult(success=True),
+                final_status="PASS"
+            )
+        ]
+        
+        metrics = calculate_metrics(results)
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            output_path = Path(f.name)
+        
+        try:
+            export_json(results, metrics, output_path)
+            
+            # Read and verify JSON structure
+            with output_path.open('r') as f:
+                data = json.load(f)
+            
+            # Verify top-level structure
+            self.assertIn("summary", data)
+            self.assertIn("domain_metrics", data)
+            self.assertIn("test_results", data)
+            
+            # Verify summary fields
+            self.assertIn("total_tests", data["summary"])
+            self.assertIn("passed", data["summary"])
+            self.assertIn("failed", data["summary"])
+            self.assertIn("skipped", data["summary"])
+            self.assertIn("raw_tests", data["summary"])
+            self.assertIn("raw_parse_ok", data["summary"])
+            self.assertIn("raw_parse_rate", data["summary"])
+            self.assertIn("timestamp", data["summary"])
+            
+            # Verify domain metrics structure
+            self.assertIn("sample", data["domain_metrics"])
+            domain = data["domain_metrics"]["sample"]
+            self.assertIn("raw_tests", domain)
+            self.assertIn("raw_parse_ok", domain)
+            self.assertIn("raw_parse_error", domain)
+            
+            # Verify test results
+            self.assertEqual(len(data["test_results"]), 1)
+            self.assertEqual(data["test_results"][0]["final_status"], "PASS")
+            
+        finally:
+            output_path.unlink()
+
+
 if __name__ == '__main__':
     unittest.main()
