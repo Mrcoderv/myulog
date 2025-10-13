@@ -293,15 +293,29 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
             f"{domain:<15} {m.total_tests:<8} {m.parse_ok:<10} {m.parse_error:<11} "
             f"{m.schema_violation:<12}"
         )
-        print(f"{row} {m.parse_rate:<12.1f}")
+        # Show parse rate for raw files only, or N/A if no raw files
+        if m.raw_tests > 0:
+            parse_rate_str = f"{m.parse_rate:<12.1f}"
+        else:
+            parse_rate_str = f"{'N/A':<12}"
+        print(f"{row} {parse_rate_str}")
     
     print("-" * len(header))
-    overall_parse_rate = (total_parse_ok / total_tests * 100) if total_tests > 0 else 0
+    
+    # Calculate total raw parse rate (raw files only)
+    total_raw_tests = sum(m.raw_tests for m in metrics.values())
+    total_raw_parse_ok = sum(m.raw_parse_ok for m in metrics.values())
+    if total_raw_tests > 0:
+        total_raw_parse_rate = (total_raw_parse_ok / total_raw_tests * 100)
+        total_parse_rate_str = f"{total_raw_parse_rate:<12.1f}"
+    else:
+        total_parse_rate_str = f"{'N/A':<12}"
+    
     total_row = (
         f"{'TOTAL':<15} {total_tests:<8} {total_parse_ok:<10} {total_parse_error:<11} "
         f"{total_schema_viol:<12}"
     )
-    print(f"{total_row} {overall_parse_rate:<12.1f}")
+    print(f"{total_row} {total_parse_rate_str}")
     
     # Test results summary
     passed = sum(1 for r in results if r.final_status == "PASS")
