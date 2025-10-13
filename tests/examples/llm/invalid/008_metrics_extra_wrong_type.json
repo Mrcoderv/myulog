@@ -1,7 +1,7 @@
 {
   "timestamp": "2025-10-11T12:03:00Z",
   "request_id": "77777777-7777-4777-8777-777777777777",
-  "model": "gpt-x-1",
+  "model": "gpt-4o-mini",
   "pipeline_stage": "inference",
   "latency_ms": 120,
   "metrics": {
@@ -9,9 +9,11 @@
     "p95_ms": 180,
     "extra": { "hist": [100, 120, 180] }
   },
-  "result": { "outcome": "success", "output_text_length": 256 },
+  "result": { "outcome": "success", "output_preview": "ok","output_text_length": 256 },
   "meta": {
     "raw_message": "inference p50=100ms p95=180ms",
     "parse": { "source": "svc", "parser": "llm-shaper@1.0.0", "ok": true }
   }
 }
+
+  
