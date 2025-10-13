@@ -1,20 +1,16 @@
 
 {
-  "log_id": "00555555-5555-4555-8555-555555555555",
-  "log_timestamp": "2025-10-11T12:00:03Z",
+  "timestamp": "2025-10-13T12:00:03Z",
+  "request_id": "44444444-4444-4444-8444-444444444444",
   "model": "gpt-4o-mini",
-  "prompt": {
-    "prompt_id": "a5a5a5a5-a5a5-45a5-85a5-a5a5a5a5a5a5",
-    "input_tokens": 12,
-    "prompt_text": "[SUMMARY: request blocked due to safety policy]",
-    "parameters": { "temperature": 0.2, "top_p": 0.9, "max_tokens": 64 }
-  },
+  "pipeline_stage": "safety_check",
+  "latency_ms": 30,
+  "safety_flags": ["dangerous_but_unknown"],
   "result": {
-    "result_id": "b5b5b5b5-b5b5-45b5-85b5-b5b5b5b5b5b5",
-    "response_text": "[SUMMARY: response blocked]",
-    "output_tokens": 0,
-    "latency_ms": 30,
+    "outcome": "blocked",
     "finish_reason": "content_filter",
-    "safety_flags": ["dangerous_but_unknown"]
-  }
+    "output_preview": "[SUMMARY: response blocked]",
+    "output_text_length": 0
+  },
+  "meta": { "raw_message": "x", "parse": { "source": "filter", "parser": "p@1", "ok": true } }
 }
