@@ -102,10 +102,10 @@ class TestDomainMetrics(unittest.TestCase):
     """Test domain metrics calculations"""
     
     def test_parse_rate_calculation(self):
-        """Test parse rate percentage calculation"""
+        """Test parse rate percentage calculation (raw inputs only)"""
         metrics = DomainMetrics(domain="test")
-        metrics.total_tests = 10
-        metrics.parse_ok = 8
+        metrics.raw_tests = 10
+        metrics.raw_parse_ok = 8
         
         self.assertEqual(metrics.parse_rate, 80.0)
     
@@ -113,6 +113,14 @@ class TestDomainMetrics(unittest.TestCase):
         """Test parse rate with zero tests"""
         metrics = DomainMetrics(domain="test")
         self.assertEqual(metrics.parse_rate, 0.0)
+    
+    def test_overall_parse_rate(self):
+        """Test overall parse rate including JSON examples"""
+        metrics = DomainMetrics(domain="test")
+        metrics.total_tests = 10
+        metrics.parse_ok = 8
+        
+        self.assertEqual(metrics.overall_parse_rate, 80.0)
 
 
 class TestCalculateMetrics(unittest.TestCase):
@@ -132,7 +140,7 @@ class TestCalculateMetrics(unittest.TestCase):
             TestResult(
                 file_path="test2.json",
                 domain="sample", 
-                test_type="invalid",
+                test_type="raw",  # Changed to raw for parse_rate test
                 expected_outcome="fail",
                 parse_result=ParseResult(success=False, error_message="Parse error"),
                 final_status="FAIL"
@@ -140,7 +148,7 @@ class TestCalculateMetrics(unittest.TestCase):
             TestResult(
                 file_path="test3.json",
                 domain="other",
-                test_type="valid", 
+                test_type="raw",  # Changed to raw
                 expected_outcome="pass",
                 parse_result=ParseResult(success=True),
                 validation_result=ValidationResult(success=False, error_message="Schema error"),
@@ -155,7 +163,9 @@ class TestCalculateMetrics(unittest.TestCase):
         self.assertEqual(sample_metrics.total_tests, 2)
         self.assertEqual(sample_metrics.parse_ok, 1)
         self.assertEqual(sample_metrics.parse_error, 1)
-        self.assertEqual(sample_metrics.parse_rate, 50.0)
+        self.assertEqual(sample_metrics.raw_tests, 1)  # Only raw files count
+        self.assertEqual(sample_metrics.raw_parse_error, 1)
+        self.assertEqual(sample_metrics.parse_rate, 0.0)  # 0/1 raw tests parsed
         
         # Check other domain
         other_metrics = metrics["other"]

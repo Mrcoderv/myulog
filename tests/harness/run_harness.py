@@ -58,10 +58,21 @@ class DomainMetrics:
     parse_error: int = 0
     schema_violation: int = 0
     total_tests: int = 0
+    # Raw-specific metrics (for meaningful parse rate)
+    raw_tests: int = 0
+    raw_parse_ok: int = 0
+    raw_parse_error: int = 0
     
     @property
     def parse_rate(self) -> float:
-        """Parse success rate percentage"""
+        """Parse success rate percentage (raw inputs only)"""
+        if self.raw_tests == 0:
+            return 0.0
+        return (self.raw_parse_ok / self.raw_tests) * 100
+    
+    @property
+    def overall_parse_rate(self) -> float:
+        """Overall parse success including JSON examples (legacy)"""
         if self.total_tests == 0:
             return 0.0
         return (self.parse_ok / self.total_tests) * 100
@@ -161,7 +172,15 @@ def determine_expected_outcome(file_path: Path) -> str:
 
 
 def get_test_type(file_path: Path) -> str:
-    """Determine test type from filename"""
+    """Determine test type from filename and location"""
+    # Check if file is from raw directory (takes precedence)
+    try:
+        file_path.relative_to(RAW_DIR)
+        return "raw"
+    except ValueError:
+        pass
+    
+    # Otherwise check filename prefix
     filename = file_path.name.lower()
     if filename.startswith('valid'):
         return "valid"
@@ -169,18 +188,6 @@ def get_test_type(file_path: Path) -> str:
         return "invalid"
     else:
         return "raw"
-
-
-def find_schema_for(example_file: Path) -> Optional[Path]:
-    """Find schema file for given example file"""
-    # Expect examples under tests/examples/<schema_name>/*.json
-    rel = example_file.relative_to(EXAMPLES_DIR)
-    parts = rel.parts
-    if len(parts) < 2:
-        return None
-    schema_name = parts[0]
-    schema_path = SCHEMAS_DIR / schema_name / "schema.json"
-    return schema_path if schema_path.exists() else None
 
 
 def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubParser) -> TestResult:
@@ -243,12 +250,21 @@ def calculate_metrics(results: List[TestResult]) -> Dict[str, DomainMetrics]:
         metric = metrics[domain]
         metric.total_tests += 1
         
+        # Track raw-specific metrics for meaningful parse rate
+        is_raw = result.test_type == "raw"
+        if is_raw:
+            metric.raw_tests += 1
+        
         if result.parse_result.success:
             metric.parse_ok += 1
+            if is_raw:
+                metric.raw_parse_ok += 1
             if result.validation_result and not result.validation_result.success:
                 metric.schema_violation += 1
         else:
             metric.parse_error += 1
+            if is_raw:
+                metric.raw_parse_error += 1
     
     return metrics
 
@@ -340,13 +356,23 @@ def export_junit_xml(results: List[TestResult], output_path: Path):
 
 
 def export_json(results: List[TestResult], metrics: Dict[str, DomainMetrics], output_path: Path):
-    """Export results as JSON"""
+    """Export results as JSON with per-domain raw metrics"""
+    # Calculate overall totals
+    total_raw_tests = sum(m.raw_tests for m in metrics.values())
+    total_raw_parse_ok = sum(m.raw_parse_ok for m in metrics.values())
+    overall_raw_parse_rate = (
+        (total_raw_parse_ok / total_raw_tests * 100) if total_raw_tests > 0 else 0
+    )
+    
     data = {
         "summary": {
             "total_tests": len(results),
             "passed": sum(1 for r in results if r.final_status == "PASS"),
             "failed": sum(1 for r in results if r.final_status == "FAIL"),
             "skipped": sum(1 for r in results if r.final_status == "SKIP"),
+            "raw_tests": total_raw_tests,
+            "raw_parse_ok": total_raw_parse_ok,
+            "raw_parse_rate": round(overall_raw_parse_rate, 2),
             "timestamp": time.time()
         },
         "domain_metrics": {domain: asdict(metric) for domain, metric in metrics.items()},
