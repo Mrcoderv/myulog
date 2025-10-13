@@ -38,7 +38,7 @@ Normalized
 }
 ```
 
-## 2) Tokenizer
+## 2)  Tokenizer
 Raw
 ```
 {
