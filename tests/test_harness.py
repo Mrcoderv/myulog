@@ -227,8 +227,9 @@ class TestEndToEnd(unittest.TestCase):
     
     def test_end_to_end_with_junit_export(self):
         """Test end-to-end: create schema+example, run harness, verify JUnit output"""
-        from run_harness import run
         import xml.etree.ElementTree as ET
+
+        from run_harness import run
         
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
