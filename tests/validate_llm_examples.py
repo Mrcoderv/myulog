@@ -1,4 +1,4 @@
-from jsonschema import validate, ValidationError
+from jsonschema import Draft7Validator, FormatChecker, ValidationError
 import json
 import os
 from pathlib import Path
@@ -15,11 +15,13 @@ def main() -> int:
     valid_count = 0
     invalid_count = 0
 
+    validator = Draft7Validator(schema, format_checker=FormatChecker())
+
     for p in sorted(EXAMPLES_DIR.glob("*.json")):
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
         try:
-            validate(instance=data, schema=schema)
+            validator.validate(instance=data)
             print(f"VALID:   {p.name}")
             valid_count += 1
         except ValidationError as e:
