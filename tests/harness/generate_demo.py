@@ -5,8 +5,8 @@ This helps developers exercise the two-phase flow locally with a minimal domain.
 """
 import argparse
 import json
-import sys
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMAS = ROOT / "schemas"
