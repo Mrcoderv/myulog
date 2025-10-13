@@ -40,15 +40,19 @@ jobs:
       - name: Run tests
         run: poetry run pytest -q
 
-      - name: Install jsonschema for schema validation
-        run: poetry run pip install jsonschema
-
       - name: Run schema test harness (via Make)
-        run: make test.schemas
+        run: make test.schemas | tee tests/reports/schema_console.txt
 
-      - name: Upload schema test artifacts
+      - name: Upload schema test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: schema-test-results-${{ matrix.python-version }}
-          path: tests/reports/schema_results.xml
+          name: schema-test-results
+          path: tests/reports/
+
+      - name: Upload schema console log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: schema-test-console
+          path: tests/reports/schema_console.txt

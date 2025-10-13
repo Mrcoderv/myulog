@@ -54,7 +54,7 @@ The harness helps ensure schema quality and provides regression testing for sche
    # Generate JUnit XML for CI (writes to tests/reports/)
    poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
    
-   # Generate JSON report  
+   # Generate JSON report
    poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
    ```
 
@@ -98,7 +98,9 @@ TEST RESULTS: 11 PASS, 0 FAIL, 0 SKIP (Total: 11)
 - `schemas/<domain>/schema.json` - Schema definitions
 - `tests/examples/<domain>/` - JSON examples (valid*.json, invalid*.json) 
 - `tests/raw/<domain>/` - Raw input files for parse testing
-- `tests/reports/` - Generated test artifacts
+- `tests/reports/` - Generated test artifacts (ignored by git)
+
+**Note**: Raw input files should be placed in `tests/raw/<domain>/`, not in `tests/examples/<domain>/raw/`.
 
 ## Exit Codes
 
@@ -142,3 +144,22 @@ The harness is automatically executed in GitHub Actions CI pipeline. Here's how 
 1. Create schema: `schemas/myschema/schema.json`
 2. Add examples: `tests/examples/myschema/valid1.json`, `tests/examples/myschema/invalid1.json`
 3. (Optional) Add raw inputs: `tests/raw/myschema/sample.log`
+
+## Forward-Looking: Real Normalizer Integration
+
+Currently, the harness uses a **StubParser** that treats any valid JSON as pre-normalized. In **Ticket 1.12**, the real normalizer will be integrated, which will:
+
+- Parse actual log formats (structured and unstructured text)
+- Add v1 normalization fields (`meta.raw_message`, `meta.parse{...}`, `*_ms` timestamps)
+- Support switching between stub and real parser via CLI flag
+
+**Planned usage** (post-1.12):
+```bash
+# Use stub parser (current default)
+poetry run python3 tests/harness/run_harness.py
+
+# Use real normalizer (future)
+poetry run python3 tests/harness/run_harness.py --parser normalizer
+```
+
+This will enable end-to-end testing of the full log processing pipeline.

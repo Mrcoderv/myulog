@@ -485,7 +485,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
     
     # Export results if requested
     if output_path:
-        REPORTS_DIR.mkdir(exist_ok=True)
+        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         
         if format_type == "junit":
             export_junit_xml(all_results, output_path)
@@ -536,7 +536,7 @@ def main():
     # Auto-generate output path if format is junit/json but no output specified
     output_path = args.output
     if args.format in ("junit", "json") and not output_path:
-        REPORTS_DIR.mkdir(exist_ok=True)
+        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         if args.format == "junit":
             output_path = REPORTS_DIR / f"schema_tests_{timestamp}.xml"
