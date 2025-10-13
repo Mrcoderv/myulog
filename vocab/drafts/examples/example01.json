@@ -1,0 +1,6 @@
+{
+  "raw_line": "Tokenizer failed to split input sequence: unknown unicode characters",
+  "level": "error",
+  "category": "tokenizer",
+  "outcome": "failure"
+}

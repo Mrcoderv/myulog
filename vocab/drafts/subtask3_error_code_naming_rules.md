@@ -72,4 +72,4 @@ Every error-code entry **MUST** include the following fields:
 
 ---
 
-You can see the **10 sample error codes** in [`error_codes.json`](./error_codes.json).
+You can see the **10 sample error codes** in [`error_codes.json`](./examples/error_codes.json).

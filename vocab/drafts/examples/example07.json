@@ -1,0 +1,7 @@
+{
+  "raw_line": "Retrying call to embedding_service due to connection reset",
+  "level": "warn",
+  "category": "embedding_service",
+  "outcome": "partial",
+  "flags": ["retried"]
+}

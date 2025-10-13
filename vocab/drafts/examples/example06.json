@@ -1,0 +1,6 @@
+{
+  "raw_line": "Request blocked by safety filter (profanity detected)",
+  "level": "warn",
+  "category": "safety",
+  "outcome": "skipped"
+}

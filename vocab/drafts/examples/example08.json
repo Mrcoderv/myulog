@@ -1,0 +1,6 @@
+{
+  "raw_line": "Build pipeline failed: missing CUDA version in Docker container",
+  "level": "error",
+  "category": "build",
+  "outcome": "failure"
+}
