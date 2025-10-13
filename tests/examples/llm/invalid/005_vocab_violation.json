@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-11T12:00:03Z",
+  "request_id": "44444444-4444-4444-8444-444444444444",
+  "model": "gpt-x-1",
+  "pipeline_stage": "safety_check",
+  "latency_ms": 30,
+  "level": "notice",                               // not in _common.json level enum
+  "safety_flags": ["dangerous_but_unknown"],       // not in safety_flag enum
+  "result": { "outcome": "blocked", "output_text_length": 0, "finish_reason": "content_filter" },
+  "meta": {
+    "raw_message": "x",
+    "parse": { "source": "filter", "parser": "llm-shaper@1.0.0", "ok": true }
+  }
+}
