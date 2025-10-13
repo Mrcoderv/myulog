@@ -4,8 +4,8 @@
   "model": "gpt-x-1",
   "pipeline_stage": "safety_check",
   "latency_ms": 30,
-  "level": "notice",                               // not in _common.json level enum
-  "safety_flags": ["dangerous_but_unknown"],       // not in safety_flag enum
+  "level": "notice",                               
+  "safety_flags": ["dangerous_but_unknown"],       
   "result": { "outcome": "blocked", "output_text_length": 0, "finish_reason": "content_filter" },
   "meta": {
     "raw_message": "x",
