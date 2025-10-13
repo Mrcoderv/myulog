@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "raw_message": "2025-10-13T10:20:00Z [INFO] LLM inference with full metadata",
+    "parse_timestamp": "2025-10-13T10:20:01Z",
+    "parser_version": "1.0.0"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-008",
+  "step_id": "step-complete-001",
+  "parent_step_id": "step-plan-008",
+  "plan_id": "plan-beta-002",
+  "tool_name": "claude_sonnet_4",
+  "ranked_tools": ["claude_sonnet_4", "gpt4_turbo", "claude_opus"],
+  "input_summary": "Generate comprehensive market analysis report from quarterly data",
+  "output_summary": "Generated 15-page report with charts, insights, and recommendations",
+  "status": "success",
+  "duration_ms": 8500.3,
+  "cost": {
+    "tokens_in": 45000,
+    "tokens_out": 3200,
+    "est_cost_usd": 0.875
+  },
+  "component": "llm_orchestrator_v3",
+  "level": "info",
+  "category": "model",
+  "outcome": "success"
+}
+

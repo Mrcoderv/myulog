@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "raw_message": "Model inference failed due to invalid input",
+    "parse_timestamp": "2025-10-13T10:15:00Z",
+    "parser_version": "1.0.0"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-007",
+  "step_id": "step-fail-001",
+  "tool_name": "cv_object_detector",
+  "input_summary": "Process image for object detection",
+  "output_summary": "Failed: corrupted image format",
+  "status": "failed",
+  "duration_ms": 450.0,
+  "level": "error",
+  "category": "model",
+  "outcome": "failure",
+  "safety_flags": ["cv"],
+  "error": {
+    "message": "Image validation failed: corrupted JPEG header. Expected magic bytes FF D8 but got 00 00."
+  }
+}
+

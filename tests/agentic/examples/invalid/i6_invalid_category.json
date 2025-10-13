@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "raw_message": "Invalid category value not in controlled vocabulary"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-006",
+  "step_id": "step-006",
+  "tool_name": "test_tool",
+  "input_summary": "Test input",
+  "output_summary": "Test output",
+  "status": "success",
+  "category": "invalid_category"
+}
+

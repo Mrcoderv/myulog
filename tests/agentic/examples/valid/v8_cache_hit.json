@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "raw_message": "Cache hit: retrieved cached result"
+  },
+  "step_kind": "cache",
+  "workflow_id": "wf-004",
+  "step_id": "step-cache-001",
+  "tool_name": "cache_manager",
+  "input_summary": "Looking up cached result for query hash: abc123",
+  "output_summary": "Cache hit: returned result from 2 hours ago",
+  "status": "success",
+  "duration_ms": 5.8,
+  "level": "info",
+  "category": "storage"
+}
+

@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "raw_message": "Cost calculation for workflow step"
+  },
+  "step_kind": "cost",
+  "workflow_id": "wf-001",
+  "step_id": "step-cost-001",
+  "parent_step_id": "step-004",
+  "tool_name": "cost_calculator",
+  "input_summary": "Calculate total cost for workflow",
+  "output_summary": "Total workflow cost: $0.385",
+  "status": "success",
+  "cost": {
+    "tokens_in": 25000,
+    "tokens_out": 1800,
+    "est_cost_usd": 0.385
+  },
+  "category": "service"
+}
+

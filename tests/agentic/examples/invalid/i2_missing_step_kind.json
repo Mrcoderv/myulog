@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "raw_message": "Missing step_kind field"
+  },
+  "workflow_id": "wf-002",
+  "step_id": "step-002",
+  "tool_name": "test_tool",
+  "input_summary": "Test input",
+  "output_summary": "Test output",
+  "status": "success"
+}
+

@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "raw_message": "Invalid outcome value not in controlled vocabulary"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-008",
+  "step_id": "step-008",
+  "tool_name": "test_tool",
+  "input_summary": "Test input",
+  "output_summary": "Test output",
+  "status": "success",
+  "outcome": "pending"
+}
+

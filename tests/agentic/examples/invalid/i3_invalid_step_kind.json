@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "raw_message": "Invalid step_kind value"
+  },
+  "step_kind": "invalid_step_type",
+  "workflow_id": "wf-003",
+  "step_id": "step-003",
+  "tool_name": "test_tool",
+  "input_summary": "Test input",
+  "output_summary": "Test output",
+  "status": "success"
+}
+

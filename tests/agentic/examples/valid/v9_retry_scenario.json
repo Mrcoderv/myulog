@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "raw_message": "API call failed, will retry",
+    "parse_timestamp": "2025-10-13T10:10:00Z"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-005",
+  "step_id": "step-retry-001",
+  "tool_name": "external_api_client",
+  "input_summary": "Calling external API: GET /data/customers",
+  "output_summary": "Received 503 Service Unavailable, scheduling retry",
+  "status": "retry",
+  "duration_ms": 1200.0,
+  "level": "warn",
+  "category": "network",
+  "outcome": "failure"
+}
+

@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "raw_message": "Invalid safety_flag value not in controlled vocabulary"
+  },
+  "step_kind": "guardrails",
+  "workflow_id": "wf-007",
+  "step_id": "step-007",
+  "tool_name": "safety_checker",
+  "input_summary": "Checking for safety issues",
+  "output_summary": "Found issues",
+  "status": "success",
+  "safety_flags": ["invalid_flag", "unknown_flag"]
+}
+

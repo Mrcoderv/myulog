@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "raw_message": "Status is failed but no error object provided"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-004",
+  "step_id": "step-004",
+  "tool_name": "failing_tool",
+  "input_summary": "This will fail",
+  "output_summary": "Operation failed",
+  "status": "failed"
+}
+

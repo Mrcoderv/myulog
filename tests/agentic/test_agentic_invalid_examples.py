@@ -1,11 +1,13 @@
 import json
 import pathlib
-import pytest
-from conftest import json_files
+
 from jsonschema import ValidationError
-from conftest import AGENTIC_SCHEMA
+import pytest
+
+from conftest import AGENTIC_SCHEMA, json_files
 
 EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples" / "invalid"
+
 
 @pytest.mark.parametrize("path", json_files(EXAMPLES_DIR), ids=lambda p: p.name)
 def test_invalid_examples(schema_validator, path: pathlib.Path):
