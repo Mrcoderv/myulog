@@ -1,14 +1,14 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Sample schema",
+  "description": "Minimal example schema used by the test harness (smoke test).",
   "type": "object",
   "properties": {
     "id": { "type": "integer" },
     "name": { "type": "string" }
   },
   "required": ["id", "name"],
-  "additionalProperties": false
-,
+  "additionalProperties": false,
   "examples": [
     { "id": 2, "name": "inline valid" },
     { "id": 3, "name": "another valid example" }
