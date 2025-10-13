@@ -1,45 +1,37 @@
-import argparse
-import json
-import os
-import pathlib
-
-from ULog.data.generator.cv_generator import GenerateCVLog
+import datetime as dt
+from random import Random, choice, randint, uniform
+from typing import Any, List
+from uuid import uuid4
 
 
-def create_jsonl_file(file_path, data):
-    with open(file_path, "w") as f:
-        for item in data:
-            json_line = json.dumps(item)
-            f.write(json_line + "\n")
+class GenerateLog:
+    def __init__(self, fields, size, seed):
+        self.fields = fields
+        self.size = size
+        self.seed = seed
+        Random.seed(self.seed)
 
-parser = argparse.ArgumentParser(
-    description="Example of reading command-line arguments"
-)
+    def select_enum(self, enums:List[Any]) -> Any:
+        """Select a random value from a list of enums."""
+        return choice(enums)
 
-parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
-parser.add_argument(
-    "-c", "--count", type=int, default=10, help="Size or integer parameter"
-)
-parser.add_argument("-n", "--name", type=str, default="log", help="File name")
+    def generate_string(self, length:int) -> str:
+        """Generate a random string of fixed length."""
+        letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        return "".join(choice(letters) for _ in range(length))
 
-parser.add_argument("-o","--output-dir",type=str,default=".",help="Output directory")
+    def generate_unique_string(self) -> str:
+        """Generate a unique string using UUID4."""
+        return str(uuid4())
 
-parser.add_argument("-d","--domain",type=str,default="cv",choices=["cv","api","llm","agentic"],help="Domain of the log")
+    def generate_integer(self, min_value:int=0, max_value:int=100000) -> int:
+        """Generate a random integer within a specified range."""
+        return randint(min_value, max_value)
 
-args = parser.parse_args()
+    def generate_float(self, min_value:float=0.0, max_value:float=1.0) -> float:
+        """Generate a random float within a specified range."""
+        return round(uniform(min_value, max_value), 4)
 
-output_dir = pathlib.Path(args.output_dir).resolve()
-if not output_dir.exists():
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-generator_classes = {"cv": GenerateCVLog}
-
-generator = generator_classes[args.domain](size=args.count, seed=args.seed)
-
-valid_logs, unvalid_logs = generator.run()
-
-valid_log_path = os.path.join(output_dir, args.name + "_valid.jsonl")
-unvalid_log_path = os.path.join(output_dir, args.name + "_unvalid.jsonl")
-
-create_jsonl_file(valid_log_path, valid_logs)
-create_jsonl_file(unvalid_log_path, unvalid_logs)
+    def generate_timestamp(self) -> str:
+        """Generate a timestamp string."""
+        return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
