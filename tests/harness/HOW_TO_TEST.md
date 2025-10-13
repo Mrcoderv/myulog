@@ -102,12 +102,12 @@ TEST RESULTS: 11 PASS, 0 FAIL, 0 SKIP (Total: 11)
 
 ## Exit Codes
 
-- **0**: All tests passed
-- **1**: One or more tests failed (unexpected failures only; expected-fail tests don't trigger this)
-- **2**: Schemas directory missing (critical error)
-- **3**: jsonschema not installed (validation skipped with warning)
+- **0**: All expectations met (all tests passed)
+- **1**: Any unexpected outcome (one or more tests failed unexpectedly)
+- **2**: Inputs missing (schemas or examples directory not found)
+- **3**: jsonschema unavailable and at least one validation was attempted
 
-**Note**: Missing examples directory only produces a warning, not an error exit code.
+**Note**: Expected-fail tests (files prefixed with `invalid*`) count as PASS when they fail as intended, so they don't trigger exit code 1.
 
 ## CI Integration
 

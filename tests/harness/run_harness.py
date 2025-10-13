@@ -371,7 +371,8 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
         return 2
 
     if not EXAMPLES_DIR.exists():
-        print("⚠️  No examples directory found at", EXAMPLES_DIR)
+        print("❌ No examples directory found at", EXAMPLES_DIR)
+        return 2
     
     # Initialize parser and results
     parser = StubParser()
