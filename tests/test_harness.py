@@ -2,18 +2,23 @@
 """Unit tests for the JSON Schema test harness"""
 
 import json
+from pathlib import Path
+import sys
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import patch
 
-import sys
 sys.path.insert(0, str(Path(__file__).parent / "harness"))
 
 from run_harness import (
-    StubParser, ParseResult, ValidationResult, TestResult,
-    DomainMetrics, determine_expected_outcome, get_test_type,
-    process_test_case, calculate_metrics
+    DomainMetrics,
+    ParseResult,
+    StubParser,
+    TestResult,
+    ValidationResult,
+    calculate_metrics,
+    determine_expected_outcome,
+    get_test_type,
+    process_test_case,
 )
 
 

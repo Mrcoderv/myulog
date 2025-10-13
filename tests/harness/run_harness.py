@@ -9,12 +9,12 @@ Usage: python run_harness.py [--format text|junit|json] [--output PATH]
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import sys
 import time
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 import xml.etree.ElementTree as ET
 
 try:
@@ -134,7 +134,11 @@ def load_raw(path: Path) -> str:
 def validate_instance(schema: dict, instance: dict) -> ValidationResult:
     """Validate JSON instance against schema"""
     if jsonschema is None:
-        return ValidationResult(success=True, error_message="jsonschema not installed; skipped validation")
+        msg = (
+            "jsonschema not installed; "
+            "skipped validation"
+        )
+        return ValidationResult(success=True, error_message=msg)
     
     try:
         jsonschema.validate(instance=instance, schema=schema)
@@ -253,7 +257,10 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
     print("DOMAIN SUMMARY")
     print("="*80)
     
-    header = f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} {'Parse Err':<11} {'Schema Viol':<12} {'Parse Rate%':<12}"
+    header = (
+        f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} "
+        f"{'Parse Err':<11} {'Schema Viol':<12} {'Parse Rate%':<12}"
+    )
     print(header)
     print("-" * len(header))
     
@@ -264,11 +271,19 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
     
     for domain in sorted(metrics.keys()):
         m = metrics[domain]
-        print(f"{domain:<15} {m.total_tests:<8} {m.parse_ok:<10} {m.parse_error:<11} {m.schema_violation:<12} {m.parse_rate:<12.1f}")
+        row = (
+            f"{domain:<15} {m.total_tests:<8} {m.parse_ok:<10} {m.parse_error:<11} "
+            f"{m.schema_violation:<12}"
+        )
+        print(f"{row} {m.parse_rate:<12.1f}")
     
     print("-" * len(header))
     overall_parse_rate = (total_parse_ok / total_tests * 100) if total_tests > 0 else 0
-    print(f"{'TOTAL':<15} {total_tests:<8} {total_parse_ok:<10} {total_parse_error:<11} {total_schema_viol:<12} {overall_parse_rate:<12.1f}")
+    total_row = (
+        f"{'TOTAL':<15} {total_tests:<8} {total_parse_ok:<10} {total_parse_error:<11} "
+        f"{total_schema_viol:<12}"
+    )
+    print(f"{total_row} {overall_parse_rate:<12.1f}")
     
     # Test results summary
     passed = sum(1 for r in results if r.final_status == "PASS")
@@ -304,9 +319,15 @@ def export_junit_xml(results: List[TestResult], output_path: Path):
             if result.final_status == "FAIL":
                 failure = ET.SubElement(testcase, "failure")
                 if not result.parse_result.success:
-                    failure.set("message", f"Parse failed: {result.parse_result.error_message}")
+                    failure.set(
+                        "message",
+                        "Parse failed: " + result.parse_result.error_message,
+                    )
                 elif result.validation_result and not result.validation_result.success:
-                    failure.set("message", f"Schema validation failed: {result.validation_result.error_message}")
+                    failure.set(
+                        "message",
+                        "Schema validation failed: " + result.validation_result.error_message,
+                    )
             elif result.final_status == "SKIP":
                 skipped = ET.SubElement(testcase, "skipped")
                 skipped.set("message", "Validation skipped (jsonschema not available)")
@@ -336,7 +357,7 @@ def export_json(results: List[TestResult], metrics: Dict[str, DomainMetrics], ou
 
 def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
     """Two-phase test harness: parse -> validate with per-domain metrics"""
-    print(f"🔍 Schema Test Harness - Two Phase Flow")
+    print("🔍 Schema Test Harness - Two Phase Flow")
     print(f"Schemas dir: {SCHEMAS_DIR}")
     print(f"Examples dir: {EXAMPLES_DIR}")
     if RAW_DIR.exists():
@@ -381,7 +402,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
             if not validation_result.success and validation_result.error_message:
                 print(f"     ❌ FAIL: {validation_result.error_message}")
             else:
-                print(f"     ✅ PASS")
+                print("     ✅ PASS")
             
             result = TestResult(
                 file_path=f"{domain_name}:inline[{idx}]",
@@ -404,7 +425,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                     
                     # Print result
                     if result.final_status == "PASS":
-                        print(f"     ✅ PASS")
+                        print("     ✅ PASS")
                     elif result.final_status == "FAIL":
                         error_msg = ""
                         if not result.parse_result.success:
@@ -413,7 +434,12 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                             error_msg = result.validation_result.error_message
                         print(f"     ❌ FAIL: {error_msg}")
                     else:
-                        print(f"     ⏭️  SKIP: {result.validation_result.error_message if result.validation_result else 'No validation'}")
+                        skip_msg = (
+                            result.validation_result.error_message
+                            if result.validation_result
+                            else "No validation"
+                        )
+                        print(f"     ⏭️  SKIP: {skip_msg}")
                     
                     all_results.append(result)
         
@@ -426,16 +452,19 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                     result = process_test_case(schema, raw_file, domain_name, parser)
                     
                     if result.final_status == "PASS":
-                        print(f"     ✅ PASS (parsed + validated)")
+                        print("     ✅ PASS (parsed + validated)")
                     elif result.final_status == "FAIL":
                         error_msg = ""
                         if not result.parse_result.success:
                             error_msg = f"Parse failed: {result.parse_result.error_message}"
                         elif result.validation_result and not result.validation_result.success:
-                            error_msg = f"Schema validation failed: {result.validation_result.error_message}"
+                            error_msg = (
+                                "Schema validation failed: "
+                                + result.validation_result.error_message
+                            )
                         print(f"     ❌ FAIL: {error_msg}")
                     else:
-                        print(f"     ⏭️  SKIP")
+                        print("     ⏭️  SKIP")
                     
                     all_results.append(result)
 
