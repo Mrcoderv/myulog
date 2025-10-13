@@ -277,7 +277,7 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
     
     header = (
         f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} "
-        f"{'Parse Err':<11} {'Schema Viol':<12} {'Parse Rate%':<12}"
+        f"{'Parse Err':<11} {'Schema Fail':<12} {'Parse Rate%':<12}"
     )
     print(header)
     print("-" * len(header))
