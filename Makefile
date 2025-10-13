@@ -20,8 +20,8 @@ lint: ## Lint with ruff
 test: ## Run tests
 	@pytest -q
 
-test.schemas: ## Run JSON Schema test harness with two-phase flow
-	@python3 tests/harness/run_harness.py
+test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit XML to tests/reports/)
+	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
 
 generate: ## Create a sample input file
 	@mkdir -p local_pipeline/in local_pipeline/out

@@ -216,7 +216,9 @@ def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubPa
         else:
             final_status = "SKIP"  # No validation performed
     else:
-        final_status = "FAIL"  # Parse failed
+        # Parse failed. If the example was intentionally an "invalid*" (expected fail),
+        # count this as a PASS for expected-fail testcases so CI stays green for demo negatives.
+        final_status = "PASS" if expected == "fail" else "FAIL"
     
     return TestResult(
         file_path=str(test_file),

@@ -43,8 +43,8 @@ jobs:
       - name: Install jsonschema for schema validation
         run: poetry run pip install jsonschema
 
-      - name: Run schema test harness
-        run: poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
+      - name: Run schema test harness (via Make)
+        run: make test.schemas
 
       - name: Upload schema test artifacts
         uses: actions/upload-artifact@v4

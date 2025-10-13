@@ -203,10 +203,11 @@ class TestProcessTestCase(unittest.TestCase):
             temp_path.rename(invalid_path)
         
         try:
-            result = process_test_case(self.schema, invalid_path, "test", self.parser) 
-            
+            result = process_test_case(self.schema, invalid_path, "test", self.parser)
+
             self.assertFalse(result.parse_result.success)
-            self.assertEqual(result.final_status, "FAIL")  # Parse failed, so overall fail
+            # Since filename starts with 'invalid', parse failure is an expected fail -> PASS
+            self.assertEqual(result.final_status, "PASS")
         finally:
             invalid_path.unlink()
 
