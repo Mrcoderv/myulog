@@ -1,74 +1,165 @@
-# Controlled Vocabulary Guide (v1.0.0)
-
-This document defines a **controlled vocabulary** for the ULog project — a shared set of terms that will be used to classify and normalize log events across different AI and data systems.
-
----
-
+# Controlled Vocabulary - Draft v0.9
 ## Purpose
-The vocabulary provides a consistent structure for labeling log events so that all components — data pipelines, APIs, and ML systems — can communicate in a uniform way.
 
-It helps:
-- Avoid inconsistent naming of log types.
-- Enable reproducible rule-based classification.
-- Support explainable, cross-system analysis.
+This document defines a **machine-readable controlled vocabulary** used across all project schemas.
+It provides a consistent language for labeling logs with:
+- **level** (severity)
+- **category** (based on the log origin)
+- **sub_category**
+- **outcome**
+- **safety_flags** (When applicable)
 
 ---
 
 ## Structure
-`controlled_vocabulary.json` contains:
+```plaintext
+ULog
+└── vocab/
+    ├── README.md
+    ├── controlled_vocabulary.json
+    └── examples/
+    └── drafts/ 
+        └── examples/   
+```   
 
-| Section | Description |
-|----------|-------------|
-| **levels** | Severity levels: `info`, `warn`, `error`. |
-| **categories** | Event domains such as `auth`, `network`, `data`, `model`, etc. |
-| **outcomes** | Operation results: `success` or `failure`. |
-| **error_codes** | Stable short codes (`E001–E012`) for known error types. |
-| **safety_flags** | Identifies sensitive or safety-related cases (`llm`, `cv`, `pii`, `security`). |
-| **examples** | 15 raw log → mapped examples for clarity. |
+- `controlled_vocabulary.json`: is Master list of controlled vocabularies.
 
----
-
-## Example Mapping
-
-| Raw Log | Level | Category | Outcome | Error Code | Safety Flag |
-|----------|--------|-----------|----------|-------------|--------------|
-| `ERROR model drift detected for model sentiment-v2` | error | model | failure | E004 | llm |
-| `WARN token expired for user_id=1023` | warn | auth | failure | E005 |  |
-| `INFO ingestion completed successfully for batch_20251007.csv` | info | data | success |  |  |
+- `examples/`: containes mapped examples as json files.
 
 ---
 
-## How This Vocabulary Was Designed
-Version 1.0.0 was created manually using knowledge of:
-- Common logging patterns in ML, API, and data systems.
-- Typical operational incidents (model drift, timeouts, schema errors, etc.).
-- Personal experience working with production logs and error-handling pipelines.
+## Usage Tips (Do / Don't)
+
+### Do:- 
+- Choose the **lowest** suitable severity **`level`**.
+- Start with the **`category`** ask “Where did this log come from?”  (**origin**).
+- Choose the **`sub_category`** that its definition best fits the log.
+- Use **outcome** to reflect if the operation achieved its goal.
+- Add **`safety_flags`** only when applicable based on each flag defination.
+
+### Don't:-
+- Choose **higher** severity **`level`** when a lower one applicable.
+- Add **`safety_flags`** if not needed.
+
+---
+
+## How This Vocabulary Was Designed? (References & Rationale)
+
+- The **`levels`** and **`outcomes`** defined here draw inspiration from both **standardized logging practices** and **HPC job management systems**.
+
+- The **`categories`** from the project charter.
+- The **`sub_categories`** from common logging patterns based on Personal experiencies and deep search.
+- The **`error_codes`** derive from common errors on each category.
+- The **`safety_flags`** from common safety violations on LLMs or CV piplines.
 
 All examples are **synthetic**, written to reflect realistic production cases.  
 No external or proprietary logs were used.
 
----
-
-## Usage Guidelines
-1. Use lowercase keys (`info`, `warn`, `error`).
-2. Assign one `level`, one `category`, and one `outcome` per event.
-3. Add an `error_code` and `safety_flag` only when applicable.
-4. Keep edits versioned (e.g., `v1.1`, `v2.0`) and document changes.
+### References
+- **Levels** are aligned with the **Syslog severity hierarchy** from [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424#:~:text=Syslog%20Message%20Severities), ensuring interoperability with widely used logging frameworks.  
+- **Outcomes** follow the **state model** of [Slurm Workload Manager](https://slurm.schedmd.com/job_state_codes.html#states), reflecting real-world workflow and cluster job lifecycles (`COMPLETED`, `FAILED`, `TIMEOUT`, etc.).
 
 ---
 
-## Version History
+## Vocabulary Fields
 
-| Version | Date | Description |
-|----------|------|-------------|
-| **1.0.0** | 2025-10-07 | Initial version with baseline vocabulary and 15 sample mappings. |
+### Levels
+Describes severity of the event:
+
+| Level | Description | Example |
+|-------|--------------|----------|
+| **`info`** | Normal operational events confirming that the system is working as expected. | Job scheduled successfully. |
+| **`warn`** | Indicates a potential issue or unexpected behavior that doesn’t interrupt execution. | Partial data missing; using defaults |
+| **`error`** | A significant problem that caused a specific operation to fail but system remains functional. | Database connection timeout |
+| **`debug`** | Detailed internal information for troubleshooting; not shown in production logs. | Model configuration parameters during startup |
+| **`critical`** | A severe problem causing service interruption or system crash. | Model training process terminated unexpectedly |
 
 ---
 
-## Next Steps
-- Validate this vocabulary once sample logs are shared.
-- Expand to **v1.1** with new categories or extended outcomes.
-- Use as a foundation for Ticket 1.10 (Seed Sample Blueprint).
+### `categories`
 
-**Author:** Sakthivel Vinayagam  
+| Category       | Description                                                              |
+|----------------|--------------------------------------------------------------------------|
+| **`core_api`** | Internal/external API calls, routing, auth, and request handling logs.   |
+| **`llm`**      | LLM prompts, responses, completions, model performance, and behavior.    |
+| **`agentic`**  | Agent workflows, tool use, and multi-step task execution.                |
+| **`cv`**       | Computer vision, model training, and inference job logs.                 |
+
+---
+
+### `sub_categories`
+
+
+#### `Naming Rules for Error Codes`
+
+
+---
+
+### `Outcomes`
+Indicates end result:
+
+| Outcome | Description | Derived from |
+|----------|--------------|--------------|
+| **`success`** | Task or process completed as expected with no errors. | Slurm: `COMPLETED` |
+| **`failure`** | Task failed due to an error or exception. | Slurm: `FAILED` |
+| **`timeout`** | Task did not finish before the configured time limit. | Slurm: `TIMEOUT` |
+| **`cancelled`** | Task was intentionally stopped by the user or scheduler. | Slurm: `CANCELLED` |
+| **`running`** | Task currently in progress. | Slurm: `RUNNING` |
+| **`pending`** | Task queued but not yet started. | Slurm: `PENDING` |
+
+---
+
+## `Safety Flags`
+
+These flags help mark logs with **potential ethical, privacy, or quality risks** from LLM or CV components. Use them for internal QA, alerts, or downstream audit pipelines.
+
+### When No LLM / CV
+
+| Flag   | Description                                       | 
+| ------ | ------------------------------------------------- | 
+| `none` | No ML model involved, or not safety-critical.     | 
+| `pii` | Personal or sensitive information found in logs.     | 
+| `security` | Potential security or unauthorized-access risk.     | 
+
+### LLM Safety Flags
+
+| Flag Name             | Description    |                                               
+|-----------------------|----------------|
+| `llm_hate_speech`     | Detects language expressing hatred or violence toward a group. |
+| `llm_harassment`      | Targets personal insults, threats, or bullying. |
+| `llm_sexual_content`  | Flags explicit or suggestive content. |
+| `llm_private_data`    | Detects PII (names, emails, phone numbers, etc.) or secrets. |
+| `llm_bias`            | Indicates potential gender, racial, or cultural bias. |
+| `llm_hallucination`   | Marks unverified factual content. |
+| `llm_violence`        | Describes violent acts or harm. |
+| `llm_toxicity`        | Response contained toxic or offensive language. |
+| `llm_prompt_injection`| User attempted to subvert prompt. |
+
+### CV Safety Flags
+
+| Flag Name              | Description  | 
+|------------------------|--------------|
+| `cv_nsfw_image`        | Detects nudity or sexually explicit visuals. | 
+| `cv_violent_image`     | Detects blood, weapons, or violent acts. |
+| `cv_privacy_violation` | Identifies faces, license plates, or private locations. | 
+| `cv_bias_visual`       | Marks dataset or detection bias. |
+| `cv_tampering`         | Detects manipulated or synthetic content. |
+| `cv_misclassification` | Incorrect label or prediction. |
+| `cv_data_drift`        | Input data deviated from training distribution. |
+
+---
+
+## Mapping Examples 
+
+See the [`examples/`](./examples/) directory for more mappings from raw logs to structured tags.
+
+---
+
+## How to run the JSON file linter
+
+---
+
+**Authors:** [`Yhya Shehab EL-Den`](https://github.com/Yhya-Shehab-EL-Den), [`Sanaa Amina GOURINE`](https://github.com/Sanaa3131), [`Joudy Alkhrbotli`](https://github.com/J-sp115), [`Sakthivel Vinayagam`](https://github.com/SakthivelVinayagam),[`Chaimaa Zyani`](https://github.com/zyani-chaimaa), [`Yassine Yousfi`](https://github.com/yassine960).  
 **Project:** Omdena AI Innovation Challenge — *Building ULog: A Deterministic Log Normalization & Classification Pipeline*
+
+---
