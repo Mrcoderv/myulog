@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-11T12:00:01Z",
+  "request_id": "22222222-2222-4222-8222-222222222222",
+  "model": "gpt-x-1",
+  "pipeline_stage": "inference",
+  "usage": { "prompt_tokens": -1, "completion_tokens": 10 },   // < 0 not allowed
+  "latency_ms": -5,                                            // < 0 not allowed
+  "ttft_ms": -1,                                               // < 0 not allowed
+  "result": { "outcome": "success", "output_text_length": 10 },
+  "meta": {
+    "raw_message": "x",
+    "parse": { "source": "gw", "parser": "llm-shaper@1.0.0", "ok": true }
+  }
+}
