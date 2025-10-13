@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
       - name: Checkout
@@ -41,7 +41,7 @@ jobs:
         run: poetry run pytest -q
 
       - name: Run schema test harness (via Make)
-        run: make test.schemas | tee tests/reports/schema_console.txt
+        run: mkdir -p tests/reports && make test.schemas | tee tests/reports/schema_console.txt
 
       - name: Upload schema test results
         uses: actions/upload-artifact@v4

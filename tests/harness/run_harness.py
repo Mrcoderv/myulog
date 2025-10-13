@@ -49,6 +49,7 @@ class TestResult:
     validation_result: Optional[ValidationResult] = None
     final_status: str = ""  # "PASS", "FAIL", "SKIP"
 
+TestResult.__test__ = False  # prevent pytest from attempting to collect this dataclass as a test
 
 @dataclass
 class DomainMetrics:

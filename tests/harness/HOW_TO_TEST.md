@@ -125,7 +125,7 @@ The harness is automatically executed in GitHub Actions CI pipeline. Here's how 
   uses: actions/upload-artifact@v4
   with:
     name: schema-test-results
-    path: tests/reports/schema_results.xml
+    path: tests/reports/
 ```
 
 **What happens in CI:**
@@ -160,4 +160,4 @@ poetry run python3 tests/harness/run_harness.py
 
 # Use real normalizer (future)
 poetry run python3 tests/harness/run_harness.py --parser normalizer
-``
+```
