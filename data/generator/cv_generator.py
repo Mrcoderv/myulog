@@ -1,42 +1,9 @@
-import datetime as dt
-from random import Random, choice, randint, uniform
-from uuid import uuid4
+from random import Random
+
+from ULog.data.generator.generator import GenerateLog
 
 
-class GenerateCVLog:
-    def __init__(self, size, seed):
-        self.fields = [
-            "phase",
-            "model_name",
-            "dataset_id",
-            "image_count",
-            "metrics",
-            "latency_ms",
-            "batch_size",
-            "hardware",
-            "result",
-        ]
-        self.size = size
-        self.seed = seed
-
-    def select_enum(self, enums):
-        return choice(enums)
-
-    def generate_string(self, length):
-        letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        return "".join(choice(letters) for _ in range(length))
-
-    def generate_unique_string(self):
-        return str(uuid4())
-
-    def generate_integer(self, min_value=0, max_value=100000):
-        return randint(min_value, max_value)
-
-    def generate_float(self, min_value=0.0, max_value=1.0):
-        return round(uniform(min_value, max_value), 4)
-
-    def generate_timestamp(self):
-        return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+class GenerateCVLog(GenerateLog):
 
     def GenerateLogEntry(
         self, statuses, frameworks, devices, metrics, phases, models, datasets
