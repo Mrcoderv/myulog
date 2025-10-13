@@ -1,17 +1,11 @@
 {
-  "log_id": "c3a94b8d-5f9b-4788-a9c0-111111111111",
-  "log_timestamp": "2025-10-13T12:05:00Z",
+  "timestamp": "2025-10-13T12:00:01Z",
+  "request_id": "22222222-2222-4222-8222-222222222222",
   "model": "gpt-4o-mini",
-  "prompt": {
-    "prompt_id": "7a3a3b2a-5f5b-4f8f-9c9f-0123456789ab",
-    "input_tokens": -3,
-    "prompt_text": "[redacted]",
-    "parameters": {"temperature": 0.4, "top_p": 0.9}
-  },
-  "result": {
-    "result_id": "e8f2a1f7-1a0b-4d1b-8f3a-abcdefabcdef",
-    "response_text": "[summary]",
-    "output_tokens": -10,
-    "latency_ms": -15
-  }
+  "pipeline_stage": "inference",
+  "usage": { "prompt_tokens": -1, "completion_tokens": 10 },
+  "latency_ms": -5,
+  "ttft_ms": -1,
+  "result": { "outcome": "success", "output_preview": "ok", "output_text_length": 10 },
+  "meta": { "raw_message": "x", "parse": { "source": "gw", "parser": "p@1", "ok": true } }
 }
