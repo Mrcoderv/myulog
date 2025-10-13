@@ -22,7 +22,7 @@ The harness helps ensure schema quality and provides regression testing for sche
 │  Raw Input  │─────>│ Parse (Stub) │─────>│ Validate (JSON  │─────>│  Report  │
 │  (logs/txt) │      │   Normalizer │      │   Schema)       │      │ (Metrics)│
 └─────────────┘      └──────────────┘      └─────────────────┘      └──────────┘
-                            │                        │
+                            │                       │
                             ├─> parse_ok            ├─> schema_violation
                             └─> parse_error         └─> validation_pass
 ```
@@ -160,6 +160,4 @@ poetry run python3 tests/harness/run_harness.py
 
 # Use real normalizer (future)
 poetry run python3 tests/harness/run_harness.py --parser normalizer
-```
-
-This will enable end-to-end testing of the full log processing pipeline.
+``
