@@ -8,9 +8,9 @@
   },
   "required": ["id", "name"],
   "additionalProperties": false
-  ,
+,
   "examples": [
     { "id": 2, "name": "inline valid" },
-    { "id": "x", "extra": true }
+    { "id": 3, "name": "another valid example" }
   ]
 }
