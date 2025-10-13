@@ -17,5 +17,14 @@ local_pipeline/out/*
 local_pipeline/in/*
 !local_pipeline/in/.gitkeep
 
+# Test artifacts
+tests/reports/*
+!tests/reports/.gitkeep
+
+tests/perf_artifacts/
+
+# Output directory
+/out/**
+
 # OS junk
 .DS_Store
