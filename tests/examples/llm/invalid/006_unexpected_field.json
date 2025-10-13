@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-10-11T12:00:04Z",
+  "request_id": "55555555-5555-4555-8555-555555555555",
+  "model": "gpt-x-1",
+  "pipeline_stage": "tokenizer",
+  "latency_ms": 8,
+  "result": {
+    "outcome": "success",
+    "output_text_length": 5,
+    "unexpected": "nope"                           // should fail additionalProperties:false
+  },
+  "meta": {
+    "raw_message": "x",
+    "parse": { "source": "tok", "parser": "llm-shaper@1.0.0", "ok": true }
+  },
+  "rogue_top_field": "nope"                        // also should fail
+}
