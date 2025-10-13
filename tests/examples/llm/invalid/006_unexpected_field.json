@@ -7,11 +7,11 @@
   "result": {
     "outcome": "success",
     "output_text_length": 5,
-    "unexpected": "nope"                           // should fail additionalProperties:false
+    "unexpected": "nope"                           
   },
   "meta": {
     "raw_message": "x",
     "parse": { "source": "tok", "parser": "llm-shaper@1.0.0", "ok": true }
   },
-  "rogue_top_field": "nope"                        // also should fail
+  "rogue_top_field": "nope"                        
 }
