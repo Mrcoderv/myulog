@@ -3,8 +3,8 @@
 
 This helps developers exercise the two-phase flow locally with a minimal domain.
 """
-from pathlib import Path
 import json
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMAS = ROOT / "schemas"
@@ -33,7 +33,9 @@ def main():
     (EXAMPLES / "demo").mkdir(parents=True, exist_ok=True)
     (RAW / "demo").mkdir(parents=True, exist_ok=True)
 
-    (SCHEMAS / "demo" / "schema.json").write_text(json.dumps(demo_schema, indent=2), encoding="utf-8")
+    (SCHEMAS / "demo" / "schema.json").write_text(
+        json.dumps(demo_schema, indent=2), encoding="utf-8"
+    )
 
     # Valid example
     valid = {"message": "hello demo"}
@@ -43,10 +45,18 @@ def main():
     (EXAMPLES / "demo" / "invalid1.json").write_text('{ "msg": 123 }', encoding="utf-8")
 
     # Raw inputs: one that can be parsed into the expected schema, one empty to force parse error
-    (RAW / "demo" / "valid_log.txt").write_text(json.dumps({"message": "hello from raw"}), encoding="utf-8")
-    (RAW / "demo" / "invalid_parse.txt").write_text("", encoding="utf-8")
+    (RAW / "demo" / "valid_log.txt").write_text(
+        json.dumps({"message": "hello from raw"}), encoding="utf-8"
+    )
+    (RAW / "demo" / "invalid_parse.txt").write_text(
+        "",
+        encoding="utf-8",
+    )
 
-    print("Demo schema and examples generated under schemas/demo, tests/examples/demo and tests/raw/demo")
+    print(
+        "Demo schema and examples generated under schemas/demo, "
+        "tests/examples/demo and tests/raw/demo",
+    )
 
 
 if __name__ == '__main__':
