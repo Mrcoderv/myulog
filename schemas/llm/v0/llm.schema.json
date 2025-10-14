@@ -63,8 +63,8 @@
       "description": "Optional component name (e.g., api, agent, pipeline)."
     },
 
-    "level": { "$ref": "_common.json#/definitions/level" },
-    "category": { "$ref": "_common.json#/definitions/category" },
+    "level": { "$ref": "../../_common.json#/definitions/level" },
+    "category": { "$ref": "../../_common.json#/definitions/category" },
 
     "latency_ms": {
       "type": "number",
@@ -127,7 +127,7 @@
       "description": "Outcome summary and PII-safe output metadata.",
       "properties": {
         "result_id": { "type": "string", "format": "uuid" },
-        "outcome":   { "$ref": "_common.json#/definitions/outcome" },
+        "outcome":   { "$ref": "../../_common.json#/definitions/outcome" },
 
         "error_code":    { "type": "string", "maxLength": 64 },
         "error_message": { "type": "string", "maxLength": 512 },
@@ -137,7 +137,7 @@
 
         "safety_flags": {
           "type": "array",
-          "items": { "$ref": "_common.json#/definitions/safety_flag" },
+          "items": { "$ref": "../../_common.json#/definitions/safety_flag" },
           "maxItems": 10,
           "description": "Safety flags attached to this event."
         },
