@@ -3,5 +3,6 @@
   "level": "error",
   "category": "core_api",
   "sub_category": "build",
-  "outcome": "failure"
+  "outcome": "failure",
+  "safety_flag": "none"
 }
