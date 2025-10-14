@@ -1,10 +1,12 @@
 {
-  "timestamp": "2025-10-09T12:48:00Z",
-  "request_id": "req_22222",
-  "service": "inventory-service",
-  "endpoint": "/v1/items/stock",
-  "action": "GET",
-  "result": "success",
-  "latency_ms": 25,
-  "env": "sandbox"
+  "meta": {
+    "raw_message": "test log"
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "prod",
+  "outcome": "success",
+  "endpoint": "/v1/test",
+  "action": "GET"
 }

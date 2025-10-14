@@ -1,11 +1,13 @@
 {
-  "timestamp": "2025-10-09T12:46:00Z",
-  "request_id": "req_98765",
-  "service": "billing-service",
-  "endpoint": "/v1/invoice",
-  "action": "POST",
-  "result": "success",
-  "latency_ms": 300,
-  "env": "staging",
-  "http_status": 700
+  "meta": {
+    "raw_message": "test log"
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/v1/test",
+  "action": "GET",
+  "http_status": 999
 }

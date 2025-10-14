@@ -1,8 +1,7 @@
 {
-  "service": "user-service",
-  "endpoint": "/v1/users/123",
-  "action": "GET",
-  "result": "success",
-  "latency_ms": 50,
-  "env": "staging"
+  "event_type": "http_response",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/v1/test",
+  "action": "GET"
 }

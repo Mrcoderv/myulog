@@ -9,7 +9,5 @@
   "outcome": "failure",
   "endpoint": "/v1/test",
   "action": "POST",
-  "error": {
-    "message": "Something went wrong"
-  }
+  "http_status": 500
 }

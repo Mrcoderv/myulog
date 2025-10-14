@@ -1,10 +1,13 @@
 {
-  "timestamp": "2025-10-09T12:35:20Z",
-  "request_id": "req_abc125",
-  "service": "billing-service",
-  "endpoint": "/v1/payments",
-  "action": "POST",
-  "result": "success",
-  "latency_ms": -10,
-  "env": "production"
+  "meta": {
+    "raw_message": "test log"
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/v1/test",
+  "action": "GET",
+  "latency_ms": -100
 }

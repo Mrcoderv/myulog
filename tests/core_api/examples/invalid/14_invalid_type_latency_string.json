@@ -1,10 +1,13 @@
 {
-  "timestamp": "2025-10-09T12:51:00Z",
-  "request_id": "req_55555",
-  "service": "gateway-service",
-  "endpoint": "/v1/proxy",
+  "meta": {
+    "raw_message": "test log"
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/v1/test",
   "action": "GET",
-  "result": "success",
-  "latency_ms": "350",
-  "env": "staging"
+  "latency_ms": "45.2ms"
 }

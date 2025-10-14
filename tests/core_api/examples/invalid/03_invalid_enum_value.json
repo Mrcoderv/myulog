@@ -1,10 +1,12 @@
 {
-  "timestamp": "2025-10-09T12:35:10Z",
-  "request_id": "req_abc124",
-  "service": "auth-service",
-  "endpoint": "/v1/login",
-  "action": "POST",
-  "result": "partial_success",
-  "latency_ms": 80,
-  "env": "production"
+  "meta": {
+    "raw_message": "test log"
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "timeout",
+  "endpoint": "/v1/test",
+  "action": "GET"
 }

@@ -3,10 +3,9 @@
     "raw_message": "test log"
   },
   "timestamp": "2025-10-08T14:00:00.000Z",
-  "event_type": "http_response",
+  "event_type": "startup",
   "service": "test-service",
   "env": "production",
   "outcome": "success",
-  "endpoint": "v1/test",
-  "action": "GET"
+  "duration_ms": -500
 }

@@ -3,13 +3,11 @@
     "raw_message": "test log"
   },
   "timestamp": "2025-10-08T14:00:00.000Z",
-  "event_type": "http_response",
+  "event_type": "exception",
   "service": "test-service",
   "env": "production",
   "outcome": "failure",
-  "endpoint": "/v1/test",
-  "action": "POST",
   "error": {
-    "message": "Something went wrong"
+    "message": "Error occurred"
   }
 }
