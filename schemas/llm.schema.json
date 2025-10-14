@@ -3,13 +3,7 @@
   "type": "object",
   "title": "LLM Interaction Log",
   "description": "Schema for LLM interaction logs.",
-  "required": [
-    "log_id",
-    "log_timestamp",
-    "model",
-    "prompt",
-    "result"
-  ],
+  "required": ["log_id", "log_timestamp", "model", "prompt", "result"],
   "properties": {
     "log_id": {
       "type": "string",
@@ -70,14 +64,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
-      "required": [
-        "prompt_id",
-        "input_tokens",
-        "prompt_text"
-      ]
+      "required": ["prompt_id", "input_tokens", "prompt_text"],
+      "additionalProperties": false
     },
     "result": {
       "type": "object",
@@ -130,12 +122,8 @@
           }
         }
       },
-      "required": [
-        "result_id",
-        "response_text",
-        "output_tokens",
-        "latency_ms"
-      ]
+      "required": ["result_id", "response_text", "output_tokens", "latency_ms"],
+      "additionalProperties": false
     },
     "error_log": {
       "type": "array",
@@ -156,9 +144,10 @@
             "format": "date-time",
             "description": "Timestamp when the error occurred."
           }
-        }
-      },
-      "required": ["error_type", "message", "timestamp"]
+        },
+        "required": ["error_type", "message", "timestamp"],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false
