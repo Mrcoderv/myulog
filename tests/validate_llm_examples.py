@@ -5,8 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "llm.schema.json"
-EXAMPLES_DIR = ROOT / "tests" / "examples" / "llm"
-
+EXAMPLES_DIR = ROOT / "tests" / "examples" / "llm" / "valid"
 
 def main() -> int:
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:

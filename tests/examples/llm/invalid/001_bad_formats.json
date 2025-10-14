@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025/10/11 12:00:00",            // not ISO-8601
-  "request_id": "req-123",                        // not a UUID
+  "timestamp": "2025/10/11 12:00:00",     
+  "request_id": "req-123",               
   "model": "gpt-x-1",
   "pipeline_stage": "inference",
   "latency_ms": 900,
