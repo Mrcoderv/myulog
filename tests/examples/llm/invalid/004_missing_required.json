@@ -2,7 +2,12 @@
   "timestamp": "2025-10-13T12:00:02Z",
   "request_id": "33333333-3333-4333-8333-333333333333",
   "model": "gpt-4o-mini",
+  "pipeline_stage": "serve",
   "latency_ms": 12,
-  "result": { "outcome": "success", "output_preview": "ok", "output_text_length": 2 },
+  "result": {
+    "result_id": "33333333-3333-4333-8333-333333333334",
+    "outcome": "success",
+    "output_text_length": 2
+  },
   "meta": { "raw_message": "x" }
 }
