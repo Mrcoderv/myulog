@@ -110,10 +110,6 @@
         "contract_version": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "pipeline_stage": {
-          "type": "string",
-          "enum": ["ingestion", "preprocessing", "retrieval", "generation", "postprocessing", "storage"]
         }
       },
       "additionalProperties": false
