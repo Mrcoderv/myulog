@@ -68,10 +68,6 @@
         "running": "Task currently in progress.",
         "pending": "Task queued but not yet started."
       },
-  
-      "error_codes": {
-        
-      },
       
       "safety_flags": {
     

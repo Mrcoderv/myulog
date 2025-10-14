@@ -93,6 +93,7 @@ Classifies the event’s domain or origin:
 
 #### `Naming Rules for Error Codes`
 
+See the [`error_code_naming_rules.md`](./error_code_naming_rules.md) file for Naming Rules for Error Codes.
 
 ---
 
