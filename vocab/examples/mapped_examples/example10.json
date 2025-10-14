@@ -1,0 +1,11 @@
+{
+    "raw": "Frame ingestion dropped: camera=corridor-3 fps=0.8 (threshold=5.0)",
+    "mapped": {
+      "level": "warn",
+      "category": "cv",
+      "sub_category": "data_io",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Input frame rate below minimum for CV pipeline"
+    }
+  }
