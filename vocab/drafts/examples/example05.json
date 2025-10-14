@@ -3,5 +3,6 @@
   "level": "info",
   "main_category": "llm",
   "category": "model_load"
-  "outcome": "success"
+  "outcome": "success",
+  "safety_flag": "none"
 }
