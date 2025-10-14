@@ -18,3 +18,6 @@
 | 14 | **CV / Training / Inference**    | CV Detection / Inference Event  | Routine event from CV or ML pipeline.                                                                       | Object detection completed, 12 objects found in frame.                                                          |
 | 15 | **Core API**                     | Safety / Policy Violation       | Violation of safety or acceptable use policy.                                                               | Prompt injection attempt or PII detected in output.                                                             |
 
+# ULog Classification Standards
+
+ULog classes are derived from existing logging and observability standards, such as the Logging Taxonomy (Terse Systems), the Executable Logging Taxonomy (ClassDojo), and the Three Pillars of Observability (logs, metrics, and traces). These frameworks focus on a structured, actionable, and domain-specific event classification. You can also refer to IEEE 1849 (XES) for event log structuring and log severity criteria (INFO, WARN, ERROR) to ensure consistency. Together, these standards form the basis for defining assets, operational classes, and severity scores in ULog.
