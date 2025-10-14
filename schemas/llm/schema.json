@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LLM schema (minimal)",
+  "type": "object",
+  "properties": {
+    "prompt": { "type": "string" },
+    "model": { "type": "string" }
+  },
+  "required": ["prompt", "model"],
+  "additionalProperties": false
+}
