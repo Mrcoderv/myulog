@@ -1,7 +1,0 @@
-{
-  "event_type": "http_response",
-  "env": "production",
-  "outcome": "success",
-  "endpoint": "/v1/test",
-  "action": "GET"
-}

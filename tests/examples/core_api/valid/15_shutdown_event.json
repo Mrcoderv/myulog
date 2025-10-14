@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "raw_message": "[2025-10-09T00:00:00.000Z] data-pipeline graceful shutdown completed in 1.2s"
+  },
+  "timestamp": "2025-10-09T00:00:00.000Z",
+  "event_type": "shutdown",
+  "service": "data-pipeline",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "category": "deployment",
+  "duration_ms": 1200,
+  "metadata": {
+    "reason": "deployment",
+    "pending_jobs": 0
+  }
+}

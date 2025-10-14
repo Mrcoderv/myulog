@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "raw_message": "[BUILD] 2025-10-08T12:00:00Z ml-training npm install completed in 67.8 seconds (418 packages)",
+    "parse": {
+      "parser_name": "npm_log_parser",
+      "parser_version": "1.2.0",
+      "pattern_id": "npm_install_complete",
+      "confidence": 0.99
+    }
+  },
+  "timestamp": "2025-10-08T12:00:00.000Z",
+  "event_type": "dependency_install",
+  "service": "ml-training",
+  "component": "package-manager",
+  "env": "development",
+  "outcome": "success",
+  "level": "info",
+  "category": "deployment",
+  "duration_ms": 67800,
+  "metadata": {
+    "package_manager": "npm",
+    "packages_installed": 418,
+    "vulnerabilities": 0
+  }
+}

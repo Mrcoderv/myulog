@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 21:00:00.000 ERROR Unauthorized access attempt to /admin/users"
+  },
+  "timestamp": "2025-10-08T21:00:00.000Z",
+  "event_type": "http_response",
+  "service": "admin-api",
+  "env": "production",
+  "outcome": "failure",
+  "level": "error",
+  "category": "security",
+  "endpoint": "/admin/users",
+  "action": "GET",
+  "http_status": 403,
+  "latency_ms": 5.8,
+  "error": {
+    "type": "UNAUTHORIZED_ACCESS",
+    "message": "Access denied: insufficient permissions"
+  },
+  "error_code": "E005",
+  "safety_flags": [
+    "security",
+    "pii"
+  ],
+  "metadata": {
+    "source_ip": "192.168.1.xxx",
+    "user_agent": "curl/7.68.0"
+  }
+}
