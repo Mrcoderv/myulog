@@ -1,0 +1,219 @@
+{
+  "$id": "https://ulog.ai/schemas/llm.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.1.2",
+  "title": "ULog - LLM Interaction (Normalized)",
+  "description": "Normalized schema for LLM interactions across pipeline stages with provenance, usage, sampler, metrics, and controlled vocabulary.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "timestamp",
+    "request_id",
+    "model",
+    "pipeline_stage",
+    "latency_ms",
+    "result",
+    "meta"
+  ],
+
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp (ISO 8601, UTC)."
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique request identifier for traceability."
+    },
+    "model": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Name/version of the LLM model used."
+    },
+
+    "pipeline_stage": {
+      "type": "string",
+      "description": "High-level pipeline stage where this event was recorded.",
+      "enum": [
+        "serve",
+        "tokenizer",
+        "quant",
+        "load",
+        "inference",
+        "rag_retrieve",
+        "rag_embed",
+        "rag_rerank",
+        "safety_check",
+        "sampling"
+      ]
+    },
+
+    "endpoint": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Optional endpoint name or path associated with the request (e.g., chat.completions)."
+    },
+
+    "component": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Optional component name (e.g., api, agent, pipeline)."
+    },
+
+    "level": { "$ref": "_common.json#/definitions/level" },
+    "category": { "$ref": "_common.json#/definitions/category" },
+
+    "latency_ms": {
+      "type": "number",
+      "minimum": 0,
+      "description": "End-to-end latency for this stage in milliseconds."
+    },
+    "ttft_ms": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Time-to-first-token in milliseconds (if applicable)."
+    },
+
+    "finish_reason": { "$ref": "_common.json#/definitions/finish_reason" },
+
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Token usage accounting for this event.",
+      "properties": {
+        "prompt_tokens":   { "type": "integer", "minimum": 0 },
+        "completion_tokens": { "type": "integer", "minimum": 0 },
+        "total_tokens":    { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "sampler": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Generation controls that influenced the model output.",
+      "properties": {
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "top_p":       { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "top_k":       { "type": "integer", "minimum": 1 },
+        "max_tokens":  { "type": "integer", "minimum": 1 },
+        "presence_penalty":  { "type": "number", "minimum": -2, "maximum": 2 },
+        "frequency_penalty": { "type": "number", "minimum": -2, "maximum": 2 },
+        "stop_sequences": { "type": "array", "items": { "type": "string" } },
+        "seed": { "type": "integer" }
+      }
+    },
+
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Performance metrics; extend using metrics.extra for custom scalars.",
+      "properties": {
+        "p50_ms": { "type": "number", "minimum": 0 },
+        "p95_ms": { "type": "number", "minimum": 0 },
+        "extra": {
+          "type": "object",
+          "additionalProperties": { "type": ["number", "integer", "string", "boolean"] }
+        }
+      }
+    },
+
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "outcome"],
+      "description": "Outcome summary and PII-safe output metadata.",
+      "properties": {
+        "result_id": { "type": "string", "format": "uuid" },
+        "outcome":   { "$ref": "_common.json#/definitions/outcome" },
+
+        "error_code":    { "type": "string", "maxLength": 64 },
+        "error_message": { "type": "string", "maxLength": 512 },
+
+        "output_preview":     { "type": "string", "maxLength": 256, "description": "Short preview only; do not store full outputs." },
+        "output_text_length": { "type": "integer", "minimum": 0 },
+
+        "safety_flags": {
+          "type": "array",
+          "items": { "$ref": "_common.json#/definitions/safety_flag" },
+          "maxItems": 10,
+          "description": "Safety flags attached to this event."
+        },
+
+        "model_quality_flags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 10,
+          "description": "Quality flags (e.g., repetition, truncation, hallucination)."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "outcome": { "const": "success" } }, "required": ["outcome"] },
+          "then": { "required": ["output_text_length"] }
+        },
+        {
+          "if": { "properties": { "outcome": { "const": "error" } }, "required": ["outcome"] },
+          "then": { "required": ["error_code", "error_message"] }
+        }
+      ]
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_message", "parse"],
+      "description": "Parsing/provenance used to build this normalized event.",
+      "properties": {
+        "raw_message": {
+          "type": "string",
+          "maxLength": 32768,
+          "description": "Redacted/summarized raw log text used for normalization."
+        },
+        "parse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "parser", "ok"],
+          "properties": {
+            "source": { "type": "string", "maxLength": 64, "description": "Origin of the raw entry (e.g., gateway, sampler, rag)." },
+            "parser": { "type": "string", "maxLength": 64, "description": "Parser name@version used for shaping." },
+            "ok":     { "type": "boolean", "description": "True if parse normalized successfully." },
+            "warnings": {
+              "type": "array",
+              "items": { "type": "string", "maxLength": 256 },
+              "maxItems": 20,
+              "description": "Notes on redaction/truncation or normalization adjustments."
+            },
+            "units": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Units for converted fields, when applicable.",
+              "properties": {
+                "latency": { "type": "string", "enum": ["ms", "s"] },
+                "ttft":    { "type": "string", "enum": ["ms", "s"] }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "error_log": {
+      "type": "array",
+      "description": "Errors encountered during processing of this request.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error_code", "error_type", "message", "timestamp"],
+        "properties": {
+          "error_code": { "type": "string" },
+          "error_type": { "type": "string" },
+          "message":    { "type": "string" },
+          "timestamp":  { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
