@@ -1,16 +1,19 @@
-
 {
   "timestamp": "2025-10-13T12:00:03Z",
   "request_id": "44444444-4444-4444-8444-444444444444",
   "model": "gpt-4o-mini",
   "pipeline_stage": "safety_check",
   "latency_ms": 30,
-  "safety_flags": ["dangerous_but_unknown"],
   "result": {
+    "result_id": "44444444-4444-4444-8444-444444444445",
     "outcome": "blocked",
-    "finish_reason": "content_filter",
-    "output_preview": "[SUMMARY: response blocked]",
-    "output_text_length": 0
+    "output_text_length": 0,
+    "safety_flags": ["dangerous_but_unknown"],
+    "error_code": "policy",
+    "error_message": "blocked by content policy"
   },
-  "meta": { "raw_message": "x", "parse": { "source": "filter", "parser": "p@1", "ok": true } }
+  "meta": {
+    "raw_message": "x",
+    "parse": { "source": "filter", "parser": "llm-shaper@1.0.0", "ok": true }
+  }
 }
