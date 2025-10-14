@@ -1,0 +1,8 @@
+{
+  "raw_line": "Using reranker fallback due to timeout on primary model",
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "reranker",
+  "outcome": "running",
+  "safety_flag": "none"
+}

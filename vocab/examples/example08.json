@@ -1,0 +1,8 @@
+{
+  "raw_line": "Build pipeline failed: missing CUDA version in Docker container",
+  "level": "error",
+  "category": "core_api",
+  "sub_category": "build",
+  "outcome": "failure",
+  "safety_flag": "none"
+}
