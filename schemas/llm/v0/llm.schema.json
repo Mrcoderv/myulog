@@ -1,9 +1,9 @@
 {
   "$id": "https://ulog.ai/schemas/llm.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "version": "1.1.2",
   "title": "ULog - LLM Interaction (Normalized)",
-  "description": "Normalized schema for LLM interactions across pipeline stages with provenance, usage, sampler, metrics, and controlled vocabulary.",
+  "version": "1.2.0",
+  "description": "ULog LLM Interaction Contract – v1.2.0 (Oct 13 2025, normalized interactions, meta.parse provenance, CI-validated examples).",
   "type": "object",
   "additionalProperties": false,
 
