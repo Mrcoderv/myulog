@@ -1,6 +1,7 @@
 {
   "raw_line": "Request blocked by safety filter (profanity detected)",
   "level": "warn",
-  "category": "safety",
+  "category": "llm",
+  "sub_category": "safety",
   "outcome": "cancelled"
 }
