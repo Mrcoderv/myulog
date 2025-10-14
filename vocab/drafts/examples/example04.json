@@ -1,6 +1,7 @@
 {
   "raw_line": "Streaming response halted due to client disconnect",
-  "level": "info",
-  "category": "streaming",
-  "outcome": "partial"
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "streaming",
+  "outcome": "failure"
 }
