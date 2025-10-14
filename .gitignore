@@ -1,4 +1,12 @@
+# Local env
+.env
+
+# Python junk
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
 .venv/
 venv/
 .Python
@@ -6,3 +14,13 @@ venv/
 *.log
 logs/
 .cache/
+
+# Local pipeline artifacts
+local_pipeline/out/*
+!local_pipeline/out/.gitkeep
+
+local_pipeline/in/*
+!local_pipeline/in/.gitkeep
+
+# OS junk
+.DS_Store
