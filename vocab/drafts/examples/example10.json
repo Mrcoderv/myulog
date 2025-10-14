@@ -1,6 +1,7 @@
 {
   "raw_line": "Tracking ID not attached to outbound request",
   "level": "debug",
-  "category": "tracking",
+  "category": "agentic",
+  "sub_category": "tracking",
   "outcome": "cancelled"
 }
