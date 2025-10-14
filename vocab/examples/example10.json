@@ -3,6 +3,6 @@
   "level": "debug",
   "category": "agentic",
   "sub_category": "tracking",
-  "outcome": "cancelled",
+  "outcome": "failure",
   "safety_flag": "none"
 }

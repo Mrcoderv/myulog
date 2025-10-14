@@ -3,7 +3,7 @@
     "mapped_vocabularies" :{
         "level": "info",
         "category": "llm",
-        "sub_category": "llm",
+        "sub_category": "user_input",
         "outcome": "success",
         "safety_flag": "flag_prompt_injection"
         }

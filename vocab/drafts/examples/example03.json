@@ -1,8 +1,0 @@
-{
-  "raw_line": "RAG retrieval stage timed out after 3 seconds",
-  "level": "error",
-  "category": "llm",
-  "sub_category": "rag_timeout",
-  "outcome": "timeout",
-  "safety_flag": "none"
-}

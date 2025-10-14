@@ -1,8 +1,0 @@
-{
-  "raw_line": "Tokenizer failed to split input sequence: unknown unicode characters",
-  "level": "error",
-  "category": "llm",
-  "sub_category": "tokenizer",
-  "outcome": "failure" ,
-  "safety_flag": "none"
-}
