@@ -3,5 +3,6 @@
   "level": "warn",
   "category": "llm",
   "sub_category": "safety",
-  "outcome": "cancelled"
+  "outcome": "cancelled",
+  "safety_flag": "flag_toxicity"
 }
