@@ -1,17 +1,17 @@
 {
     "metadata": {
       "name": "ULog Controlled Vocabulary",
-      "version": "v.9",
-      "updated_at": "2025-10-13",
+      "version": "v.09",
+      "updated_at": "2025-10-14",
       "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
     },
   
     "vocabulary": {
       "levels": {
+        "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
         "info": "Normal operational events confirming that the system is working as expected.",
         "warn": "Indicates a potential issue or unexpected behavior that doesn’t interrupt execution.",
         "error": "A significant problem that caused a specific operation to fail but system remains functional",
-        "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
         "critical": "A severe problem causing service interruption or system crash."
         
       },

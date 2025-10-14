@@ -68,10 +68,10 @@ Describes severity of the event:
 
 | Level | Description | Example |
 |-------|--------------|----------|
+| **`debug`** | Detailed internal information for troubleshooting; not shown in production logs. | Model configuration parameters during startup |
 | **`info`** | Normal operational events confirming that the system is working as expected. | Job scheduled successfully. |
 | **`warn`** | Indicates a potential issue or unexpected behavior that doesn’t interrupt execution. | Partial data missing; using defaults |
 | **`error`** | A significant problem that caused a specific operation to fail but system remains functional. | Database connection timeout |
-| **`debug`** | Detailed internal information for troubleshooting; not shown in production logs. | Model configuration parameters during startup |
 | **`critical`** | A severe problem causing service interruption or system crash. | Model training process terminated unexpectedly |
 
 ---

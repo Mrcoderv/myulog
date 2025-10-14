@@ -2,5 +2,5 @@
   "raw_line": "Tracking ID not attached to outbound request",
   "level": "debug",
   "category": "tracking",
-  "outcome": "skipped"
+  "outcome": "cancelled"
 }
