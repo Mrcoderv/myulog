@@ -118,34 +118,34 @@ These flags help mark logs with **potential ethical, privacy, or quality risks**
 | Flag   | Description                                       | 
 | ------ | ------------------------------------------------- | 
 | `none` | No ML model involved, or not safety-critical.     | 
-| `pii` | Personal or sensitive information found in logs.     | 
-| `security` | Potential security or unauthorized-access risk.     | 
+| `flag_pii` | Personal or sensitive information found in logs.     | 
+| `flag_security` | Potential security or unauthorized-access risk.     | 
 
 ### LLM Safety Flags
 
 | Flag Name             | Description    |                                               
 |-----------------------|----------------|
-| `llm_hate_speech`     | Detects language expressing hatred or violence toward a group. |
-| `llm_harassment`      | Targets personal insults, threats, or bullying. |
-| `llm_sexual_content`  | Flags explicit or suggestive content. |
-| `llm_private_data`    | Detects PII (names, emails, phone numbers, etc.) or secrets. |
-| `llm_bias`            | Indicates potential gender, racial, or cultural bias. |
-| `llm_hallucination`   | Marks unverified factual content. |
-| `llm_violence`        | Describes violent acts or harm. |
-| `llm_toxicity`        | Response contained toxic or offensive language. |
-| `llm_prompt_injection`| User attempted to subvert prompt. |
+| `flag_hate_speech`     | Detects language expressing hatred or violence toward a group. |
+| `flag_harassment`      | Targets personal insults, threats, or bullying. |
+| `flag_sexual_content`  | Flags explicit or suggestive content. |
+| `flag_private_data`    | Detects PII (names, emails, phone numbers, etc.) or secrets. |
+| `flag_bias`            | Indicates potential gender, racial, or cultural bias. |
+| `flag_hallucination`   | Marks unverified factual content. |
+| `flag_violence`        | Describes violent acts or harm. |
+| `flag_toxicity`        | Response contained toxic or offensive language. |
+| `flag_prompt_injection`| User attempted to subvert prompt. |
 
 ### CV Safety Flags
 
 | Flag Name              | Description  | 
 |------------------------|--------------|
-| `cv_nsfw_image`        | Detects nudity or sexually explicit visuals. | 
-| `cv_violent_image`     | Detects blood, weapons, or violent acts. |
-| `cv_privacy_violation` | Identifies faces, license plates, or private locations. | 
-| `cv_bias_visual`       | Marks dataset or detection bias. |
-| `cv_tampering`         | Detects manipulated or synthetic content. |
-| `cv_misclassification` | Incorrect label or prediction. |
-| `cv_data_drift`        | Input data deviated from training distribution. |
+| `flag_nsfw_image`        | Detects nudity or sexually explicit visuals. | 
+| `flag_violent_image`     | Detects blood, weapons, or violent acts. |
+| `flag_privacy_violation` | Identifies faces, license plates, or private locations. | 
+| `flag_bias_visual`       | Marks dataset or detection bias. |
+| `flag_tampering`         | Detects manipulated or synthetic content. |
+| `flag_misclassification` | Incorrect label or prediction. |
+| `flag_data_drift`        | Input data deviated from training distribution. |
 
 ---
 

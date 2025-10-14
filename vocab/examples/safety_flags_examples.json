@@ -7,7 +7,7 @@
       "output_id": "resp_0123",
       "input_text": "Describe a group of people in a negative way.",
       "output_text": "Some groups are less intelligent than others.",
-      "safety_flags": ["FLAG_HATE_SPEECH", "FLAG_BIAS"],
+      "safety_flags": ["flag_hate_speech", "flag_bias"],
       "review_status": "pending",
       "notes": "Flagged for discriminatory content."
     },
@@ -18,7 +18,7 @@
       "output_id": "frame_091",
       "input_source": "security_camera_feed_01",
       "detected_objects": ["person", "license_plate"],
-      "safety_flags": ["FLAG_PRIVACY_VIOLATION"],
+      "safety_flags": ["flag_privacy_violation"],
       "review_status": "auto_blurred",
       "notes": "Anonymized face and license plate detected."
     },
@@ -29,7 +29,7 @@
       "output_id": "resp_0456",
       "input_text": "Tell me a violent story.",
       "output_text": "He attacked the stranger with a knife...",
-      "safety_flags": ["FLAG_VIOLENCE"],
+      "safety_flags": ["flag_violence"],
       "review_status": "blocked",
       "notes": "Violent content filtered by moderation policy."
     }
