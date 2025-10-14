@@ -1,13 +1,21 @@
 {
+  "meta": {
+    "raw_message": "Rate limit exceeded for /v1/predict"
+  },
   "timestamp": "2025-10-08T17:20:00.000Z",
+  "event_type": "http_response",
   "service": "ml-inference",
+  "env": "production",
+  "outcome": "failure",
+  "level": "warn",
+  "category": "network",
   "endpoint": "/v1/predict",
   "action": "POST",
-  "request_id": "req_pred_456",
-  "result": "throttled",
-  "latency_ms": 2.1,
-  "env": "production",
   "http_status": 429,
+  "latency_ms": 2.1,
+  "request_id": "req_pred_456",
+  "error": "Rate limit exceeded",
+  "error_code": "E008",
   "metadata": {
     "client_id": "data-science-notebook"
   }

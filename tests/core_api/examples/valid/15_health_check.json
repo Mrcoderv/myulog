@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "raw_message": "Health check OK in 0.8ms"
+  },
+  "timestamp": "2025-10-09T12:00:00.000Z",
+  "event_type": "health_check",
+  "service": "api-gateway",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "endpoint": "/health",
+  "action": "GET",
+  "http_status": 200,
+  "latency_ms": 0.8
+}

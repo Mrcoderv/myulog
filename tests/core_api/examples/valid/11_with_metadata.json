@@ -1,13 +1,25 @@
 {
+  "meta": {
+    "raw_message": "POST /v1/workflows/execute 200 5432.1ms workflow_id=wf_12345",
+    "parse": {
+      "parser_name": "workflow_parser",
+      "parser_version": "1.2.0",
+      "pattern_id": "workflow_execution",
+      "confidence": 0.99
+    }
+  },
   "timestamp": "2025-10-09T00:00:00.000Z",
+  "event_type": "http_response",
   "service": "orchestrator",
+  "component": "workflow-engine",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
   "endpoint": "/v1/workflows/execute",
   "action": "POST",
-  "request_id": "req_workflow_001",
-  "result": "success",
-  "latency_ms": 5432.1,
-  "env": "production",
   "http_status": 200,
+  "latency_ms": 5432.1,
+  "request_id": "req_workflow_001",
   "metadata": {
     "client_id": "automation-bot-v1",
     "region": "us-east-1",

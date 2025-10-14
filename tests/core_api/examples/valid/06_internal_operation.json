@@ -1,10 +1,16 @@
 {
+  "meta": {
+    "raw_message": "Internal cleanup job completed in 8567.4ms"
+  },
   "timestamp": "2025-10-08T18:00:00.000Z",
+  "event_type": "http_response",
   "service": "scheduler",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "category": "scheduler",
   "endpoint": "/internal/cleanup-jobs",
   "action": "INTERNAL",
-  "request_id": "req_sched_789",
-  "result": "success",
   "latency_ms": 8567.4,
-  "env": "production"
+  "request_id": "req_sched_789"
 }
