@@ -1,5 +1,3 @@
-from random import Random
-
 from ULog.data.generator.generator import GenerateLog
 
 
@@ -19,7 +17,7 @@ class GenerateAPILog(GenerateLog):
             "RATE_LIMIT_EXCEEDED": "Rate limit has been exceeded."
         }
 
-        Random.seed(self.seed)
+        
     def generate_endpoint(self) -> str:
         endpoints = [
             "/api/v1/resource",

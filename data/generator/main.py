@@ -49,6 +49,11 @@ parser.add_argument("-d",
                     choices=["cv", "api", "llm", "agentic"],
                     help="Domain of the log"
                     )
+parser.add_argument("-arg",
+                    "--argument",
+                    type=list[str],
+                    default=[],
+                    help="list of optional parameters for agentic log")
 
 args = parser.parse_args()
 
@@ -78,14 +83,37 @@ generator_classes = {
                 "result",
                 "latency_ms",
                 "env",
-                "error"
                 ]
             },
+    "agentic": { "class": GenerateAPILog,
+             "fields": [
+                "meta",
+                "step_kind",
+                "workflow_id",
+                "step_id",
+                "tool_name",
+                "input_summary",
+                "output_summary",
+                "status",
+                ]
+            },
+
     }
 
 domain = generator_classes[args.domain]
-
-generator = domain["class"](domain["fields"], size=args.count, seed=args.seed)
+if args.domain == "agentic":
+    generator = domain["class"](
+        domain["fields"],
+        size=args.count,
+        seed=args.seed,
+        option_params=args.argument
+    )
+else:
+    generator = domain["class"](
+        domain["fields"],
+        size=args.count,
+        seed=args.seed
+    )
 
 valid_logs, unvalid_logs = generator.run()
 
