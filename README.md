@@ -40,9 +40,9 @@ The LLM Interaction Contract Schema defines the JSON structure for logging inter
 | **meta** | object | Additional provenance and parsing info. | No |
 | ├─ meta.raw_message | string | Original message (redacted). | No |
 | └─ meta.parse | object | Parse adapter details. | No |
-| &nbsp;&nbsp;&nbsp;├─ adapter | string | Parser adapter used. | Yes |
-| &nbsp;&nbsp;&nbsp;├─ adapter_version | string | Version of the adapter. | Yes |
-| &nbsp;&nbsp;&nbsp;├─ parse_ok | boolean | Indicates if parsing succeeded. | Yes |
+| &nbsp;&nbsp;&nbsp;├─ adapter | string | Parser adapter used. | No |
+| &nbsp;&nbsp;&nbsp;├─ adapter_version | string | Version of the adapter. | No |
+| &nbsp;&nbsp;&nbsp;├─ parse_ok | boolean | Indicates if parsing succeeded. | No |
 | &nbsp;&nbsp;&nbsp;└─ notes | string | Optional parse notes. | No |
 | **component** | string | Responsible component (`api`, `agent`, `pipeline`). | No |
 | **level** | string | Log severity (`info`, `warn`, `error`). | No |
@@ -86,11 +86,13 @@ If a prompt or response might contain private data:
 - Optionally include a small note field such as  
   `"anonymization_note": "truncated 200 chars"` to record that redaction was applied.
 
+
 #### Example — Privacy-safe log entry
 ```json
 {
   "log_id": "11111111-1111-4111-8111-111111111111",
   "log_timestamp": "2025-10-08T09:00:00Z",
+  "pipeline_stage": "reference", 
   "model": "gpt-5-mini",
   "outcome": "success",
   "category": "model",
