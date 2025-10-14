@@ -61,3 +61,8 @@ make generate.raw
 ```
 
 This will run the generator and write the "malformed" files to `/data/synthetic/raw/*.jsonl`
+
+## To be Updated
+
+- Update the **Round-trip guarantees**
+- Update the descriptions for other files [Agentic Generator](generator/agentic_generator.py), [API Generator](generator/api_generator.py), [CV Generator](generator/cv_generator.py), and [Main](generator/main.py).
