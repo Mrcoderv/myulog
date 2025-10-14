@@ -19,3 +19,4 @@ local_pipeline/in/*
 
 # OS junk
 .DS_Store
+.ruff_cache/
