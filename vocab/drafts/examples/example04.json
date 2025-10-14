@@ -3,5 +3,6 @@
   "level": "warn",
   "category": "llm",
   "sub_category": "streaming",
-  "outcome": "failure"
+  "outcome": "failure",
+  "safety_flag": "none"
 }
