@@ -3,5 +3,6 @@
   "level": "error",
   "category": "llm",
   "sub_category": "rag_timeout",
-  "outcome": "timeout"
+  "outcome": "timeout",
+  "safety_flag": "none"
 }
