@@ -4,4 +4,5 @@
   "category": "llm",
   "sub_category": "tokenizer",
   "outcome": "failure"
+  "safety_flag": "none"
 }
