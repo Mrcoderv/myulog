@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/_common.json",
+  "title": "ULog Controlled Vocabulary",
+  "description": "Shared controlled vocabularies for ULog schemas - version 1.0.0",
+  "definitions": {
+    "level": {
+      "type": "string",
+      "description": "Log severity level",
+      "enum": ["info", "warn", "error"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Event category classification",
+      "enum": [
+        "auth",
+        "network",
+        "data",
+        "model",
+        "service",
+        "system",
+        "storage",
+        "scheduler",
+        "deployment",
+        "security",
+        "third_party"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "description": "Operation result status",
+      "enum": ["success", "failure"]
+    },
+    "error_code": {
+      "type": "string",
+      "description": "Standardized error codes",
+      "enum": [
+        "E001",
+        "E002",
+        "E003",
+        "E004",
+        "E005",
+        "E006",
+        "E007",
+        "E008",
+        "E009",
+        "E010",
+        "E011",
+        "E012"
+      ]
+    },
+    "safety_flag": {
+      "type": "string",
+      "description": "Safety and security indicators",
+      "enum": ["llm", "cv", "pii", "security"]
+    }
+  }
+}
