@@ -77,7 +77,7 @@
       "description": "Time-to-first-token in milliseconds (if applicable)."
     },
 
-    "finish_reason": { "$ref": "_common.json#/definitions/finish_reason" },
+    "finish_reason": { "$ref": "../../_common.json#/definitions/finish_reason" },
 
     "usage": {
       "type": "object",
