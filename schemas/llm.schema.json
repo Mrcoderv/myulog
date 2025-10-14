@@ -133,6 +133,11 @@
           "type": "string",
           "pattern": "^\\d+\\.\\d+\\.\\d+$",
           "description": "SemVer of the schema contract."
+        },
+        "pipeline_stage": {
+          "type": "string",
+          "description": "Stage of the pipeline.",
+          "enum": ["ingestion", "preprocessing", "retrieval", "generation", "postprocessing", "storage"]
         }
       },
       "additionalProperties": false

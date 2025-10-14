@@ -2,7 +2,6 @@
   "timestamp": "2025-10-13T12:00:01Z",
   "request_id": "22222222-2222-4222-8222-222222222222",
   "model": "gpt-4o-mini",
-  "pipeline_stage": "inference",
   "usage": { "prompt_tokens": -1, "completion_tokens": 10 },
   "latency_ms": -5,
   "ttft_ms": -1,
