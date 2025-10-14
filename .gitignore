@@ -51,7 +51,17 @@ coverage.xml
 *.sublime-project
 *.sublime-workspace
 
-# OS-specific
+
+# Test artifacts
+tests/reports/*
+!tests/reports/.gitkeep
+
+tests/perf_artifacts/
+
+# Output directory
+/out/**
+
+# OS junk
 .DS_Store
 .DS_Store?
 ._*
