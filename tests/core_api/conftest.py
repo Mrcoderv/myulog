@@ -9,9 +9,8 @@ import json
 import pathlib
 from urllib.parse import urljoin
 
-import pytest
 from jsonschema import Draft7Validator, RefResolver
-
+import pytest
 
 CORE_API_SCHEMA = "core_api/v0/core_api.schema.json"
 

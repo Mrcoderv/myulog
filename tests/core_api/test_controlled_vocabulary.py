@@ -5,10 +5,9 @@ Ensures validation fails for invalid values in: level, category, outcome,
 safety_flags, and error_code.
 """
 
-import pytest
-from jsonschema import ValidationError
-
 from conftest import CORE_API_SCHEMA
+from jsonschema import ValidationError
+import pytest
 
 
 @pytest.fixture(scope="module")

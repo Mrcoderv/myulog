@@ -1,10 +1,9 @@
 import json
 import pathlib
-import pytest
-
-from jsonschema import ValidationError
 
 from conftest import CORE_API_SCHEMA, json_files
+from jsonschema import ValidationError
+import pytest
 
 EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "core_api" / "invalid"
 
