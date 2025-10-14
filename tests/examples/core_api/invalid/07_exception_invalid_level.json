@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 15:30:12.456 ERROR [auth-service] Exception in /v1/auth/login"
+  },
+  "timestamp": "2025-10-08T15:30:12.456Z",
+  "event_type": "exception",
+  "service": "auth-service",
+  "module": "/app/auth.py",
+  "env": "production",
+  "outcome": "failure",
+  "level": "critical",
+  "category": "storage",
+  "endpoint": "/v1/auth/login",
+  "error": {
+    "type": "sqlalchemy.exc.OperationalError",
+    "message": "Can't connect to MySQL server"
+  }
+}
