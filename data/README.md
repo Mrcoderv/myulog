@@ -37,6 +37,7 @@ In the meantime, the CI includes **determinism tests** that regenerate the outpu
 
 ## Example Usage 
 
+**If using Python directly**
 ```bash 
 python3 generate_log_cv.py --count 100 --seed 42 --name log 
 ```
@@ -47,3 +48,16 @@ This will create:
 data/synthetic/log_valid.jsonl
 data/synthetic/log_invalid.jsonl
 ```
+
+**If using Make commands**
+```bash
+make generate
+```
+
+This will run the generator and write normalized files to `/data/synthetic/*.jsonl`
+
+```bash
+make generate.raw 
+```
+
+This will run the generator and write the "malformed" files to `/data/synthetic/raw/*.jsonl`
