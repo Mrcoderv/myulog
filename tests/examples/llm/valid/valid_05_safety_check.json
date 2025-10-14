@@ -2,6 +2,9 @@
   "log_id": "cc33b5be-9d48-4c08-b9d0-bbbbbbbbbbbb",
   "log_timestamp": "2025-10-13T12:04:30Z",
   "model": "gpt-4o",
+  "outcome": "success",
+  "category": "model",
+  "level": "info",
   "prompt": {
     "prompt_id": "a20e2a36-2b8b-4f36-a1b1-0123456789ab",
     "input_tokens": 64,
@@ -12,6 +15,6 @@
     "response_text": "[REDACTED: output withheld due to policy]",
     "output_tokens": 96,
     "latency_ms": 980,
-    "safety_flags": "pii"
+    "safety_flags": "security"
   }
 }

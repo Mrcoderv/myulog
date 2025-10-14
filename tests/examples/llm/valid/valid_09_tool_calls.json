@@ -2,6 +2,9 @@
   "log_id": "aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
   "log_timestamp": "2025-10-13T12:08:00Z",
   "model": "gpt-4o",
+  "outcome": "failure",
+  "category": "data",
+  "level": "info",
   "prompt": {
     "prompt_id": "bbbbbbb2-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
     "input_tokens": 52,

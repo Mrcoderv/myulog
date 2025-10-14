@@ -2,6 +2,9 @@
   "log_id": "2fb979e0-6f6a-4e2b-bc9b-8f1a4d8d28b9",
   "log_timestamp": "2025-10-13T12:01:22Z",
   "model": "gpt-4o-mini",
+  "outcome": "success",
+  "category": "model",
+  "level": "info",
   "prompt": {
     "prompt_id": "7a3a3b2a-5f5b-4f8f-9c9f-0123456789ab",
     "input_tokens": 18,

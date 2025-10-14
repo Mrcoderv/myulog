@@ -2,6 +2,9 @@
   "log_id": "44444444-4444-4444-8444-444444444444",
   "log_timestamp": "2025-10-13T12:06:00Z",
   "model": "gpt-4-turbo",
+  "outcome": "failure",
+  "category": "model",
+  "level": "info",
   "prompt": {
     "prompt_id": "55555555-5555-4555-8555-555555555555",
     "input_tokens": 256,

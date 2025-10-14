@@ -2,6 +2,9 @@
   "log_id": "77777777-7777-4777-8777-777777777777",
   "log_timestamp": "2025-10-13T12:07:10Z",
   "model": "gpt-4o",
+  "outcome": "success",
+  "category": "model",
+  "level": "info",
   "prompt": {
     "prompt_id": "88888888-8888-4888-8888-888888888888",
     "input_tokens": 30,
@@ -13,5 +16,8 @@
     "output_tokens": 0,
     "latency_ms": 500,
     "safety_flags": "pii"
+  },
+  "metrics": {
+    "average_latency_ms": 10
   }
 }
