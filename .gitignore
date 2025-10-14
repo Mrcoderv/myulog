@@ -17,6 +17,7 @@ ENV/
 .Python
 
 # Testing & Coverage
+.python-version
 .pytest_cache/
 .coverage
 .coverage.*
@@ -80,3 +81,9 @@ site/
 *.bak
 *.swp
 .cache/
+
+# Ignore local pipeline data
+local_pipeline/out/*
+!local_pipeline/out/.gitkeep
+local_pipeline/in/*
+!local_pipeline/in/.gitkeep
