@@ -1,14 +1,15 @@
-import json, pathlib
+import json
+import pathlib
 from jsonschema import Draft7Validator, FormatChecker, RefResolver
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SCHEMAS_DIR = ROOT / "schemas"
-SCHEMA_PATH = SCHEMAS_DIR / "llm" / "v0" / "llm.schema.json"  # load the versioned schema directly
 
+#  Load the real versioned schema instead of the alias
+SCHEMA_PATH = ROOT / "schemas" / "llm" / "v0" / "llm.schema.json"
 SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
-# Provide a file:// base so relative $ref like "_common.json" resolve from ./schemas/
-BASE_URI = f"file://{SCHEMAS_DIR.resolve().as_posix()}/"
+# Provide a file:// base so relative $ref (e.g. ../../_common.json) resolve correctly
+BASE_URI = f"file://{SCHEMA_PATH.parent.resolve().as_posix()}/"
 RESOLVER = RefResolver(base_uri=BASE_URI, referrer=SCHEMA)
 
 VALIDATOR = Draft7Validator(SCHEMA, format_checker=FormatChecker(), resolver=RESOLVER)
