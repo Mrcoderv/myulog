@@ -90,6 +90,8 @@ Classifies the event’s domain or origin:
 
 ### `sub_categories`
 
+See the [`ulog-categories-v2.md`](./ulog-categories-v2.md) file for sub_categories descriptions with examples.
+
 
 #### `Naming Rules for Error Codes`
 
