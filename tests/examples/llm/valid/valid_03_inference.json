@@ -12,7 +12,6 @@
     "result_id": "2c07c6b3-6a3d-4f32-8a7e-abcdefabcdef",
     "response_text": "[SUMMARY: concise response generated]",
     "output_tokens": 180,
-    "latency_ms": 2100,
-    "finish_reason": "stop"
+    "latency_ms": 2100
   }
 }

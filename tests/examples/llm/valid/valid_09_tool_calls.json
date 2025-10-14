@@ -12,7 +12,6 @@
     "result_id": "ccccccc3-cccc-4ccc-8ccc-ccccccccccc3",
     "response_text": "[SUMMARY: tool call proposed]",
     "output_tokens": 40,
-    "latency_ms": 1200,
-    "finish_reason": "tool_calls"
+    "latency_ms": 1200
   }
 }

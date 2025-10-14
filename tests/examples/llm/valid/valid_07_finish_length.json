@@ -12,7 +12,6 @@
     "result_id": "66666666-6666-4666-8666-666666666666",
     "response_text": "[SUMMARY: truncated due to max tokens]",
     "output_tokens": 100,
-    "latency_ms": 1900,
-    "finish_reason": "length"
+    "latency_ms": 1900
   }
 }

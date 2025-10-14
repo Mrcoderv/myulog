@@ -12,7 +12,6 @@
     "response_text": "[REDACTED: blocked by content filter]",
     "output_tokens": 0,
     "latency_ms": 500,
-    "finish_reason": "content_filter",
-    "safety_flags": ["toxicity"]
+    "safety_flags": "pii"
   }
 }

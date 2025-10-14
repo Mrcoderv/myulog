@@ -12,7 +12,6 @@
     "response_text": "[REDACTED: output withheld due to policy]",
     "output_tokens": 96,
     "latency_ms": 980,
-    "finish_reason": "content_filter",
-    "safety_flags": ["pii"]
+    "safety_flags": "pii"
   }
 }
