@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/core_api/v0/core_api.schema.json",
+  "title": "Core API Event Schema v0",
+  "description": "Normalized Core API events for HTTP requests, responses, exceptions, and system events with provenance tracking",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "timestamp", "event_type", "service", "env", "outcome"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the raw message and parsing process",
+      "additionalProperties": false,
+      "required": ["raw_message"],
+      "properties": {
+        "raw_message": {
+          "type": "string",
+          "description": "Original raw log message before parsing",
+          "maxLength": 10000
+        },
+        "parse": {
+          "type": "object",
+          "description": "Detailed parsing provenance information",
+          "additionalProperties": false,
+          "required": ["parser_name", "parser_version"],
+          "properties": {
+            "parser_name": {
+              "type": "string",
+              "description": "Name of the parser that normalized this event",
+              "minLength": 1
+            },
+            "parser_version": {
+              "type": "string",
+              "description": "Version of the parser",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            },
+            "pattern_id": {
+              "type": "string",
+              "description": "ID of the pattern/rule that matched",
+              "minLength": 1
+            },
+            "confidence": {
+              "type": "number",
+              "description": "Parser confidence score (0.0 to 1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          }
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when the event occurred",
+      "format": "date-time"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of Core API event",
+      "enum": [
+        "http_request",
+        "http_response",
+        "startup",
+        "shutdown",
+        "build",
+        "dependency_install",
+        "exception",
+        "health_check"
+      ]
+    },
+    "service": {
+      "type": "string",
+      "description": "Name of the service emitting this event",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "env": {
+      "type": "string",
+      "description": "Deployment environment",
+      "enum": ["production", "staging", "development", "test", "local"]
+    },
+    "outcome": {
+      "$ref": "../../_common.json#/definitions/outcome"
+    },
+    "level": {
+      "$ref": "../../_common.json#/definitions/level"
+    },
+    "category": {
+      "$ref": "../../_common.json#/definitions/category"
+    },
+    "component": {
+      "type": "string",
+      "description": "Component within the service",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "module": {
+      "type": "string",
+      "description": "Module where event originated",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "API endpoint (for http_request/http_response)",
+      "pattern": "^/.*$"
+    },
+    "action": {
+      "type": "string",
+      "description": "HTTP methods",
+      "enum": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "HEAD",
+        "OPTIONS",
+        "INTERNAL"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Request trace ID for distributed tracing",
+      "minLength": 1
+    },
+    "http_status": {
+      "type": "integer",
+      "description": "HTTP status code",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Request/operation latency in milliseconds",
+      "minimum": 0
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Total duration in milliseconds (for operations like startup, build)",
+      "minimum": 0
+    },
+    "error": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Simple error message",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "description": "Structured error object",
+          "additionalProperties": false,
+          "required": ["type", "message"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Error type",
+              "minLength": 1
+            },
+            "message": {
+              "type": "string",
+              "description": "Error message",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "stack": {
+              "type": "string",
+              "description": "Joined stacktrace (newlines converted to \\n)",
+              "maxLength": 10000
+            }
+          }
+        }
+      ]
+    },
+    "error_code": {
+      "$ref": "../../_common.json#/definitions/error_code"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of the service/build",
+      "minLength": 1
+    },
+    "safety_flags": {
+      "type": "array",
+      "description": "Array of safety and security indicators",
+      "items": {
+        "$ref": "../../_common.json#/definitions/safety_flag"
+      },
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional flexible metadata",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["http_request", "http_response"]
+          }
+        }
+      },
+      "then": {
+        "required": ["endpoint", "action"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "failure"
+          }
+        }
+      },
+      "then": {
+        "required": ["error"]
+      }
+    }
+  ]
+}
