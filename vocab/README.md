@@ -77,6 +77,7 @@ Describes severity of the event:
 ---
 
 ### `categories`
+Classifies the event’s domain or origin:
 
 | Category       | Description                                                              |
 |----------------|--------------------------------------------------------------------------|
