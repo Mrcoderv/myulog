@@ -5,7 +5,7 @@ import pytest
 
 from conftest import CORE_API_SCHEMA, json_files
 
-EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples" / "valid"
+EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "core_api" / "valid"
 
 
 @pytest.mark.parametrize("path", json_files(EXAMPLES_DIR), ids=lambda p: p.name)
