@@ -1,6 +1,7 @@
 {
   "raw_line": "Model loaded successfully (gpt-4o, 42GB)",
   "level": "info",
-  "category": "model_load",
+  "main_category": "llm",
+  "category": "model_load"
   "outcome": "success"
 }
