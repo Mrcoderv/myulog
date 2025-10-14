@@ -14,7 +14,7 @@ For every run, **two ouput files** are created per domain:
 
 - **Normalized JSONL file:** `data/synthetic/<name>_valid.jsonl`
 
-Structured, schema-compliant logs which follow the [Field Inventory Template](field_inventory_template.md) and [Profiling Checklist](profiling_checklist.md)
+Structured, schema-compliant logs which follow the [Field Inventory Template](blueprint/field_inventory_template.md) and [Profiling Checklist](blueprint/profiling_checklist.md)
 
 - **Raw mirror JSONL file:** `data/synthetic/raw/<name>_invalid.jsonl`
 
@@ -33,7 +33,7 @@ In the meantime, the CI includes **determinism tests** that regenerate the outpu
 ## Reproducibility and Safety
 
 - **Reproducible Runs:** Every generation uses a fixed random seed (`--seed` argument), ensuring that outputs can be regenerated identically.
-- **Synthetic Data Only:** All fields (such as `phase`, `model_name`, `dataset_id`, etc., see more on [Generate Log CV](generate_log_cv.py)) are generated using controlled randomization, which contain no user or system PII. 
+- **Synthetic Data Only:** All fields (such as `phase`, `model_name`, `dataset_id`, etc., see more on [Generate Log CV](generator/generate_log_cv.py)) are generated using controlled randomization, which contain no user or system PII. 
 
 ## Example Usage 
 
