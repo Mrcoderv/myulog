@@ -124,13 +124,12 @@
         },
         "parse": {
           "type": "object",
-          "properties": {
+          "properties": { 
             "adapter": { "type": "string" },
             "adapter_version": { "type": "string" },
             "parse_ok": { "type": "boolean" },
             "notes": { "type": "string" }
           },
-          "required": ["adapter", "adapter_version", "parse_ok"],
           "additionalProperties": false
         }
       },
