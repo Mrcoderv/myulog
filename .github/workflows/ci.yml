@@ -79,16 +79,24 @@ jobs:
           name: schema-test-console
           path: tests/reports/schema_console.txt
 
-      - name: Run vocab linter
+      # ---- Vocabulary lint with soft-fail + explicit gating ----
+      - name: Run vocab linter (soft-fail)
         id: vocab_lint
-        run: poetry run python tests/vocab/lint_vocab.py
+        continue-on-error: true
+        run: |
+          set +e
+          poetry run python tests/vocab/lint_vocab.py
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Suggest fix if formatting fails
-        # Show this only when the vocab linter step itself failed
-        if: ${{ steps.vocab_lint.outcome == 'failure' }}
+        if: ${{ steps.vocab_lint.outputs.exit_code != '0' }}
         run: echo "Run: make format-vocab && make lint-vocab"
 
+      - name: Fail job if vocab linter failed
+        if: ${{ steps.vocab_lint.outputs.exit_code != '0' }}
+        run: exit 1
+
+      # ---- Always run the _common.json refs check (even if vocab lint failed) ----
       - name: Lint _common.json refs vs vocabulary
-        # Always run to catch drift, even if prior steps failed
         if: always()
         run: poetry run python tests/schemas/lint_common_refs.py
