@@ -44,8 +44,8 @@ parser.add_argument("-o",
 parser.add_argument("-d",
                     "--domain",
                     type=str,
-                    default="cv",
-                    choices=["cv", "api", "llm", "agentic"],
+                    required=True,
+                    choices=["cv", "api", "agentic"],
                     help="Domain of the log"
                     )
 parser.add_argument("-arg",
