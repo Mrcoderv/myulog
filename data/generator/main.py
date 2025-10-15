@@ -3,15 +3,14 @@ import json
 import os
 import pathlib
 
-from ULog.data.generator.api_generator import GenerateAPILog
-from ULog.data.generator.cv_generator import GenerateCVLog
+from api_generator import GenerateAPILog
+from cv_generator import GenerateCVLog
+from agentic_generator import AgenticGenerator
 
 
-def create_jsonl_file(file_path, data):
-    with open(file_path, "w") as f:
-        for item in data:
-            json_line = json.dumps(item)
-            f.write(json_line + "\n")
+
+DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
+
 
 parser = argparse.ArgumentParser(
     description="Example of reading command-line arguments"
@@ -39,7 +38,7 @@ parser.add_argument("-n",
 parser.add_argument("-o",
                     "--output-dir",
                     type=str,
-                    default=".",
+                    default=DEFAULT_OUTPUT_DIR,
                     help="Output directory")
 
 parser.add_argument("-d",
@@ -51,9 +50,10 @@ parser.add_argument("-d",
                     )
 parser.add_argument("-arg",
                     "--argument",
-                    type=list[str],
+                    type=str,
+                    action="append",
                     default=[],
-                    help="list of optional parameters for agentic log")
+                    help="Optional parameters for agentic logs; repeatable, e.g. --argument cost --argument level")
 
 args = parser.parse_args()
 
@@ -85,7 +85,7 @@ generator_classes = {
                 "env",
                 ]
             },
-    "agentic": { "class": GenerateAPILog,
+    "agentic": { "class": AgenticGenerator,
              "fields": [
                 "meta",
                 "step_kind",
@@ -119,6 +119,12 @@ valid_logs, unvalid_logs = generator.run()
 
 valid_log_path = os.path.join(output_dir, args.name + "_valid.jsonl")
 unvalid_log_path = os.path.join(output_dir, args.name + "_unvalid.jsonl")
+
+def create_jsonl_file(file_path, data):
+    with open(file_path, "w") as f:
+        for item in data:
+            json_line = json.dumps(item)
+            f.write(json_line + "\n")
 
 create_jsonl_file(valid_log_path, valid_logs)
 create_jsonl_file(unvalid_log_path, unvalid_logs)
