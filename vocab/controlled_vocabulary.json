@@ -1,11 +1,7 @@
 {
   "metadata": {
     "name": "ULog Controlled Vocabulary",
-<<<<<<< HEAD
     "version": "v0.9",
-=======
-    "version": "v1.0",
->>>>>>> 75b9f89 (updated 1.4 with new refs)
     "updated_at": "2025-10-15",
     "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
   },
@@ -92,7 +88,6 @@
       "flag_misclassification": "Incorrect label or prediction.",
       "flag_data_drift": "Input data deviated from training distribution."
     },
-<<<<<<< HEAD
     "error_codes": {
       "ULOG-AUTH-001": "auth_token_expired - Access token expired for a user or service",
       "ULOG-NET-001": "upstream_timeout - Request to upstream service timed out",
@@ -104,18 +99,6 @@
       "ULOG-TP-001": "external_502_bad_gateway - Third-party vendor returned 502 error",
       "ULOG-SYS-001": "cpu_sustained_high - CPU usage sustained above threshold",
       "ULOG-SEC-001": "pii_exposed_in_log - Personal information detected in logs"
-=======
-    "finish_reason": {
-      "enum": {
-        "stop": "Model generation was stopped by the user.",
-        "length": "Generation stopped because max tokens was reached before a response could be completed.", 
-        "content_filter": "Model response was cut short due to a safety or content filter.",
-        "tool_calls": "Model stopped due to handoff to another system component.",
-        "timeout": "The timeout limit was reached before a model response could be completed.",
-        "interrupted": "The model response was interrupted manually or programmatically.",
-        "other": "Catch-all reason for termination."
-      }
->>>>>>> 75b9f89 (updated 1.4 with new refs)
     }
   },
   "$defs": {
@@ -215,6 +198,7 @@
         "flag_violent_image",
         "none"
       ]
+<<<<<<< HEAD
     },
 <<<<<<< HEAD
     "error_codes": {
@@ -248,6 +232,8 @@
         "interrupted",
         "other"
       ]
+=======
+>>>>>>> 36a44cb (format vocab)
     }
   }
 }
