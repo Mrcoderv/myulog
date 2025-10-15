@@ -9,6 +9,6 @@
   "env": "development",
   "outcome": "success",
   "level": "info",
-  "category": "deployment",
+  "category": "core_api",
   "duration_ms": 45600
 }

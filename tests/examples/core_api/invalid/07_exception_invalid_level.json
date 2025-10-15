@@ -8,8 +8,8 @@
   "module": "/app/auth.py",
   "env": "production",
   "outcome": "failure",
-  "level": "critical",
-  "category": "storage",
+  "level": "fatal",
+  "category": "core_api",
   "endpoint": "/v1/auth/login",
   "error": {
     "type": "sqlalchemy.exc.OperationalError",

@@ -14,11 +14,12 @@
   "env": "production",
   "outcome": "failure",
   "level": "warn",
-  "category": "network",
+  "category": "core_api",
+  "sub_category": "network",
   "endpoint": "/api/process-batch",
   "action": "POST",
   "http_status": 504,
   "latency_ms": 30000,
   "error": "Request timed out after 30000ms",
-  "error_code": "E002"
+  "error_code": "ULOG-NET-001"
 }

@@ -8,7 +8,7 @@
   "env": "prod",
   "outcome": "failure",
   "level": "error",
-  "category": "security",
+  "category": "core_api",
   "endpoint": "/admin",
   "action": "GET",
   "http_status": 403,

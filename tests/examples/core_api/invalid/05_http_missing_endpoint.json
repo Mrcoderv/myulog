@@ -12,7 +12,7 @@
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "service",
+  "category": "core_api",
   "action": "GET",
   "http_status": 200,
   "latency_ms": 45.2

@@ -8,15 +8,15 @@
   "env": "production",
   "outcome": "failure",
   "level": "warn",
-  "category": "network",
+  "category": "core_api",
+  "sub_category": "rate_limit",
   "endpoint": "/v1/llm/predict",
   "action": "POST",
   "http_status": 429,
   "latency_ms": 2.1,
   "error": "Rate limit exceeded: 100 requests per minute",
-  "error_code": "E008",
   "safety_flags": [
-    "llm"
+    "none"
   ],
   "request_id": "req_llm_456"
 }

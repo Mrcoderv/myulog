@@ -15,12 +15,12 @@
   "env": "production",
   "outcome": "failure",
   "level": "error",
-  "category": "storage",
+  "category": "core_api",
   "endpoint": "/v1/auth/login",
   "error": {
     "type": "sqlalchemy.exc.OperationalError",
     "message": "(pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")",
     "stack": "Traceback (most recent call last):\n  File \"/app/auth.py\", line 42, in login\n    user = db.query(User).filter_by(email=email).first()\n  File \"/usr/lib/sqlalchemy/query.py\", line 1234, in first\n    return self.limit(1)._execute_and_instances(context).scalar()\nsqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")"
   },
-  "error_code": "E012"
+  "error_code": "ULOG-DB-001"
 }

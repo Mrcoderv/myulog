@@ -14,7 +14,7 @@
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "service",
+  "category": "core_api",
   "endpoint": "/v1/users/123",
   "action": "GET",
   "http_status": 200,

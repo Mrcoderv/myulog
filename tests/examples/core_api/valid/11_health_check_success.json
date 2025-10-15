@@ -8,7 +8,7 @@
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "system",
+  "category": "core_api",
   "endpoint": "/health",
   "action": "GET",
   "http_status": 200,

@@ -14,7 +14,7 @@
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "deployment",
+  "category": "core_api",
   "version": "2.1.4",
   "duration_ms": 1234
 }

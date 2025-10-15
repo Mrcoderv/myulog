@@ -8,7 +8,7 @@
   "env": "production",
   "outcome": "failure",
   "level": "error",
-  "category": "security",
+  "category": "core_api",
   "endpoint": "/admin",
   "action": "GET",
   "http_status": 403,
@@ -16,8 +16,10 @@
     "type": "UNAUTHORIZED_ACCESS",
     "message": "Access denied for IP 212.68.10.15"
   },
-  "error_code": "E005",
-  "safety_flags": ["security"],
+  "error_code": "ULOG-AUTH-001",
+  "safety_flags": [
+    "flag_security"
+  ],
   "metadata": {
     "source_ip": "212.68.10.xxx"
   }

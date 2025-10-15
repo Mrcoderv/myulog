@@ -8,7 +8,7 @@
   "env": "production",
   "outcome": "failure",
   "level": "error",
-  "category": "security",
+  "category": "core_api",
   "endpoint": "/admin/users",
   "action": "GET",
   "http_status": 403,
@@ -17,10 +17,10 @@
     "type": "UNAUTHORIZED_ACCESS",
     "message": "Access denied: insufficient permissions"
   },
-  "error_code": "E005",
+  "error_code": "ULOG-AUTH-001",
   "safety_flags": [
-    "security",
-    "pii"
+    "flag_security",
+    "flag_pii"
   ],
   "metadata": {
     "source_ip": "192.168.1.xxx",

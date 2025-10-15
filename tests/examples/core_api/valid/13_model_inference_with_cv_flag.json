@@ -8,13 +8,14 @@
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "model",
+  "category": "cv",
+  "sub_category": "inference",
   "endpoint": "/v1/classify/image",
   "action": "POST",
   "http_status": 200,
   "latency_ms": 456.7,
   "safety_flags": [
-    "cv"
+    "flag_bias_visual"
   ],
   "metadata": {
     "model_name": "resnet50",

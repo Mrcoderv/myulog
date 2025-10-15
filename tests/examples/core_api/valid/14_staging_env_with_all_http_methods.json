@@ -8,7 +8,7 @@
   "env": "staging",
   "outcome": "success",
   "level": "info",
-  "category": "service",
+  "category": "core_api",
   "endpoint": "/v1/api/resource",
   "action": "OPTIONS",
   "http_status": 204,

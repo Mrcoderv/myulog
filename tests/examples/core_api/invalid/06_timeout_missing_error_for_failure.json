@@ -8,7 +8,7 @@
   "env": "production",
   "outcome": "failure",
   "level": "warn",
-  "category": "network",
+  "category": "core_api",
   "endpoint": "/api/process-batch",
   "action": "POST",
   "http_status": 504,
