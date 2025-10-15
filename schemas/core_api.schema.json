@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/OmdenaAI/ULog/schemas/core_api.schema.json",
   "title": "Core API Event Schema Reference",
   "description": "Compatibility wrapper that references the latest version of Core API schema",

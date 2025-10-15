@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "core_api.schema.json",
   "title": "Core API Event Schema v0",
   "description": "Normalized Core API events for HTTP requests, responses, exceptions, and system events with provenance tracking",
