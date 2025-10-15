@@ -38,8 +38,10 @@ Future versions will be organized in separate directories (`v1/`, `v2/`, etc.). 
 {
   "meta": {
     "raw_message": "2025-10-13T10:00:15Z Agent created 5-step execution plan for user query",
-    "parse_timestamp": "2025-10-13T10:00:15.234Z",
-    "parser_version": "1.0.0"
+    "parse": {
+      "timestamp": "2025-10-13T10:00:15.234Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "plan_created",
   "workflow_id": "wf-001",
@@ -84,7 +86,8 @@ Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)
   "output_summary": "Selected sentiment_analyzer_v3 based on accuracy score",
   "status": "success",
   "duration_ms": 45,
-  "category": "model"
+  "level": "info",
+  "category": "agentic"
 }
 ```
 
@@ -120,7 +123,7 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
     "est_cost_usd": 0.142
   },
   "level": "info",
-  "category": "model"
+  "category": "llm"
 }
 ```
 
@@ -142,8 +145,10 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
 {
   "meta": {
     "raw_message": "[WARN] Safety check detected PII in output (89ms) - email and phone number found",
-    "parse_timestamp": "2025-10-13T10:05:00Z",
-    "parser_version": "1.0.0"
+    "parse": {
+      "timestamp": "2025-10-13T10:05:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "guardrails",
   "workflow_id": "wf-003",
@@ -153,9 +158,9 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
   "output_summary": "Detected PII: email address and phone number",
   "status": "success",
   "duration_ms": 89,
-  "safety_flags": ["pii", "security"],
+  "safety_flags": ["flag_pii", "flag_security"],
   "level": "warn",
-  "category": "security"
+  "category": "agentic"
 }
 ```
 
@@ -179,7 +184,9 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 {
   "meta": {
     "raw_message": "[INFO] External API call to /data/customers completed (1.2s)",
-    "parse_timestamp": "2025-10-13T10:10:00.000Z"
+    "parse": {
+      "timestamp": "2025-10-13T10:10:00.000Z"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-005",
@@ -206,7 +213,9 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 {
   "meta": {
     "raw_message": "[WARN] Service unavailable (503), scheduling retry - took 0.8s",
-    "parse_timestamp": "2025-10-13T10:10:01.200Z"
+    "parse": {
+      "timestamp": "2025-10-13T10:10:01.200Z"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-005",
@@ -218,7 +227,7 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "status": "retry",
   "duration_ms": 800,
   "level": "warn",
-  "category": "network",
+  "category": "agentic",
   "outcome": "failure"
 }
 ```
@@ -235,7 +244,9 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 {
   "meta": {
     "raw_message": "[INFO] Retry successful after 1.5s - processed 1000 records",
-    "parse_timestamp": "2025-10-13T10:10:03.000Z"
+    "parse": {
+      "timestamp": "2025-10-13T10:10:03.000Z"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-005",
@@ -247,7 +258,7 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "status": "success",
   "duration_ms": 1500,
   "level": "info",
-  "category": "network",
+  "category": "agentic",
   "outcome": "success"
 }
 ```
@@ -273,7 +284,7 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 | `1.2s` | `1200` | `duration_ms` | 1.2 seconds = 1200ms |
 | `$0.142` | `0.142` | `cost.est_cost_usd` | USD as decimal |
 | `12500 tokens` | `12500` | `cost.tokens_in` | Numeric extraction |
-| `2025-10-13T10:00:15Z` | `2025-10-13T10:00:15.234Z` | `parse_timestamp` | ISO 8601 with ms precision |
+| `2025-10-13T10:00:15Z` | `2025-10-13T10:00:15.234Z` | `parse.timestamp` | ISO 8601 with ms precision |
 
 ---
 
@@ -281,4 +292,4 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 
 All examples above validate against `schemas/agentic/v0/step_schema.json` and reference controlled vocabularies from `schemas/_common.json`.
 
-See `/tests/agentic/examples/` for complete test suite with 12 valid and 8 invalid examples.
+See `/tests/examples/agentic/` for complete test suite with 14 valid and 10 invalid examples.
