@@ -58,4 +58,4 @@ jobs:
           path: tests/reports/schema_console.txt
 
       - name: Run vocab linter
-        run: poetry run tests/vocab/lint_vocab.py
+        run: poetry run python tests/vocab/lint_vocab.py

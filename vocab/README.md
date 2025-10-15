@@ -182,6 +182,16 @@ And [`examples/mapped_examples/`](./examples/mapped_examples/) for mapped raw lo
 
 ## How to run the JSON file linter
 
+1. **Prerequisites**: Ensure you have Python 3.8+ and Poetry installed. 
+
+2. **Install dependencies** (Poetry will install jsonschema and all requirements):
+   ```bash
+   poetry install
+   ```
+
+3. **Run the vocab linter** from repository root:
+   ```bash
+      poetry run python tests/vocab/lint_vocab.py
 ---
 
 **Authors:** [`Yhya Shehab EL-Den`](https://github.com/Yhya-Shehab-EL-Den), [`Sanaa Amina GOURINE`](https://github.com/Sanaa3131), [`Joudy Alkhrbotli`](https://github.com/J-sp115), [`Sakthivel Vinayagam`](https://github.com/SakthivelVinayagam),[`Chaimaa Zyani`](https://github.com/zyani-chaimaa), [`Yassine Yousfi`](https://github.com/yassine960).  
