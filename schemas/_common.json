@@ -7,6 +7,7 @@
     "category":    { "$ref": "../vocab/controlled_vocabulary.json#/$defs/categories" },
     "sub_category":{ "$ref": "../vocab/controlled_vocabulary.json#/$defs/sub_categories" },
     "outcome":     { "$ref": "../vocab/controlled_vocabulary.json#/$defs/outcomes" },
-    "safety_flag": { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" }
+    "safety_flag": { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" },
+    "error_code":  { "$ref": "../vocab/controlled_vocabulary.json#/$defs/error_codes" }
   }
 }
