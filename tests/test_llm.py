@@ -40,4 +40,3 @@ def test_examples(example, should_be_valid, name):
         assert not errors, f"Expected valid but got errors in {name}: {[e.message for e in errors]}"
     else:
         assert errors, f"Expected invalid but got no schema errors in {name}"
-    
