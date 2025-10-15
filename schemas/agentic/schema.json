@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agentic schema (minimal)",
+  "type": "object",
+  "properties": {
+    "agent_id": { "type": "string" },
+    "action": { "type": "string" }
+  },
+  "required": ["agent_id", "action"],
+  "additionalProperties": false
+}
