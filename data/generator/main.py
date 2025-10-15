@@ -115,10 +115,10 @@ else:
         seed=args.seed
     )
 
-valid_logs, unvalid_logs = generator.run()
+valid_logs, invalid_logs = generator.run()
 
 valid_log_path = os.path.join(output_dir, args.name + "_valid.jsonl")
-unvalid_log_path = os.path.join(output_dir, args.name + "_unvalid.jsonl")
+invalid_log_path = os.path.join(output_dir, args.name + "_invalid.jsonl")
 
 def create_jsonl_file(file_path, data):
     with open(file_path, "w") as f:
@@ -127,4 +127,4 @@ def create_jsonl_file(file_path, data):
             f.write(json_line + "\n")
 
 create_jsonl_file(valid_log_path, valid_logs)
-create_jsonl_file(unvalid_log_path, unvalid_logs)
+create_jsonl_file(invalid_log_path, invalid_logs)
