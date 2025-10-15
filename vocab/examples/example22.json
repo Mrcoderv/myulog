@@ -1,0 +1,11 @@
+{
+    "raw": "Core API returned 503 Service Unavailable for /v1/health (db pool exhausted)",
+    "mapped": {
+      "level": "error",
+      "category": "core_api",
+      "sub_category": "service",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Infra saturation; healthcheck failing due to DB pool"
+    }
+  }

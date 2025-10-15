@@ -1,0 +1,11 @@
+{
+    "raw": "Inference: toks_in=1024 toks_out=96 total_latency=610ms (SLA ok)",
+    "mapped": {
+      "level": "info",
+      "category": "llm",
+      "sub_category": "inference",
+      "outcome": "success",
+      "safety_flags": ["none"],
+      "notes": "Healthy end-to-end completion under SLA"
+    }
+  }

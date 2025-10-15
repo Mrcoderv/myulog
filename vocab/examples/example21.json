@@ -1,0 +1,11 @@
+{
+    "raw": "Object detector drift: mAP@50 declined from 0.62→0.48 on weekly eval",
+    "mapped": {
+      "level": "error",
+      "category": "cv",
+      "sub_category": "model_drift",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Significant performance regression on benchmark"
+    }
+  }
