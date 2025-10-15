@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 12:00:00.000 INFO [rest-api] Incoming request: GET /v1/users?page=1"
+  },
+  "timestamp": "2025-10-08T12:00:00.000Z",
+  "event_type": "http_request",
+  "service": "rest-api",
+  "env": "production",
+  "outcome": "running",
+  "level": "info",
+  "category": "core_api",
+  "endpoint": "/v1/users",
+  "action": "GET",
+  "latency_ms": 12.3,
+  "request_id": "req_abc_123"
+}
