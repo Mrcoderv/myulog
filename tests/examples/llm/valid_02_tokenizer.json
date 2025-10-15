@@ -1,0 +1,20 @@
+{
+  "timestamp": "2025-10-13T12:01:40Z",
+  "request_id": "f9c7c7ff-9fb0-4c9e-bf33-0b0cf8a8b6a1",
+  "model": "gpt-4o",
+  "pipeline_stage": "serve",
+  "latency_ms": 0,
+  "result": {
+    "result_id": "f4d85b79-9c98-4f2e-8b55-abcdefabcdef",
+    "outcome": "success",
+    "output_text_length": 0
+  },
+  "meta": {
+    "raw_message": "[REDACTED: original log text]",
+    "parse": {
+      "source": "api",
+      "parser": "manual@1.0",
+      "ok": true
+    }
+  }
+}

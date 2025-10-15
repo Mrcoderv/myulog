@@ -1,6 +1,6 @@
-{
+{  
   "$id": "https://ulog.ai/schemas/llm.schema.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ULog - LLM Interaction (Normalized)",
   "version": "1.2.0",
   "description": "ULog LLM Interaction Contract – v1.2.0 (Oct 13 2025, normalized interactions, meta.parse provenance, CI-validated examples).",
@@ -63,8 +63,8 @@
       "description": "Optional component name (e.g., api, agent, pipeline)."
     },
 
-    "level": { "$ref": "../../_common.json#/definitions/level" },
-    "category": { "$ref": "../../_common.json#/definitions/category" },
+    "level": { "$ref": "../_common.json#/$defs/level" },
+    "category": { "$ref": "../_common.json#/$defs/category" },
 
     "latency_ms": {
       "type": "number",
@@ -77,7 +77,7 @@
       "description": "Time-to-first-token in milliseconds (if applicable)."
     },
 
-    "finish_reason": { "$ref": "../../_common.json#/definitions/finish_reason" },
+    "finish_reason": { "$ref": "../_common.json#/$defs/finish_reason" },
 
     "usage": {
       "type": "object",
@@ -127,7 +127,7 @@
       "description": "Outcome summary and PII-safe output metadata.",
       "properties": {
         "result_id": { "type": "string", "format": "uuid" },
-        "outcome":   { "$ref": "../../_common.json#/definitions/outcome" },
+        "outcome":   { "$ref": "../_common.json#/$defs/outcome" },
 
         "error_code":    { "type": "string", "maxLength": 64 },
         "error_message": { "type": "string", "maxLength": 512 },
@@ -137,7 +137,7 @@
 
         "safety_flags": {
           "type": "array",
-          "items": { "$ref": "../../_common.json#/definitions/safety_flag" },
+          "items": { "$ref": "../_common.json#/$defs/safety_flag" },
           "maxItems": 10,
           "description": "Safety flags attached to this event."
         },

@@ -1,0 +1,29 @@
+
+{
+  "timestamp": "2025-10-13T12:04:30Z",
+  "request_id": "cc33b5be-9d48-4c08-b9d0-bbbbbbbbbbbb",
+  "model": "llm",
+  "pipeline_stage": "inference",
+  "latency_ms": 980,
+  "category": "llm",
+  "level": "info",
+  "result": {
+    "result_id": "3a6a91d0-23b7-41e0-b579-abcdefabcdef",
+    "outcome": "success",
+    "output_text_length": 96,
+    "safety_flags": ["flag_security"]
+  },
+  "meta": {
+    "raw_message": "[REDACTED: original log text]",
+    "parse": {
+      "source": "api",
+      "parser": "manual@1.0",
+      "ok": true
+    }
+  },
+  "usage": {
+    "prompt_tokens": 64,
+    "completion_tokens": 96,
+    "total_tokens": 160
+  }
+}

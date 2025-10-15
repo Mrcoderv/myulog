@@ -1,0 +1,20 @@
+{
+  "request_id": "2fb979e0-6f6a-4e2b-bc9b-8f1a4d8d28b9",
+  "timestamp": "2025-10-13T12:01:22Z",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "serve",
+  "latency_ms": 534,
+  "result": {
+    "result_id": "e8f2a1f7-1a0b-4d1b-8f3a-abcdefabcdef",
+    "outcome": "success",
+    "output_text_length": 243
+  },
+  "meta": {
+    "raw_message": "[REDACTED]",
+    "parse": {
+      "source": "api_gateway",
+      "parser": "ulog-parser@1.2.0",
+      "ok": true
+    }
+  }
+}
