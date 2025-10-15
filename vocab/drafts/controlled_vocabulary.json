@@ -1,0 +1,75 @@
+{
+    "metadata": {
+      "name": "ULog Controlled Vocabulary",
+      "version": "1.0.0",
+      "updated_at": "2025-10-07",
+      "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
+    },
+  
+    "vocabulary": {
+      "levels": {
+        "info": "Everything is working as expected.",
+        "warn": "Something unusual happened but the system recovered or continued.",
+        "error": "A task failed or crashed and requires attention."
+      },
+  
+      "categories": {
+        "auth": "Login, token, or user-permission events.",
+        "network": "Timeouts, connection drops, or unreachable endpoints.",
+        "data": "Loading, validation, or schema-related issues.",
+        "model": "Training, inference, or drift events in ML models.",
+        "service": "Application or API lifecycle and configuration errors.",
+        "system": "CPU, memory, or disk resource issues.",
+        "storage": "Database or file-storage read/write failures.",
+        "scheduler": "Job scheduling, delay, or retry events.",
+        "deployment": "Build or release version changes.",
+        "security": "Unauthorized access or suspicious activity.",
+        "third_party": "External API or vendor-service problems."
+      },
+  
+      "outcomes": {
+        "success": "Operation completed successfully.",
+        "failure": "Operation failed or was aborted."
+      },
+  
+      "error_codes": {
+        "E001": "Invalid input or missing required field.",
+        "E002": "Request timed out waiting for response.",
+        "E003": "Data validation failed or schema mismatch.",
+        "E004": "Model drift detected beyond threshold.",
+        "E005": "Authentication or authorization failure.",
+        "E006": "Resource limit exceeded (CPU, memory, or disk).",
+        "E007": "Dependent service unavailable.",
+        "E008": "Rate limit exceeded or too many requests.",
+        "E009": "Parsing or serialization error.",
+        "E010": "Missing or incorrect configuration value.",
+        "E011": "Disk quota exceeded or file not found.",
+        "E012": "Database transaction failed or deadlock detected."
+      },
+  
+      "safety_flags": {
+        "llm": "Language-model output flagged for unsafe or biased content.",
+        "cv": "Computer-vision module detected unsafe or abnormal frame.",
+        "pii": "Personal or sensitive information found in logs.",
+        "security": "Potential security or unauthorized-access risk."
+      }
+    },
+  
+    "examples": [
+      {"raw_log": "2025-10-07 10:25:44 ERROR model drift detected for model sentiment-v2 (threshold=0.12)","mapped": {"level": "error","category": "model","outcome": "failure","error_code": "E004","safety_flag": "llm"}},
+      {"raw_log": "2025-10-07 10:29:02 WARN token expired for user_id=1023, attempting refresh","mapped": {"level": "warn","category": "auth","outcome": "failure","error_code": "E005"}},
+      {"raw_log": "2025-10-07 10:33:14 INFO ingestion completed successfully for file batch_20251007.csv","mapped": {"level": "info","category": "data","outcome": "success"}},
+      {"raw_log": "2025-10-07 10:36:47 ERROR schema mismatch: expected 10 columns, got 8 in data pipeline","mapped": {"level": "error","category": "data","outcome": "failure","error_code": "E003"}},
+      {"raw_log": "2025-10-07 10:40:22 WARN API call to payment service took 12s (timeout=15s)","mapped": {"level": "warn","category": "network","outcome": "success"}},
+      {"raw_log": "2025-10-07 10:44:09 ERROR failed to connect to Redis cache: connection refused","mapped": {"level": "error","category": "storage","outcome": "failure","error_code": "E007"}},
+      {"raw_log": "2025-10-07 10:48:11 INFO model retraining completed successfully (accuracy=0.89)","mapped": {"level": "info","category": "model","outcome": "success"}},
+      {"raw_log": "2025-10-07 10:52:00 ERROR database transaction rolled back due to deadlock","mapped": {"level": "error","category": "storage","outcome": "failure","error_code": "E012"}},
+      {"raw_log": "2025-10-07 10:55:18 WARN 429 Too Many Requests from client=beta-service","mapped": {"level": "warn","category": "network","outcome": "failure","error_code": "E008"}},
+      {"raw_log": "2025-10-07 10:59:42 ERROR missing environment variable MODEL_API_KEY at startup","mapped": {"level": "error","category": "service","outcome": "failure","error_code": "E010"}},
+      {"raw_log": "2025-10-07 11:02:55 ERROR unauthorized request from IP 212.68.10.15","mapped": {"level": "error","category": "security","outcome": "failure","error_code": "E005","safety_flag": "security"}},
+      {"raw_log": "2025-10-07 11:06:10 INFO model-api v3.0.2 deployed to production cluster","mapped": {"level": "info","category": "deployment","outcome": "success"}},
+      {"raw_log": "2025-10-07 11:09:27 WARN delayed task: scheduled 10:00 executed 10:08","mapped": {"level": "warn","category": "scheduler","outcome": "failure","error_code": "E002"}},
+      {"raw_log": "2025-10-07 11:12:03 ERROR external API /invoices returned 502 Bad Gateway","mapped": {"level": "error","category": "third_party","outcome": "failure","error_code": "E007"}},
+      {"raw_log": "2025-10-07 11:15:45 WARN CPU usage above 90% for 5 minutes","mapped": {"level": "warn","category": "system","outcome": "failure","error_code": "E006"}}
+    ]
+  }

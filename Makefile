@@ -61,3 +61,11 @@ classify: ## Run local pipeline (docker compose)
 
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
+
+# --- Vocabulary helpers ---
+.PHONY: lint-vocab format-vocab
+lint-vocab:
+	@poetry run python tests/vocab/lint_vocab.py
+
+format-vocab:
+	@poetry run python tests/vocab/format_vocab.py

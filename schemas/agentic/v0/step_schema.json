@@ -126,7 +126,7 @@
       "description": "Optional: component that generated this step"
     },
     "level": {
-      "$ref": "../../_common.json#/definitions/level"
+      "$ref": "../../_common.json#/$defs/level"
     },
     "category": {
       "$ref": "../../_common.json#/$defs/category"
@@ -138,7 +138,7 @@
       "type": "array",
       "description": "Optional: array of safety flags",
       "items": {
-        "$ref": "../../_common.json#/definitions/safety_flag"
+        "$ref": "../../_common.json#/$defs/safety_flag"
       }
     },
     "error": {
