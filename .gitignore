@@ -58,9 +58,6 @@ tests/reports/*
 
 tests/perf_artifacts/
 
-# Output directory
-/out/**
-
 # OS junk
 .DS_Store
 .DS_Store?
@@ -91,6 +88,9 @@ site/
 *.bak
 *.swp
 .cache/
+
+# Output directory
+/out/**
 
 # Ignore local pipeline data
 local_pipeline/out/*
