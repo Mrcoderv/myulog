@@ -457,4 +457,21 @@ Always populate `meta.parse` when available:
 - **ULOG-SYS-001**: cpu_sustained_high - CPU usage sustained above threshold
 - **ULOG-SEC-001**: pii_exposed_in_log - Personal information detected in logs
 
-**Note**: Old format `E001-E012` is deprecated. Use new `ULOG-*-001` format.
+---
+
+## How to validate
+
+Two ways to validate:
+
+- Unit tests (Python):
+
+```bash
+make test                # Run Python unit tests
+```
+
+- Schema harness (validates all example JSONs under tests/examples/** and writes reports to tests/reports/):
+
+```bash
+make test.schemas        # Run harness and write JUnit XML
+make test.schemas.json   # Run harness and write JSON report
+```
