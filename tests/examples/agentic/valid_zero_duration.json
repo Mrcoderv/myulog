@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "raw_message": "Instant cache lookup with zero duration"
+  },
+  "step_kind": "cache",
+  "workflow_id": "wf-zero-001",
+  "step_id": "step-cache-zero",
+  "tool_name": "instant_cache",
+  "input_summary": "Cache key lookup",
+  "output_summary": "Instant cache hit",
+  "status": "success",
+  "duration_ms": 0,
+  "level": "info",
+  "category": "agentic"
+}
+

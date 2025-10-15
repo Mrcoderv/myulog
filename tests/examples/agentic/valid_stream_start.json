@@ -1,7 +1,9 @@
 {
   "meta": {
     "raw_message": "Starting streaming response to client",
-    "parser_version": "1.0.0"
+    "parse": {
+      "version": "1.0.0"
+    }
   },
   "step_kind": "stream_start",
   "workflow_id": "wf-002",
@@ -11,6 +13,8 @@
   "output_summary": "Stream initialized, first chunk sent",
   "status": "success",
   "duration_ms": 12.3,
-  "component": "streaming_engine"
+  "component": "streaming_engine",
+  "level": "info",
+  "category": "agentic"
 }
 

@@ -1,7 +1,9 @@
 {
   "meta": {
     "raw_message": "API call failed, will retry",
-    "parse_timestamp": "2025-10-13T10:10:00Z"
+    "parse": {
+      "timestamp": "2025-10-13T10:10:00Z"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-005",
@@ -12,7 +14,7 @@
   "status": "retry",
   "duration_ms": 1200.0,
   "level": "warn",
-  "category": "network",
+  "category": "agentic",
   "outcome": "failure"
 }
 

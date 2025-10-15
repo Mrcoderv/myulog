@@ -1,14 +1,14 @@
 {
   "meta": {
-    "raw_message": "Invalid outcome value not in controlled vocabulary"
+    "raw_message": "Invalid negative duration value"
   },
   "step_kind": "step",
-  "workflow_id": "wf-008",
-  "step_id": "step-008",
+  "workflow_id": "wf-neg-001",
+  "step_id": "step-neg-001",
   "tool_name": "test_tool",
   "input_summary": "Test input",
   "output_summary": "Test output",
   "status": "success",
-  "outcome": "invalid_outcome"
+  "duration_ms": -100.5
 }
 

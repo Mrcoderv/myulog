@@ -1,8 +1,10 @@
 {
   "meta": {
     "raw_message": "2025-10-13T10:00:00Z [INFO] Session started for user workflow",
-    "parse_timestamp": "2025-10-13T10:00:01Z",
-    "parser_version": "1.0.0"
+    "parse": {
+      "timestamp": "2025-10-13T10:00:01Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "session_start",
   "workflow_id": "wf-001",
@@ -13,6 +15,6 @@
   "status": "success",
   "duration_ms": 45.2,
   "level": "info",
-  "category": "service"
+  "category": "agentic"
 }
 

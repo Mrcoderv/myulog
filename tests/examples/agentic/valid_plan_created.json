@@ -13,6 +13,7 @@
   "status": "success",
   "duration_ms": 120.5,
   "component": "ai_planner_v2",
-  "level": "info"
+  "level": "info",
+  "category": "agentic"
 }
 

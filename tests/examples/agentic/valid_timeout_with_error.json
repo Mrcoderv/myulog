@@ -11,8 +11,8 @@
   "status": "timeout",
   "duration_ms": 30000.0,
   "level": "error",
-  "category": "storage",
-  "outcome": "failure",
+  "category": "agentic",
+  "outcome": "timeout",
   "error": {
     "message": "Query execution timeout after 30000ms. Consider optimizing query or increasing timeout limit."
   }

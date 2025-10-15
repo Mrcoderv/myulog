@@ -14,14 +14,20 @@
           "type": "string",
           "description": "Original raw log message before parsing"
         },
-        "parse_timestamp": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO 8601 timestamp when the message was parsed"
-        },
-        "parser_version": {
-          "type": "string",
-          "description": "Version of the parser used to process this message"
+        "parse": {
+          "type": "object",
+          "description": "Information about the parsing process",
+          "properties": {
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO 8601 timestamp when the message was parsed"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the parser used to process this message"
+            }
+          }
         }
       },
       "required": ["raw_message"]
@@ -123,10 +129,10 @@
       "$ref": "../../_common.json#/definitions/level"
     },
     "category": {
-      "$ref": "../../_common.json#/definitions/category"
+      "$ref": "../../_common.json#/$defs/category"
     },
     "outcome": {
-      "$ref": "../../_common.json#/definitions/outcome"
+      "$ref": "../../_common.json#/$defs/outcome"
     },
     "safety_flags": {
       "type": "array",

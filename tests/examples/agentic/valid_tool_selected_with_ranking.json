@@ -1,7 +1,9 @@
 {
   "meta": {
     "raw_message": "Tool selection completed with rankings",
-    "parse_timestamp": "2025-10-13T10:01:00Z"
+    "parse": {
+      "timestamp": "2025-10-13T10:01:00Z"
+    }
   },
   "step_kind": "tool_selected",
   "workflow_id": "wf-001",
@@ -13,6 +15,7 @@
   "input_summary": "Selecting best sentiment analysis tool",
   "output_summary": "Selected sentiment_analyzer_v3 based on accuracy score",
   "status": "success",
-  "category": "model"
+  "level": "info",
+  "category": "agentic"
 }
 
