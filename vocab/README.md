@@ -1,4 +1,7 @@
 # Controlled Vocabulary - Draft v0.9
+
+**Quick links:** [VERSIONING](/docs/VERSIONING.md)
+
 ## Purpose
 
 This document defines a **machine-readable controlled vocabulary** used across all project schemas.

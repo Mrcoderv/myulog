@@ -56,3 +56,6 @@ jobs:
         with:
           name: schema-test-console
           path: tests/reports/schema_console.txt
+
+      - name: Run vocab linter
+        run: poetry run tests/vocab/lint_vocab.py

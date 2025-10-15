@@ -1,76 +1,69 @@
 {
-    "metadata": {
-      "name": "ULog Controlled Vocabulary",
-      "version": "v.09",
-      "updated_at": "2025-10-14",
-      "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
+  "metadata": {
+    "name": "ULog Controlled Vocabulary",
+    "version": "v.09",
+    "updated_at": "2025-10-14",
+    "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
+  },
+  "vocabulary": {
+    "levels": {
+      "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
+      "info": "Normal operational events confirming that the system is working as expected.",
+      "warn": "Indicates a potential issue or unexpected behavior that doesn’t interrupt execution.",
+      "error": "A significant problem that caused a specific operation to fail but system remains functional",
+      "critical": "A severe problem causing service interruption or system crash."
     },
-  
-    "vocabulary": {
-      "levels": {
-        "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
-        "info": "Normal operational events confirming that the system is working as expected.",
-        "warn": "Indicates a potential issue or unexpected behavior that doesn’t interrupt execution.",
-        "error": "A significant problem that caused a specific operation to fail but system remains functional",
-        "critical": "A severe problem causing service interruption or system crash."
-        
-      },
-
-      "categories": {
-        "core_api": "Internal/external API calls, routing, auth, and request handling logs.",
-        "llm": "LLM prompts, responses, completions, model performance, and behavior.",
-        "agentic": "Agent workflows, tool use, and multi-step task execution.",
-        "cv": "Computer vision, model training, and inference job logs."
-      },
-  
-      "sub_categories": {
-        "infrastructure": "Events related to the state and performance of hardware, containers, VMs, or cloud resources.",
-        "build": "Activities and outcomes during compilation, packaging, or container creation.",
-        "dependency": "Interactions with or issues in external or internal libraries, services, and components.",
-        "model_load": "Processes involving the loading, initialization, or switching of models and their weights.",
-        "tokenizer": "Operations related to text tokenization, including handling of tokens and special characters.",
-        "quantization": "Events concerning model quantization and its effect on accuracy or performance.",
-        "kv_cache": "Usage and management of key-value caches within models or applications.",
-        "rag_timeout": "Occurrences of timeouts or delays during retrieval-augmented generation steps.",
-        "embedding_service": "Events tied to embedding computations or service availability.",
-        "reranker": "Status and performance of reranking processes or models.",
-        "tracking": "Observability and telemetry events related to data tracking and hooks.",
-        "streaming": "Real-time streaming data transmissions and client connection events.",
-        "preproc": "Input data preprocessing actions such as filtering, truncation, and normalization.",
-        "data_io": "Data read/write operations involving files, object stores, or databases.",
-        "safety": "Content moderation and policy enforcement-related events.",
-        "auth": "Authentication and authorization processes including login and token validation.",
-        "network": "Network communications including connectivity, DNS resolution, and latency.",
-        "data": "Data ingestion, validation, parsing, and schema compliance events.",
-        "ui": "User interface interactions and rendering events.",
-        "system": "Operating system and resource-level events like CPU, memory, and disk usage.",
-        "storage": "File system and database storage access and performance.",
-        "job": "Scheduled or background task initiation, progress, or completion.",
-        "security": "Events related to security monitoring, alerts, and potential threats.",
-        "metrics": "Collection and reporting of performance, health, and usage statistics.",
-        "event": "User or business-related significant occurrences or state changes.",
-        "config": "Configuration loading, updates, and validation events.",
-        "rate_limit": "Enforcement and occurrences of usage quotas or throttling.",
-        "user_input": "Events concerning user-provided data or command handling.",
-        "scheduler": "Job scheduling activities including delays, retries, or completions.",
-        "analytics": "Data analysis, metric reporting, and logging events.",
-        "model": "Core model operations including training, inference, and drift monitoring.",
-        "service": "Application or API lifecycle, interactions, and configuration events.",
-        "deployment": "Deployment processes, version rollouts, and release updates.",
-        "third_party": "Interactions or issues with external APIs, services, or vendors."
-      },
-  
-      "outcomes": {
-        "success": "Task or process completed as expected with no errors.",
-        "failure": "Task failed due to an error or exception.",
-        "timeout": "Task did not finish before the configured time limit.",
-        "cancelled": "Task was intentionally stopped by the user or scheduler.",
-        "running": "Task currently in progress.",
-        "pending": "Task queued but not yet started."
-      },
-      
-      "safety_flags": {
-    
+    "categories": {
+      "core_api": "Internal/external API calls, routing, auth, and request handling logs.",
+      "llm": "LLM prompts, responses, completions, model performance, and behavior.",
+      "agentic": "Agent workflows, tool use, and multi-step task execution.",
+      "cv": "Computer vision, model training, and inference job logs."
+    },
+    "sub_categories": {
+      "infrastructure": "Events related to the state and performance of hardware, containers, VMs, or cloud resources.",
+      "build": "Activities and outcomes during compilation, packaging, or container creation.",
+      "dependency": "Interactions with or issues in external or internal libraries, services, and components.",
+      "model_load": "Processes involving the loading, initialization, or switching of models and their weights.",
+      "tokenizer": "Operations related to text tokenization, including handling of tokens and special characters.",
+      "quantization": "Events concerning model quantization and its effect on accuracy or performance.",
+      "kv_cache": "Usage and management of key-value caches within models or applications.",
+      "rag_timeout": "Occurrences of timeouts or delays during retrieval-augmented generation steps.",
+      "embedding_service": "Events tied to embedding computations or service availability.",
+      "reranker": "Status and performance of reranking processes or models.",
+      "tracking": "Observability and telemetry events related to data tracking and hooks.",
+      "streaming": "Real-time streaming data transmissions and client connection events.",
+      "preproc": "Input data preprocessing actions such as filtering, truncation, and normalization.",
+      "data_io": "Data read/write operations involving files, object stores, or databases.",
+      "safety": "Content moderation and policy enforcement-related events.",
+      "auth": "Authentication and authorization processes including login and token validation.",
+      "network": "Network communications including connectivity, DNS resolution, and latency.",
+      "data": "Data ingestion, validation, parsing, and schema compliance events.",
+      "ui": "User interface interactions and rendering events.",
+      "system": "Operating system and resource-level events like CPU, memory, and disk usage.",
+      "storage": "File system and database storage access and performance.",
+      "job": "Scheduled or background task initiation, progress, or completion.",
+      "security": "Events related to security monitoring, alerts, and potential threats.",
+      "metrics": "Collection and reporting of performance, health, and usage statistics.",
+      "event": "User or business-related significant occurrences or state changes.",
+      "config": "Configuration loading, updates, and validation events.",
+      "rate_limit": "Enforcement and occurrences of usage quotas or throttling.",
+      "user_input": "Events concerning user-provided data or command handling.",
+      "scheduler": "Job scheduling activities including delays, retries, or completions.",
+      "analytics": "Data analysis, metric reporting, and logging events.",
+      "model": "Core model operations including training, inference, and drift monitoring.",
+      "service": "Application or API lifecycle, interactions, and configuration events.",
+      "deployment": "Deployment processes, version rollouts, and release updates.",
+      "third_party": "Interactions or issues with external APIs, services, or vendors."
+    },
+    "outcomes": {
+      "success": "Task or process completed as expected with no errors.",
+      "failure": "Task failed due to an error or exception.",
+      "timeout": "Task did not finish before the configured time limit.",
+      "cancelled": "Task was intentionally stopped by the user or scheduler.",
+      "running": "Task currently in progress.",
+      "pending": "Task queued but not yet started."
+    },
+    "safety_flags": {
       "none": "No ML model involved, or not safety-critical",
       "flag_pii": "Personal or sensitive information found in logs.",
       "flag_security": "Potential security or unauthorized-access risk.",
@@ -90,7 +83,6 @@
       "flag_tampering": "Detects manipulated or synthetic content.",
       "flag_misclassification": "Incorrect label or prediction.",
       "flag_data_drift": "Input data deviated from training distribution."
-      
-    }  
+    }
   }
 }
