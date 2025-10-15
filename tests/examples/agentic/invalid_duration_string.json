@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "raw_message": "Invalid duration type - string instead of number"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-invalid-001",
+  "step_id": "step-invalid-duration",
+  "tool_name": "test_tool",
+  "input_summary": "Test input",
+  "output_summary": "Test output",
+  "status": "success",
+  "duration_ms": "12"
+}

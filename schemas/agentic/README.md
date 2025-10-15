@@ -73,7 +73,10 @@ Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)
 ```json
 {
   "meta": {
-    "raw_message": "Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)"
+    "raw_message": "Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)",
+    "parse": {
+      "timestamp": "2025-10-13T10:01:00Z"
+    }
   },
   "step_kind": "tool_selected",
   "workflow_id": "wf-001",
@@ -106,7 +109,10 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
 ```json
 {
   "meta": {
-    "raw_message": "LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142"
+    "raw_message": "LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142",
+    "parse": {
+      "timestamp": "2025-10-13T10:02:00Z"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-001",
@@ -288,8 +294,41 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 
 ---
 
+## Workflow Sequence Diagram
+
+| Event               | From           | To             | step_kind       | Notes                                  |
+|---------------------|----------------|----------------|-----------------|----------------------------------------|
+| session_start       | User           | Orchestrator   | session_start   |                                         |
+| plan created        | Orchestrator   | Planner        | plan_created    | plan_id=plan-alpha-001                  |
+| tool selection      | Orchestrator   | ToolSelector   | tool_selected   | ranked_tools=["sentiment_analyzer_v3","sentiment_analyzer_v2","basic_nlp"] |
+| cache check         | Orchestrator   | Cache          | cache           | status="success"                        |
+| step #1 (analyze)   | Orchestrator   | LLM Backend    | step            | duration_ms=3500, status="success"      |
+| guardrails check    | Guardrails     | Orchestrator   | guardrails      | safety_flags=["flag_pii","flag_security"] |
+| step #2 (retry)     | Orchestrator   | LLM Backend    | step            | status="success"                        |
+| cost emit           | Orchestrator   | Guardrails     | cost            | tokens_in=12500, tokens_out=850, est_cost_usd=0.142 |
+| stream start        | Orchestrator   | User           | stream_start    | component="streaming_engine"            |
+| final answer        | Orchestrator   | User           | —               |                                         |
+
+---
+
+## Normalization Tips
+
+> **💡 Key Normalization Rules:**
+> 
+> - **Time**: All durations in `duration_ms` as numbers (e.g., `1.2s` → `1200`)
+> - **IDs**: Keep `plan_id` stable through the session
+> - **Steps**: Every action is a step with `{ duration_ms, outcome }`
+> - **Allowed step_kind**: `session_start`, `plan_created`, `tool_selected`, `step`, `stream_start`, `guardrails`, `cost`, `cache`
+> - **Tool pick**: `ranked_tools` is an array of strings
+> - **Status**: Use exact enum values (`success`, `retry`, `timeout`, `failed`)
+> - **Cost**: Include `tokens_in`, `tokens_out`, `est_cost_usd` (all numbers ≥ 0)
+> - **Enums**: Enforce shared vocabulary for `level`, `category`, `outcome`, `safety_flag`
+> - **Provenance**: Store `meta.raw_message` + `meta.parse{ timestamp, version }`
+
+---
+
 ## Schema Validation
 
 All examples above validate against `schemas/agentic/v0/step_schema.json` and reference controlled vocabularies from `schemas/_common.json`.
 
-See `/tests/examples/agentic/` for complete test suite with 14 valid and 10 invalid examples.
+See `/tests/examples/agentic/` for complete test suite with >=14 valid and >=10 invalid examples.
