@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/core_api/v0/core_api.schema.json",
+  "$id": "core_api.schema.json",
   "title": "Core API Event Schema v0",
   "description": "Normalized Core API events for HTTP requests, responses, exceptions, and system events with provenance tracking",
   "type": "object",
@@ -80,13 +80,16 @@
       "enum": ["production", "staging", "development", "test", "local"]
     },
     "outcome": {
-      "$ref": "../../_common.json#/definitions/outcome"
+      "$ref": "../../_common.json#/$defs/outcome"
     },
     "level": {
-      "$ref": "../../_common.json#/definitions/level"
+      "$ref": "../../_common.json#/$defs/level"
     },
     "category": {
-      "$ref": "../../_common.json#/definitions/category"
+      "$ref": "../../_common.json#/$defs/category"
+    },
+    "sub_category": {
+      "$ref": "../../_common.json#/$defs/sub_category"
     },
     "component": {
       "type": "string",
@@ -174,7 +177,7 @@
       ]
     },
     "error_code": {
-      "$ref": "../../_common.json#/definitions/error_code"
+      "$ref": "../../_common.json#/$defs/error_code"
     },
     "version": {
       "type": "string",
@@ -185,7 +188,7 @@
       "type": "array",
       "description": "Array of safety and security indicators",
       "items": {
-        "$ref": "../../_common.json#/definitions/safety_flag"
+        "$ref": "../../_common.json#/$defs/safety_flag"
       },
       "uniqueItems": true
     },
