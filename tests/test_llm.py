@@ -1,7 +1,8 @@
 import json
 import pathlib
-import pytest 
+
 from jsonschema import Draft7Validator, FormatChecker, RefResolver
+import pytest
 
 # Path Setup
 ROOT = pathlib.Path(__file__).resolve().parents[1]
