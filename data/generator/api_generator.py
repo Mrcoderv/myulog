@@ -1,4 +1,4 @@
-from ULog.data.generator.generator import GenerateLog
+from generator import GenerateLog
 
 
 class GenerateAPILog(GenerateLog):
@@ -65,7 +65,7 @@ class GenerateAPILog(GenerateLog):
                                       }
                 
             log_entry["status_code"] = self.select_status_code(log_entry["result"])
-            
+
             logs.append(log_entry)
         return logs
 

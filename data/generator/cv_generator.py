@@ -1,5 +1,5 @@
 
-from ULog.data.generator.generator import GenerateLog
+from generator import GenerateLog
 
 
 class GenerateCVLog(GenerateLog):
@@ -33,7 +33,7 @@ class GenerateCVLog(GenerateLog):
 
         sample_count = self.generate_integer(1, len(self.metrics))
         sample = self.random.sample(self.metrics, sample_count)
-        
+
         metrics = {k: v for k, v in metrics.items() if k in sample}
 
         return metrics
