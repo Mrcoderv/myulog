@@ -6,9 +6,18 @@ on:
   pull_request:
     branches: [ main ]
 
+# Prevent redundant runs on the same branch/PR
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -17,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -28,16 +39,27 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pipx
           pipx install poetry
-
-      - name: Install deps with Poetry (incl. dev)
-        run: |
           poetry --version
-          poetry install --with dev
 
-      - name: Lint
+      - name: Configure Poetry to use in-project venv (for caching)
+        run: poetry config virtualenvs.in-project true
+
+      - name: Cache Poetry virtualenv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ matrix.python-version }}-
+
+      - name: Install dependencies (incl. dev)
+        run: poetry install --with dev --no-interaction --no-ansi
+
+      - name: Lint (ruff)
         run: poetry run ruff check .
 
-      - name: Run tests
+      - name: Run tests (pytest)
         run: poetry run pytest -q
 
       - name: Run schema test harness (via Make)
@@ -56,3 +78,15 @@ jobs:
         with:
           name: schema-test-console
           path: tests/reports/schema_console.txt
+
+      - name: Run vocab linter
+        id: vocab_lint
+        run: poetry run python tests/vocab/lint_vocab.py
+
+      - name: Suggest fix if formatting fails
+        # Show this only when the vocab linter step itself failed
+        if: ${{ steps.vocab_lint.outcome == 'failure' }}
+        run: 'echo "Run: make format-vocab && make lint-vocab"'
+
+      - name: Lint _common.json refs vs vocabulary
+        run: poetry run python tests/schemas/lint_common_refs.py

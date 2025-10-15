@@ -1,0 +1,11 @@
+{
+    "raw": "Reranker latency 3200ms > budget 1500ms; skipped rerank step",
+    "mapped": {
+      "level": "warn",
+      "category": "llm",
+      "sub_category": "reranker",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Reranking not executed due to latency budget breach"
+    }
+  }

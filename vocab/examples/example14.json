@@ -1,0 +1,11 @@
+{
+    "raw": "Tokenizer produced 0 tokens for input (all whitespace after normalization)",
+    "mapped": {
+      "level": "warn",
+      "category": "llm",
+      "sub_category": "tokenizer",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Normalization collapsed content; no tokens generated"
+    }
+  }

@@ -1,0 +1,11 @@
+{
+    "raw": "RAG: generator step exceeded 8s SLA (retriever ok: 420ms)",
+    "mapped": {
+      "level": "error",
+      "category": "llm",
+      "sub_category": "rag_timeout",
+      "outcome": "timeout",
+      "safety_flags": ["none"],
+      "notes": "Generation over SLA while retrieval was healthy"
+    }
+  }

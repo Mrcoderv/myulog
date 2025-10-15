@@ -1,0 +1,11 @@
+{
+    "raw": "Tool call 'send_email' aborted: missing OAuth token for account=ops@acme.io",
+    "mapped": {
+      "level": "error",
+      "category": "agentic",
+      "sub_category": "tool_call",
+      "outcome": "failure",
+      "safety_flags": ["flag_security"],
+      "notes": "Authorization missing for external email tool"
+    }
+  }
