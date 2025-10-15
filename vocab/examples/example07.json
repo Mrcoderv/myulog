@@ -4,5 +4,5 @@
   "category": "llm",
   "sub_category": "embedding_service",
   "outcome": "running",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }

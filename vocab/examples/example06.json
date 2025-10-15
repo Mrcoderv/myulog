@@ -4,5 +4,5 @@
   "category": "llm",
   "sub_category": "safety",
   "outcome": "cancelled",
-  "safety_flag": "flag_toxicity"
+  "safety_flags": ["flag_toxicity"]
 }

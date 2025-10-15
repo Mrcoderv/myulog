@@ -3,6 +3,6 @@
   "level": "error",
   "category": "llm",
   "sub_category": "tokenizer",
-  "outcome": "failure" ,
-  "safety_flag": "none"
+  "outcome": "failure",
+  "safety_flags": ["none"]
 }

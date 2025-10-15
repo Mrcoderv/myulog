@@ -59,3 +59,10 @@ jobs:
 
       - name: Run vocab linter
         run: poetry run python tests/vocab/lint_vocab.py
+
+      - name: Suggest fix if formatting fails
+        if: ${{ failure() }}
+        run: echo "Run: make format-vocab && make lint-vocab"
+
+      - name: Lint _common.json refs vs vocabulary
+        run: poetry run python tests/schemas/lint_common_refs.py

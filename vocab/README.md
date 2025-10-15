@@ -180,6 +180,27 @@ And [`examples/mapped_examples/`](./examples/mapped_examples/) for mapped raw lo
 
 ---
 
+## 10+ Quick Mappings (raw → {level, category, outcome})
+
+These are copy-pasteable triplets to help contributors choose consistently (see `/vocab/examples` for fuller JSON):
+
+1) `ERROR database connection refused` → `{ "level":"error","category":"core_api","outcome":"failure" }`  
+2) `WARN API call exceeded 1s SLA` → `{ "level":"warn","category":"core_api","outcome":"success" }`  
+3) `INFO service started: build v3.1.2` → `{ "level":"info","category":"core_api","outcome":"success" }`  
+4) `Tokenizer produced 0 tokens` → `{ "level":"warn","category":"llm","outcome":"failure" }`  
+5) `RAG retrieval timed out after 3s` → `{ "level":"error","category":"llm","outcome":"timeout" }`  
+6) `Model weights loaded ok` → `{ "level":"info","category":"llm","outcome":"success" }`  
+7) `Retrying tool call: missing OAuth token` → `{ "level":"error","category":"agentic","outcome":"failure" }`  
+8) `Planner returned empty plan` → `{ "level":"warn","category":"agentic","outcome":"failure" }`  
+9) `Frame ingestion dropped (fps < 5)` → `{ "level":"warn","category":"cv","outcome":"failure" }`  
+10) `Object detector drift detected` → `{ "level":"error","category":"cv","outcome":"failure" }`  
+11) `Streaming halted due to client disconnect` → `{ "level":"warn","category":"llm","outcome":"failure" }`  
+12) `Embedding service returned empty vector` → `{ "level":"error","category":"llm","outcome":"failure" }`
+
+> Tip: when applicable, also set `sub_category` using the table in `ulog-categories-v2.md` (e.g., `model_load`, `tokenizer`, `data_io`, …).
+
+---
+
 ## How to run the JSON file linter
 
 1. **Prerequisites**: Ensure you have Python 3.8+ and Poetry installed. 
@@ -192,6 +213,12 @@ And [`examples/mapped_examples/`](./examples/mapped_examples/) for mapped raw lo
 3. **Run the vocab linter** from repository root:
    ```bash
       poetry run python tests/vocab/lint_vocab.py
+    ```
+
+Or via Make:
+
+```make lint-vocab
+make format-vocab
     ```
 
 ###  To fix spacing/indentation

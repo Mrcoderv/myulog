@@ -4,5 +4,5 @@
   "category": "llm",
   "sub_category": "streaming",
   "outcome": "failure",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }

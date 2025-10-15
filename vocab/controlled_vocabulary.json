@@ -1,8 +1,8 @@
 {
   "metadata": {
     "name": "ULog Controlled Vocabulary",
-    "version": "v.09",
-    "updated_at": "2025-10-14",
+    "version": "v0.9",
+    "updated_at": "2025-10-15",
     "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
   },
   "vocabulary": {
@@ -53,7 +53,11 @@
       "model": "Core model operations including training, inference, and drift monitoring.",
       "service": "Application or API lifecycle, interactions, and configuration events.",
       "deployment": "Deployment processes, version rollouts, and release updates.",
-      "third_party": "Interactions or issues with external APIs, services, or vendors."
+      "third_party": "Interactions or issues with external APIs, services, or vendors.",
+      "planner": "Agent planning phase (e.g., generating or updating the step plan).",
+      "tool_call": "Agent execution of an external tool or action (invoke/handle result).",
+      "inference": "LLM inference/generation step execution.",
+      "model_drift": "Detection or reporting of distribution/performance drift in models."
     },
     "outcomes": {
       "success": "Task or process completed as expected with no errors.",
@@ -83,6 +87,105 @@
       "flag_tampering": "Detects manipulated or synthetic content.",
       "flag_misclassification": "Incorrect label or prediction.",
       "flag_data_drift": "Input data deviated from training distribution."
+    }
+  },
+  "$defs": {
+    "levels": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "debug",
+        "error",
+        "info",
+        "warn"
+      ]
+    },
+    "categories": {
+      "type": "string",
+      "enum": [
+        "agentic",
+        "core_api",
+        "cv",
+        "llm"
+      ]
+    },
+    "sub_categories": {
+      "type": "string",
+      "enum": [
+        "analytics",
+        "auth",
+        "build",
+        "config",
+        "data",
+        "data_io",
+        "dependency",
+        "deployment",
+        "embedding_service",
+        "event",
+        "inference",
+        "infrastructure",
+        "job",
+        "kv_cache",
+        "metrics",
+        "model",
+        "model_drift",
+        "model_load",
+        "network",
+        "planner",
+        "preproc",
+        "quantization",
+        "rag_timeout",
+        "rate_limit",
+        "reranker",
+        "safety",
+        "scheduler",
+        "security",
+        "service",
+        "storage",
+        "streaming",
+        "system",
+        "third_party",
+        "tokenizer",
+        "tool_call",
+        "tracking",
+        "ui",
+        "user_input"
+      ]
+    },
+    "outcomes": {
+      "type": "string",
+      "enum": [
+        "cancelled",
+        "failure",
+        "pending",
+        "running",
+        "success",
+        "timeout"
+      ]
+    },
+    "safety_flags": {
+      "type": "string",
+      "enum": [
+        "flag_bias",
+        "flag_bias_visual",
+        "flag_data_drift",
+        "flag_hallucination",
+        "flag_harassment",
+        "flag_hate_speech",
+        "flag_misclassification",
+        "flag_nsfw_image",
+        "flag_pii",
+        "flag_privacy_violation",
+        "flag_private_data",
+        "flag_prompt_injection",
+        "flag_security",
+        "flag_sexual_content",
+        "flag_tampering",
+        "flag_toxicity",
+        "flag_violence",
+        "flag_violent_image",
+        "none"
+      ]
     }
   }
 }

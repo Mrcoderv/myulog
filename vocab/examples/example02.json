@@ -4,5 +4,5 @@
   "category": "llm",
   "sub_category": "quantization",
   "outcome": "success",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }

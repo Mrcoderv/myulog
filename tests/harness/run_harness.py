@@ -6,6 +6,7 @@ Supports per-domain metrics and multiple output formats (text, JUnit, JSON).
 
 Usage: python run_harness.py [--format text|junit|json] [--output PATH]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -26,6 +27,7 @@ except Exception:  # pragma: no cover - allow running without jsonschema install
 @dataclass
 class ParseResult:
     """Result from parsing raw input"""
+
     success: bool
     normalized_json: Optional[dict] = None
     error_message: str = ""
@@ -34,6 +36,7 @@ class ParseResult:
 @dataclass
 class ValidationResult:
     """Result from schema validation"""
+
     success: bool
     error_message: str = ""
 
@@ -41,19 +44,23 @@ class ValidationResult:
 @dataclass
 class TestResult:
     """Combined result for a single test case"""
+
     file_path: str
     domain: str
     test_type: str  # "valid", "invalid", "raw"
-    expected_outcome: str  # "pass", "fail" 
+    expected_outcome: str  # "pass", "fail"
     parse_result: ParseResult
     validation_result: Optional[ValidationResult] = None
     final_status: str = ""  # "PASS", "FAIL", "SKIP"
 
+
 TestResult.__test__ = False  # prevent pytest from attempting to collect this dataclass as a test
+
 
 @dataclass
 class DomainMetrics:
     """Per-domain metrics"""
+
     domain: str
     parse_ok: int = 0
     parse_error: int = 0
@@ -63,14 +70,14 @@ class DomainMetrics:
     raw_tests: int = 0
     raw_parse_ok: int = 0
     raw_parse_error: int = 0
-    
+
     @property
     def parse_rate(self) -> float:
         """Parse success rate percentage (raw inputs only)"""
         if self.raw_tests == 0:
             return 0.0
         return (self.raw_parse_ok / self.raw_tests) * 100
-    
+
     @property
     def overall_parse_rate(self) -> float:
         """Overall parse success including JSON examples (legacy)"""
@@ -88,43 +95,40 @@ REPORTS_DIR = ROOT / "tests" / "reports"
 
 class StubParser:
     """Stub parser interface for raw -> normalized JSON conversion.
-    
+
     This will be replaced by the real normalizer from ticket 1.12.
     For now, handles simple line-based logs and basic JSON.
     """
-    
+
     def parse_raw(self, raw_content: str) -> ParseResult:
         """Parse raw content into normalized JSON"""
         try:
             # Try to parse as JSON first
-            if raw_content.strip().startswith('{'):
+            if raw_content.strip().startswith("{"):
                 normalized = json.loads(raw_content)
                 return ParseResult(success=True, normalized_json=normalized)
-            
+
             # Handle line-based logs (simple format)
-            lines = [line.strip() for line in raw_content.strip().split('\n') if line.strip()]
+            lines = [line.strip() for line in raw_content.strip().split("\n") if line.strip()]
             if not lines:
                 return ParseResult(success=False, error_message="Empty input")
-                
+
             # Create normalized JSON structure
             normalized = {
                 "entries": [],
-                "metadata": {
-                    "parsed_at": time.time(),
-                    "line_count": len(lines)
-                }
+                "metadata": {"parsed_at": time.time(), "line_count": len(lines)},
             }
-            
+
             for i, line in enumerate(lines):
                 entry = {
                     "line_number": i + 1,
                     "content": line,
-                    "timestamp": time.time()  # Stub timestamp
+                    "timestamp": time.time(),  # Stub timestamp
                 }
                 normalized["entries"].append(entry)
-            
+
             return ParseResult(success=True, normalized_json=normalized)
-            
+
         except json.JSONDecodeError as e:
             return ParseResult(success=False, error_message=f"JSON parse error: {e}")
         except Exception as e:
@@ -137,6 +141,134 @@ def load_json(path: Path):
         return json.load(fh)
 
 
+def resolve_json_pointer(data: dict, pointer: str):
+    """Resolve a JSON pointer like '/definitions/level' in a data structure.
+
+    Args:
+        data: The JSON data structure to search
+        pointer: JSON pointer string (with or without leading '#')
+
+    Returns:
+        The resolved value at the pointer location
+
+    Raises:
+        KeyError: If the pointer path doesn't exist
+    """
+    result = data
+
+    # Remove leading '#' if present
+    pointer = pointer.lstrip("#")
+
+    # Empty pointer refers to the whole document
+    if pointer and pointer != "/":
+        # Split pointer into parts and navigate
+        parts = pointer.split("/")[1:]  # Skip empty string before first '/'
+        current = data
+
+        for part in parts:
+            # Unescape JSON pointer tokens
+            part = part.replace("~1", "/").replace("~0", "~")
+
+            if isinstance(current, dict):
+                current = current[part]
+            elif isinstance(current, list):
+                current = current[int(part)]
+            else:
+                raise KeyError(f"Cannot navigate to '{part}' in {type(current)}")
+
+        result = current
+
+    return result
+
+
+def load_schema(schema_path: Path, _cache: Optional[Dict[Path, dict]] = None) -> dict:
+    """Load a JSON Schema file and resolve all $ref references.
+
+    This function handles:
+    - File references: {"$ref": "./v0/step_schema.json"}
+    - JSON pointer references: {"$ref": "../../_common.json#/definitions/level"}
+    - Nested references (referenced files can themselves have references)
+
+    Args:
+        schema_path: Path to the schema file to load
+        _cache: Internal cache to prevent infinite loops (don't pass this)
+
+    Returns:
+        Fully resolved schema dictionary with all $refs expanded
+    """
+    # Initialize cache if not provided
+    if _cache is None:
+        _cache = {}
+
+    # Normalize path
+    schema_path = schema_path.resolve()
+
+    # Check cache to avoid reloading and prevent infinite loops
+    if schema_path in _cache:
+        schema = _cache[schema_path]
+    else:
+        # Load the schema file
+        schema = load_json(schema_path)
+
+        # Cache before resolving to handle circular references
+        _cache[schema_path] = schema
+
+        # Recursively resolve all $ref references
+        schema = _resolve_refs(schema, schema_path, _cache)
+
+        # Update cache with resolved version
+        _cache[schema_path] = schema
+
+    return schema
+
+
+def _resolve_refs(data, base_path: Path, cache: Dict[Path, dict]):
+    """Recursively resolve $ref references in a schema.
+
+    Args:
+        data: Schema data (dict, list, or primitive)
+        base_path: Path to the current schema file (for resolving relative refs)
+        cache: Cache of already loaded schemas
+
+    Returns:
+        Data with all $ref references resolved
+    """
+    result = data
+
+    if isinstance(data, dict):
+        # Check if this is a $ref
+        if "$ref" in data and len(data) == 1:
+            ref_value = data["$ref"]
+
+            # Parse the reference
+            if "#" in ref_value:
+                # Reference with JSON pointer: "file.json#/definitions/level"
+                file_part, pointer = ref_value.split("#", 1)
+
+                if file_part:
+                    # External file reference
+                    ref_path = (base_path.parent / file_part).resolve()
+                    ref_schema = load_schema(ref_path, cache)
+                    result = resolve_json_pointer(ref_schema, pointer)
+                else:
+                    # Internal reference (same file): "#/definitions/level"
+                    root_schema = cache.get(base_path, data)
+                    result = resolve_json_pointer(root_schema, pointer)
+            else:
+                # File reference only: "./v0/step_schema.json"
+                ref_path = (base_path.parent / ref_value).resolve()
+                result = load_schema(ref_path, cache)
+        else:
+            # Not a $ref, recursively resolve any nested refs
+            result = {key: _resolve_refs(value, base_path, cache) for key, value in data.items()}
+    elif isinstance(data, list):
+        # Recursively resolve refs in list items
+        result = [_resolve_refs(item, base_path, cache) for item in data]
+    # else: primitive value, return as-is (result already set to data)
+
+    return result
+
+
 def load_raw(path: Path) -> str:
     """Load raw content from file"""
     with path.open("r", encoding="utf-8") as fh:
@@ -146,12 +278,9 @@ def load_raw(path: Path) -> str:
 def validate_instance(schema: dict, instance: dict) -> ValidationResult:
     """Validate JSON instance against schema"""
     if jsonschema is None:
-        msg = (
-            "jsonschema not installed; "
-            "skipped validation"
-        )
+        msg = "jsonschema not installed; skipped validation"
         return ValidationResult(success=True, error_message=msg)
-    
+
     try:
         jsonschema.validate(instance=instance, schema=schema)
         return ValidationResult(success=True)
@@ -164,9 +293,9 @@ def validate_instance(schema: dict, instance: dict) -> ValidationResult:
 def determine_expected_outcome(file_path: Path) -> str:
     """Determine expected outcome based on filename convention"""
     filename = file_path.name.lower()
-    if filename.startswith('valid'):
+    if filename.startswith("valid"):
         return "pass"
-    elif filename.startswith('invalid'):
+    elif filename.startswith("invalid"):
         return "fail"
     else:
         return "pass"  # Default assumption
@@ -180,12 +309,12 @@ def get_test_type(file_path: Path) -> str:
         return "raw"
     except ValueError:
         pass
-    
+
     # Otherwise check filename prefix
     filename = file_path.name.lower()
-    if filename.startswith('valid'):
+    if filename.startswith("valid"):
         return "valid"
-    elif filename.startswith('invalid'):
+    elif filename.startswith("invalid"):
         return "invalid"
     else:
         return "raw"
@@ -195,9 +324,9 @@ def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubPa
     """Process a single test case with two-phase flow"""
     expected = determine_expected_outcome(test_file)
     test_type = get_test_type(test_file)
-    
+
     # Phase 1: Parse (raw -> normalized JSON)
-    if test_file.suffix == '.json':
+    if test_file.suffix == ".json":
         # Already JSON, load directly
         try:
             normalized = load_json(test_file)
@@ -208,12 +337,12 @@ def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubPa
         # Raw file, parse it
         raw_content = load_raw(test_file)
         parse_result = parser.parse_raw(raw_content)
-    
+
     # Phase 2: Validate (normalized JSON -> schema validation)
     validation_result = None
     if parse_result.success and parse_result.normalized_json:
         validation_result = validate_instance(schema, parse_result.normalized_json)
-    
+
     # Determine final status
     final_status = "SKIP"
     if parse_result.success:
@@ -227,7 +356,7 @@ def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubPa
         # Parse failed. If the example was intentionally an "invalid*" (expected fail),
         # count this as a PASS for expected-fail testcases so CI stays green for demo negatives.
         final_status = "PASS" if expected == "fail" else "FAIL"
-    
+
     return TestResult(
         file_path=str(test_file),
         domain=domain,
@@ -235,27 +364,27 @@ def process_test_case(schema: dict, test_file: Path, domain: str, parser: StubPa
         expected_outcome=expected,
         parse_result=parse_result,
         validation_result=validation_result,
-        final_status=final_status
+        final_status=final_status,
     )
 
 
 def calculate_metrics(results: List[TestResult]) -> Dict[str, DomainMetrics]:
     """Calculate per-domain metrics from test results"""
     metrics = {}
-    
+
     for result in results:
         domain = result.domain
         if domain not in metrics:
             metrics[domain] = DomainMetrics(domain=domain)
-        
+
         metric = metrics[domain]
         metric.total_tests += 1
-        
+
         # Track raw-specific metrics for meaningful parse rate
         is_raw = result.test_type == "raw"
         if is_raw:
             metric.raw_tests += 1
-        
+
         if result.parse_result.success:
             metric.parse_ok += 1
             if is_raw:
@@ -266,28 +395,28 @@ def calculate_metrics(results: List[TestResult]) -> Dict[str, DomainMetrics]:
             metric.parse_error += 1
             if is_raw:
                 metric.raw_parse_error += 1
-    
+
     return metrics
 
 
 def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestResult]):
     """Print formatted summary table"""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("DOMAIN SUMMARY")
-    print("="*80)
-    
+    print("=" * 80)
+
     header = (
         f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} "
         f"{'Parse Err':<11} {'Schema Fail':<12} {'Parse Rate%':<12}"
     )
     print(header)
     print("-" * len(header))
-    
+
     total_tests = sum(m.total_tests for m in metrics.values())
     total_parse_ok = sum(m.parse_ok for m in metrics.values())
     total_parse_error = sum(m.parse_error for m in metrics.values())
     total_schema_viol = sum(m.schema_violation for m in metrics.values())
-    
+
     for domain in sorted(metrics.keys()):
         m = metrics[domain]
         row = (
@@ -300,55 +429,55 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
         else:
             parse_rate_str = f"{'N/A':<12}"
         print(f"{row} {parse_rate_str}")
-    
+
     print("-" * len(header))
-    
+
     # Calculate total raw parse rate (raw files only)
     total_raw_tests = sum(m.raw_tests for m in metrics.values())
     total_raw_parse_ok = sum(m.raw_parse_ok for m in metrics.values())
     if total_raw_tests > 0:
-        total_raw_parse_rate = (total_raw_parse_ok / total_raw_tests * 100)
+        total_raw_parse_rate = total_raw_parse_ok / total_raw_tests * 100
         total_parse_rate_str = f"{total_raw_parse_rate:<12.1f}"
     else:
         total_parse_rate_str = f"{'N/A':<12}"
-    
+
     total_row = (
         f"{'TOTAL':<15} {total_tests:<8} {total_parse_ok:<10} {total_parse_error:<11} "
         f"{total_schema_viol:<12}"
     )
     print(f"{total_row} {total_parse_rate_str}")
-    
+
     # Test results summary
     passed = sum(1 for r in results if r.final_status == "PASS")
     failed = sum(1 for r in results if r.final_status == "FAIL")
     skipped = sum(1 for r in results if r.final_status == "SKIP")
-    
+
     print(f"\nTEST RESULTS: {passed} PASS, {failed} FAIL, {skipped} SKIP (Total: {len(results)})")
 
 
 def export_junit_xml(results: List[TestResult], output_path: Path):
     """Export results as JUnit XML"""
     testsuites = ET.Element("testsuites")
-    
+
     # Group by domain
     domains = {}
     for result in results:
         if result.domain not in domains:
             domains[result.domain] = []
         domains[result.domain].append(result)
-    
+
     for domain_name, domain_results in domains.items():
         testsuite = ET.SubElement(testsuites, "testsuite")
         testsuite.set("name", f"schema-{domain_name}")
         testsuite.set("tests", str(len(domain_results)))
         testsuite.set("failures", str(sum(1 for r in domain_results if r.final_status == "FAIL")))
         testsuite.set("skipped", str(sum(1 for r in domain_results if r.final_status == "SKIP")))
-        
+
         for result in domain_results:
             testcase = ET.SubElement(testsuite, "testcase")
             testcase.set("classname", f"schema.{result.domain}")
             testcase.set("name", Path(result.file_path).name)
-            
+
             if result.final_status == "FAIL":
                 failure = ET.SubElement(testcase, "failure")
                 if not result.parse_result.success:
@@ -364,7 +493,7 @@ def export_junit_xml(results: List[TestResult], output_path: Path):
             elif result.final_status == "SKIP":
                 skipped = ET.SubElement(testcase, "skipped")
                 skipped.set("message", "Validation skipped (jsonschema not available)")
-    
+
     tree = ET.ElementTree(testsuites)
     ET.indent(tree, space="  ")
     tree.write(output_path, encoding="utf-8", xml_declaration=True)
@@ -378,7 +507,7 @@ def export_json(results: List[TestResult], metrics: Dict[str, DomainMetrics], ou
     overall_raw_parse_rate = (
         (total_raw_parse_ok / total_raw_tests * 100) if total_raw_tests > 0 else 0
     )
-    
+
     data = {
         "summary": {
             "total_tests": len(results),
@@ -388,13 +517,13 @@ def export_json(results: List[TestResult], metrics: Dict[str, DomainMetrics], ou
             "raw_tests": total_raw_tests,
             "raw_parse_ok": total_raw_parse_ok,
             "raw_parse_rate": round(overall_raw_parse_rate, 2),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         },
         "domain_metrics": {domain: asdict(metric) for domain, metric in metrics.items()},
-        "test_results": [asdict(result) for result in results]
+        "test_results": [asdict(result) for result in results],
     }
-    
-    with output_path.open('w') as f:
+
+    with output_path.open("w") as f:
         json.dump(data, f, indent=2)
 
 
@@ -414,18 +543,18 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
     if not EXAMPLES_DIR.exists():
         print("❌ No examples directory found at", EXAMPLES_DIR)
         return 2
-    
+
     # Initialize parser and results
     parser = StubParser()
     all_results = []
-    
+
     # Process each schema domain
     for schema_json in sorted(SCHEMAS_DIR.glob("*/schema.json")):
         domain_name = schema_json.parent.name
-        schema = load_json(schema_json)
+        schema = load_schema(schema_json)
         title = schema.get("title", "")
         desc = schema.get("description", "")
-        
+
         print(f"\n📋 Processing domain: {domain_name}")
         if title:
             print(f"   Title: {title}")
@@ -436,18 +565,18 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
         examples = schema.get("examples", [])
         for idx, example_data in enumerate(examples, start=1):
             print(f"  🔸 Testing inline example #{idx}")
-            
+
             # Create a synthetic TestResult for inline examples
             parse_result = ParseResult(success=True, normalized_json=example_data)
             validation_result = validate_instance(schema, example_data)
-            
+
             # Inline examples should always be valid
             final_status = "PASS" if validation_result.success else "FAIL"
             if not validation_result.success and validation_result.error_message:
                 print(f"     ❌ FAIL: {validation_result.error_message}")
             else:
                 print("     ✅ PASS")
-            
+
             result = TestResult(
                 file_path=f"{domain_name}:inline[{idx}]",
                 domain=domain_name,
@@ -455,7 +584,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                 expected_outcome="pass",
                 parse_result=parse_result,
                 validation_result=validation_result,
-                final_status=final_status
+                final_status=final_status,
             )
             all_results.append(result)
 
@@ -466,7 +595,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                 if example_file.is_file():
                     print(f"  🔸 Testing {example_file.name}")
                     result = process_test_case(schema, example_file, domain_name, parser)
-                    
+
                     # Print result
                     if result.final_status == "PASS":
                         print("     ✅ PASS")
@@ -484,9 +613,9 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                             else "No validation"
                         )
                         print(f"     ⏭️  SKIP: {skip_msg}")
-                    
+
                     all_results.append(result)
-        
+
         # Process raw files (if any)
         raw_domain_dir = RAW_DIR / domain_name if RAW_DIR.exists() else None
         if raw_domain_dir and raw_domain_dir.exists():
@@ -494,7 +623,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                 if raw_file.is_file():
                     print(f"  🔸 Testing raw input {raw_file.name}")
                     result = process_test_case(schema, raw_file, domain_name, parser)
-                    
+
                     if result.final_status == "PASS":
                         # Show more detail about what passed
                         if not result.parse_result.success:
@@ -515,36 +644,36 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                         print(f"     ❌ FAIL: {error_msg}")
                     else:
                         print("     ⏭️  SKIP")
-                    
+
                     all_results.append(result)
 
     # Calculate metrics and print summary
     metrics = calculate_metrics(all_results)
-    
+
     if format_type == "text":
         print_summary_table(metrics, all_results)
-    
+
     # Export results if requested
     if output_path:
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-        
+
         if format_type == "junit":
             export_junit_xml(all_results, output_path)
             print(f"\n📄 JUnit XML report written to: {output_path}")
         elif format_type == "json":
             export_json(all_results, metrics, output_path)
             print(f"\n📄 JSON report written to: {output_path}")
-    
+
     # Determine exit code
     failed_count = sum(1 for r in all_results if r.final_status == "FAIL")
     if failed_count > 0:
         return 1
-    
+
     # Warn if jsonschema is missing but don't fail
     if jsonschema is None and all_results:
         print("\n⚠️  Warning: jsonschema not installed; validation was skipped")
         return 3
-    
+
     return 0
 
 
@@ -553,27 +682,27 @@ def main():
     parser = argparse.ArgumentParser(
         description="Two-phase JSON Schema test harness",
         epilog="Examples:\n"
-               "  python run_harness.py\n"
-               "  python run_harness.py --format junit --output reports/results.xml\n"
-               "  python run_harness.py --format json --output reports/results.json",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        "  python run_harness.py\n"
+        "  python run_harness.py --format junit --output reports/results.xml\n"
+        "  python run_harness.py --format json --output reports/results.json",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    
+
     parser.add_argument(
-        "--format", 
-        choices=["text", "junit", "json"], 
+        "--format",
+        choices=["text", "junit", "json"],
         default="text",
-        help="Output format (default: text)"
+        help="Output format (default: text)",
     )
-    
+
     parser.add_argument(
-        "--output", 
+        "--output",
         type=Path,
-        help="Output file path (auto-generated if not specified with junit/json formats)"
+        help="Output file path (auto-generated if not specified with junit/json formats)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Auto-generate output path if format is junit/json but no output specified
     output_path = args.output
     if args.format in ("junit", "json") and not output_path:
@@ -583,9 +712,10 @@ def main():
             output_path = REPORTS_DIR / f"schema_tests_{timestamp}.xml"
         else:
             output_path = REPORTS_DIR / f"schema_tests_{timestamp}.json"
-    
+
     return run(args.format, output_path)
 
 
 if __name__ == "__main__":
     sys.exit(main())
+    

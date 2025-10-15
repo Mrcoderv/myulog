@@ -4,5 +4,5 @@
   "category": "core_api",
   "sub_category": "build",
   "outcome": "failure",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }

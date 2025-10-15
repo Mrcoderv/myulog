@@ -4,5 +4,5 @@
   "category": "llm",
   "sub_category": "rag_timeout",
   "outcome": "timeout",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }

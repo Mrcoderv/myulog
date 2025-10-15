@@ -4,5 +4,5 @@
   "category": "agentic",
   "sub_category": "tracking",
   "outcome": "failure",
-  "safety_flag": "none"
+  "safety_flags": ["none"]
 }
