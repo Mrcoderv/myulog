@@ -15,15 +15,16 @@ This schema accepts normalized events after parsing raw log lines. It uses ULog 
 - `event_type` - Event classification (see enum below)
 - `service` - Service name
 - `env` - Environment: `production`, `staging`, `development`, `test`, `local`
-- `outcome` - Result from controlled vocabulary: `success` or `failure`
+- `outcome` - Result from controlled vocabulary: `success`, `failure`, `timeout`, `cancelled`, `running`, `pending`
 
 ### Controlled Vocabulary (from `_common.json`)
 
-- **level**: `info`, `warn`, `error`
-- **category**: `auth`, `network`, `data`, `model`, `service`, `system`, `storage`, `scheduler`, `deployment`, `security`, `third_party`
-- **outcome**: `success`, `failure`
-- **error_code**: `E001`-`E012` (see vocabulary doc)
-- **safety_flag**: `llm`, `cv`, `pii`, `security`
+- **level**: `critical`, `debug`, `error`, `info`, `warn` (5 levels)
+- **category**: `core_api`, `llm`, `agentic`, `cv` (4 main categories)
+- **sub_category**: 38 sub-categories including `infrastructure`, `build`, `inference`, `planner`, `tool_call`, `model_drift`, etc.
+- **outcome**: `success`, `failure`, `timeout`, `cancelled`, `running`, `pending` (6 states)
+- **error_code**: `ULOG-[CAT]-[NNN]` format (e.g., `ULOG-AUTH-001`, `ULOG-NET-001`, `ULOG-DATA-001`)
+- **safety_flag**: `flag_pii`, `flag_security`, `flag_bias`, `flag_hallucination`, `flag_bias_visual`, `none`, etc. (19 flags with `flag_` prefix)
 
 ### Event Types
 
@@ -73,7 +74,7 @@ This schema accepts normalized events after parsing raw log lines. It uses ULog 
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "service",
+  "category": "core_api",
   "endpoint": "/v1/users/123",
   "action": "GET",
   "http_status": 200,
@@ -130,14 +131,15 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
   "env": "production",
   "outcome": "failure",
   "level": "error",
-  "category": "storage",
+  "category": "core_api",
+  "sub_category": "auth",
   "endpoint": "/v1/auth/login",
   "error": {
     "type": "sqlalchemy.exc.OperationalError",
     "message": "(pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")",
     "stack": "Traceback (most recent call last):\\n  File \"/app/auth.py\", line 42, in login\\n    user = db.query(User).filter_by(email=email).first()\\n  File \"/usr/lib/sqlalchemy/query.py\", line 1234, in first\\n    return self.limit(1)._execute_and_instances(context).scalar()\\nsqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")"
   },
-  "error_code": "E012"
+  "error_code": "ULOG-DB-001"
 }
 ```
 
@@ -149,9 +151,9 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 4. Preserve full stacktrace → `error.stack` (joined with `\n`)
 5. Extract module path → `module: "/app/auth.py"`
 6. Map log level ERROR → `level: "error"`
-7. Infer `category: "storage"` from database error
+7. Map to `category: "core_api"` with `sub_category: "auth"` from the route context
 8. Determine `outcome: "failure"` from exception
-9. Map to error code → `error_code: "E012"` (database transaction failed)
+9. Map to error code → `error_code: "ULOG-DB-001"` (database transaction failed)
 10. Store entire raw message (including newlines) in `meta.raw_message`
 
 ---
@@ -183,7 +185,8 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
   "env": "production",
   "outcome": "success",
   "level": "info",
-  "category": "deployment",
+  "category": "core_api",
+  "sub_category": "deployment",
   "version": "2.1.4",
   "duration_ms": 1234
 }
@@ -197,7 +200,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 4. Extract version (`v2.1.4`) → `version: "2.1.4"`
 5. Infer `event_type: "startup"` from "started" keyword
 6. Set `outcome: "success"` from "successfully"
-7. Map to `category: "deployment"` for lifecycle events
+7. Map to `category: "core_api"` with `sub_category: "deployment"` for lifecycle events
 8. Set `level: "info"` as default for successful startup
 
 ---
@@ -229,13 +232,14 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
   "env": "production",
   "outcome": "failure",
   "level": "warn",
-  "category": "network",
+  "category": "core_api",
+  "sub_category": "network",
   "endpoint": "/api/process-batch",
   "action": "POST",
   "http_status": 504,
   "latency_ms": 30000,
   "error": "Request timed out after 30000ms",
-  "error_code": "E002"
+  "error_code": "ULOG-NET-001"
 }
 ```
 
@@ -246,8 +250,8 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 3. Use milliseconds value: `latency_ms: 30000`
 4. Determine `outcome: "failure"` from timeout
 5. Infer `http_status: 504` for gateway timeout
-6. Map to `category: "network"` for timeouts
-7. Map to `error_code: "E002"` (request timed out)
+6. Map to `category: "core_api"` with `sub_category: "network"` for timeouts
+7. Map to `error_code: "ULOG-NET-001"` (upstream timeout)
 8. Create simple error message
 
 ---
@@ -280,7 +284,8 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
   "env": "development",
   "outcome": "success",
   "level": "info",
-  "category": "deployment",
+  "category": "core_api",
+  "sub_category": "deployment",
   "duration_ms": 45600,
   "metadata": {
     "package_manager": "npm",
@@ -296,7 +301,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 3. Store as `duration_ms: 45600`
 4. Identify operation (`npm install`) → `event_type: "dependency_install"`
 5. Store package manager in `metadata`
-6. Map to `category: "deployment"` for build events
+6. Map to `category: "core_api"` with `sub_category: "deployment"` for build events
 7. Set `outcome: "success"` from "completed"
 
 ---
@@ -322,7 +327,8 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
   "env": "production",
   "outcome": "failure",
   "level": "error",
-  "category": "security",
+  "category": "core_api",
+  "sub_category": "security",
   "endpoint": "/admin",
   "action": "GET",
   "http_status": 403,
@@ -330,8 +336,8 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
     "type": "UNAUTHORIZED_ACCESS",
     "message": "Access denied for IP 212.68.10.15"
   },
-  "error_code": "E005",
-  "safety_flags": ["security"],
+  "error_code": "ULOG-AUTH-001",
+  "safety_flags": ["flag_security"],
   "metadata": {
     "source_ip": "212.68.10.xxx"
   }
@@ -340,9 +346,9 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 
 **Normalization Steps:**
 
-1. Identify security violation → `category: "security"`
-2. Add safety flag → `safety_flags: ["security"]`
-3. Map to error code → `error_code: "E005"` (authentication/authorization failure)
+1. Identify security violation → `category: "core_api"`, `sub_category: "security"`
+2. Add safety flag → `safety_flags: ["flag_security"]`
+3. Map to error code → `error_code: "ULOG-AUTH-001"` (auth token expired / authentication failure)
 4. Anonymize IP in metadata (last octet)
 5. Set `level: "error"` for security violations
 6. Infer `http_status: 403` for unauthorized access
@@ -407,35 +413,48 @@ Always populate `meta.parse` when available:
 - "build", "compile" → `build`
 - "/health", "healthcheck" → `health_check`
 
-### 5. Outcome Determination (2 Values Only!)
+### 5. Outcome Determination (6 Values!)
 
 - HTTP 2xx/3xx → `success`
 - HTTP 4xx/5xx → `failure`
+- Timeout → `timeout`
 - Exception/Error → `failure`
 - "success", "completed", "OK" → `success`
+- "cancelled", "aborted" → `cancelled`
+- "running", "in progress" → `running`
+- "pending", "queued" → `pending`
 
-### 6. Level Mapping (3 Values Only!)
+### 6. Level Mapping (5 Values!)
 
-- DEBUG/TRACE → Map to `info`
+- TRACE → Map to `debug`
+- DEBUG → `debug`
 - INFO → `info`
 - WARN/WARNING → `warn`
-- ERROR/FATAL/CRITICAL → `error`
+- ERROR → `error`
+- FATAL/CRITICAL → `critical`
 
-### 7. Category Selection (11 Options)
+### 7. Category Selection (4 Main Categories)
 
-`auth`, `network`, `data`, `model`, `service`, `system`, `storage`, `scheduler`, `deployment`, `security`, `third_party`
+- `core_api` - Internal/external API calls, routing, auth, and request handling
+- `llm` - LLM prompts, responses, completions, model performance
+- `agentic` - Agent workflows, tool use, and multi-step task execution
+- `cv` - Computer vision, model training, and inference jobs
 
-### 8. Error Code Mapping (E001-E012)
+**Sub-categories** (38 options): `infrastructure`, `build`, `dependency`, `model_load`, `tokenizer`, `quantization`, `kv_cache`, `rag_timeout`, `embedding_service`, `reranker`, `tracking`, `streaming`, `preproc`, `data_io`, `safety`, `auth`, `network`, `data`, `ui`, `system`, `storage`, `job`, `security`, `metrics`, `event`, `config`, `rate_limit`, `user_input`, `scheduler`, `analytics`, `model`, `service`, `deployment`, `third_party`, `planner`, `tool_call`, `inference`, `model_drift`
 
-- E001: Invalid input
-- E002: Request timed out
-- E003: Data validation failed
-- E004: Model drift detected
-- E005: Auth failure
-- E006: Resource limit exceeded
-- E007: Service unavailable
-- E008: Rate limit exceeded
-- E009: Parsing error
-- E010: Config missing
-- E011: Disk quota exceeded
-- E012: Database transaction failed
+### 8. Error Code Mapping (New ULOG Format)
+
+**Format**: `ULOG-[CAT]-[NNN]` where CAT is 2-10 uppercase letters, NNN is 3 digits starting at 001
+
+- **ULOG-AUTH-001**: auth_token_expired - Access token expired for a user or service
+- **ULOG-NET-001**: upstream_timeout - Request to upstream service timed out
+- **ULOG-DATA-001**: schema_mismatch - Incoming payload does not match expected schema
+- **ULOG-MODEL-001**: model_drift_detected - Model performance metrics drifted beyond thresholds
+- **ULOG-STORE-001**: redis_connection_refused - Unable to connect to cache service
+- **ULOG-DB-001**: db_transaction_deadlock - Database transaction rolled back due to deadlock
+- **ULOG-SVC-001**: missing_environment_variable - Required configuration variable missing
+- **ULOG-TP-001**: external_502_bad_gateway - Third-party vendor returned 502 error
+- **ULOG-SYS-001**: cpu_sustained_high - CPU usage sustained above threshold
+- **ULOG-SEC-001**: pii_exposed_in_log - Personal information detected in logs
+
+**Note**: Old format `E001-E012` is deprecated. Use new `ULOG-*-001` format.
