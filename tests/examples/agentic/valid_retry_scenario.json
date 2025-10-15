@@ -2,7 +2,8 @@
   "meta": {
     "raw_message": "API call failed, will retry",
     "parse": {
-      "timestamp": "2025-10-13T10:10:00Z"
+      "timestamp": "2025-10-13T10:10:00Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "step",

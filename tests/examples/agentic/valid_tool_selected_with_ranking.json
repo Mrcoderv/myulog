@@ -2,7 +2,8 @@
   "meta": {
     "raw_message": "Tool selection completed with rankings",
     "parse": {
-      "timestamp": "2025-10-13T10:01:00Z"
+      "timestamp": "2025-10-13T10:01:00Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "tool_selected",

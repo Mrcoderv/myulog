@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "LLM inference completed with token usage tracking"
+    "raw_message": "LLM inference completed with token usage tracking",
+    "parse": {
+      "timestamp": "2025-10-13T10:02:30Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-001",

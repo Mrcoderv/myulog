@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Agent created execution plan with 5 steps"
+    "raw_message": "Agent created execution plan with 5 steps",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:15Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "plan_created",
   "workflow_id": "wf-001",

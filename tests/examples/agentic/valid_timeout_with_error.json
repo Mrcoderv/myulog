@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Database query timeout after 30 seconds"
+    "raw_message": "Database query timeout after 30 seconds",
+    "parse": {
+      "timestamp": "2025-10-13T10:25:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-006",

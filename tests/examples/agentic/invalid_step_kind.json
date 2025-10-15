@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Invalid step_kind value"
+    "raw_message": "Invalid step_kind value",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "invalid_step_type",
   "workflow_id": "wf-003",

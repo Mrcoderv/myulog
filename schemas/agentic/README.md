@@ -75,7 +75,8 @@ Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)
   "meta": {
     "raw_message": "Tool selector ranked 3 options, selected sentiment_analyzer_v3 (45ms)",
     "parse": {
-      "timestamp": "2025-10-13T10:01:00Z"
+      "timestamp": "2025-10-13T10:01:00Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "tool_selected",
@@ -111,7 +112,8 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
   "meta": {
     "raw_message": "LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142",
     "parse": {
-      "timestamp": "2025-10-13T10:02:00Z"
+      "timestamp": "2025-10-13T10:02:00Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "step",
@@ -191,7 +193,8 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "meta": {
     "raw_message": "[INFO] External API call to /data/customers completed (1.2s)",
     "parse": {
-      "timestamp": "2025-10-13T10:10:00.000Z"
+      "timestamp": "2025-10-13T10:10:00.000Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "step",
@@ -220,7 +223,8 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "meta": {
     "raw_message": "[WARN] Service unavailable (503), scheduling retry - took 0.8s",
     "parse": {
-      "timestamp": "2025-10-13T10:10:01.200Z"
+      "timestamp": "2025-10-13T10:10:01.200Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "step",
@@ -251,7 +255,8 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "meta": {
     "raw_message": "[INFO] Retry successful after 1.5s - processed 1000 records",
     "parse": {
-      "timestamp": "2025-10-13T10:10:03.000Z"
+      "timestamp": "2025-10-13T10:10:03.000Z",
+      "version": "1.0.0"
     }
   },
   "step_kind": "step",

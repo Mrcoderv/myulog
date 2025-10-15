@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Invalid outcome value not in controlled vocabulary"
+    "raw_message": "Invalid outcome value not in controlled vocabulary",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-008",

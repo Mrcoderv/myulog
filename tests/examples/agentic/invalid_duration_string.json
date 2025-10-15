@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Invalid duration type - string instead of number"
+    "raw_message": "Invalid duration type - string instead of number",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "step",
   "workflow_id": "wf-invalid-001",

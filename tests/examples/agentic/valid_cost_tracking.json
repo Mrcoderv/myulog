@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Cost calculation for workflow step"
+    "raw_message": "Cost calculation for workflow step",
+    "parse": {
+      "timestamp": "2025-10-13T10:03:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "cost",
   "workflow_id": "wf-001",

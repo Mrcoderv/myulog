@@ -1,6 +1,10 @@
 {
   "meta": {
-    "raw_message": "Instant cache lookup with zero duration"
+    "raw_message": "Instant cache lookup with zero duration",
+    "parse": {
+      "timestamp": "2025-10-13T10:05:00Z",
+      "version": "1.0.0"
+    }
   },
   "step_kind": "cache",
   "workflow_id": "wf-zero-001",

@@ -2,6 +2,7 @@
   "meta": {
     "raw_message": "Starting streaming response to client",
     "parse": {
+      "timestamp": "2025-10-13T10:12:00Z",
       "version": "1.0.0"
     }
   },
