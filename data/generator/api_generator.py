@@ -27,8 +27,21 @@ class GenerateAPILog(GenerateLog):
             "/api/v1/auth/logout",
         ]
         return self.select_enum(endpoints)
-    
-    def GenerateLogEntry(
+
+    def select_status_code(self, result: str) -> int:
+        if result == "success":
+            return self.select_enum([200, 201, 202, 204])
+        elif result == "error":
+            return self.select_enum([400, 401, 403, 404, 500, 502, 503])
+        elif result == "timeout":
+            return 504
+        elif result == "rejected":
+            return 429
+        elif result == "throttled":
+            return 429
+        else:
+            return 500  
+    def generate_log_entry(
         self
     ):
         logs = []
@@ -37,23 +50,28 @@ class GenerateAPILog(GenerateLog):
                 "request_id": self.generate_unique_string(),
                 "timestamp": self.generate_timestamp(),
                 "service": self.generate_string(100),
-                "endpoint": self.generate_endpoint(),
-                "action" : self.select_enum(self.methods),
+                "path": self.generate_endpoint(),
+                "method" : self.select_enum(self.methods),
                 "result": self.select_enum(self.statuses),
                 "latency_ms": self.generate_float(0, 5000.0),
-                "env" : self.select_enum(self.env)
+                "env" : self.select_enum(self.env),
+                "content_length": self.generate_integer(0, 500),
+                "user_agent": self.generate_string(10),
             }
             if log_entry["result"] in ["error", "timeout", "rejected"]:
                 error_code = self.select_enum(self.errors)
                 log_entry["error"] = {"code": error_code, 
                                       "message": self.error_messages[error_code]
                                       }
+                
+            log_entry["status_code"] = self.select_status_code(log_entry["result"])
+            
             logs.append(log_entry)
         return logs
 
     def run(self):
-        valid_logs = self.GenerateLogEntry()
-        unvalid_logs = self.GenerateLogEntry()
+        valid_logs = self.generate_log_entry()
+        unvalid_logs = self.generate_log_entry()
         for log in unvalid_logs:
             field_to_remove = self.select_enum(self.fields)
             if field_to_remove in log:
