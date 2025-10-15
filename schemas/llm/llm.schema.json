@@ -76,7 +76,18 @@
       "description": "Time-to-first-token in milliseconds (if applicable)."
     },
 
-    "finish_reason": { "$ref": "../_common.json#/$defs/finish_reason" },
+    "finish_reason": { 
+      "type": "string",
+      "enum": [
+        "stop",
+        "length",
+        "content_filter",
+        "tool_calls",
+        "timeout",
+        "interrupted",
+        "other"
+      ]
+    },
 
     "usage": {
       "type": "object",
