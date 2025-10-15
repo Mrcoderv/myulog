@@ -1,5 +1,4 @@
 {  
-  "$id": "https://ulog.ai/schemas/llm.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ULog - LLM Interaction (Normalized)",
   "version": "1.2.0",

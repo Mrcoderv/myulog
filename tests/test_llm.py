@@ -21,19 +21,25 @@ VALIDATOR = Draft7Validator(SCHEMA,
 def _load_examples():
     """
     Load all JSON examples; validity is based on filename.
-    Invalid if 'invalid_*'.  Valid if 'valid_*'.
+    Invalid if 'invalid*'.  Valid if 'valid*'.
     """
     examples = []
     for path in sorted(EXAMPLES_DIR.glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
-        should_be_valid = not path.name.lower().startswith("invalid")
+        fname_lower = path.name.lower()
+        if fname_lower.startswith("valid"):
+            should_be_valid = True
+        elif fname_lower.startswith("invalid"):
+            should_be_valid = False
+        else:
+            continue
         examples.append(pytest.param(data, should_be_valid, path.name, id=path.name))
     return examples
 
 @pytest.mark.parametrize("example, should_be_valid, name", _load_examples())
 def test_examples(example, should_be_valid, name):
     """
-    Files prefixed with 'valid_' must pass; 'invalid_' must fail.
+    Files prefixed with 'valid' must pass; 'invalid' must fail.
     """
     errors = list(VALIDATOR.iter_errors(example))
 
