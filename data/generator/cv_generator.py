@@ -13,15 +13,44 @@ class GenerateCVLog(GenerateLog):
         self.models = ["ResNet50", "VGG16", "InceptionV3", "MobileNetV2", "EfficientNetB0"]
         self.datasets = ["ImageNet", "CIFAR-10", "COCO", "MNIST", "Pascal VOC"]
 
-    def GenerateLogEntry(self):
+    def generate_metrics(self):
+        """Generate a realistic set of CV metrics."""
+        quality = self.generate_float(0.6, 0.99)  # good models hover high
+        noise = lambda: self.generate_float(-0.05, 0.05)
+
+        metrics = {}
+
+        metrics["accuracy"] = round(quality + noise(), 4)
+        metrics["loss"] = round((1 - quality) * 2 + self.generate_float(0, 0.3), 4)
+
+        metrics["precision"] = round(min(max(quality + noise(), 0), 1), 4)
+        metrics["recall"] = round(min(max(quality + noise(), 0), 1), 4)
+
+        p, r = metrics["precision"], metrics["recall"]
+        metrics["f1-score"] = round(2 * p * r / (p + r + 1e-6), 4)
+
+        metrics["mAP"] = round(min(max(metrics["f1-score"] + self.generate_float(-0.05, 0.05), 0), 1), 4)
+
+        sample_count = self.generate_integer(1, len(self.metrics))
+        sample = self.random.sample(self.metrics, sample_count)
+        
+        metrics = {k: v for k, v in metrics.items() if k in sample}
+
+        return metrics
+    
+
+    def generate_log_entry(self):
+        """Generate a list of log entries."""
         logs = []
         for _ in range(self.size):
+
+            
             log_entry = {
                 "phase": self.select_enum(self.phases),
                 "model_name": self.select_enum(self.models),
                 "dataset_id": self.select_enum(self.datasets),
                 "image_count": self.generate_integer(1, 10000),
-                "metrics": {self.select_enum(self.metrics): self.generate_float(0.0, 1.0)},
+                "metrics": self.generate_metrics(),
                 "timestamp": self.generate_timestamp(),
                 "latency_ms": self.generate_float(0, 100.0),
                 "batch_size": self.generate_integer(1, 128),
@@ -33,14 +62,15 @@ class GenerateCVLog(GenerateLog):
                 "result": self.select_enum(self.statuses),
             }
             if log_entry["result"] == "failure":
-                length = self.generate_integer(1, 4096)
+                length = self.generate_integer(1,  500)
                 log_entry["error"] = {"message": self.generate_string(length)}
             logs.append(log_entry)
         return logs
 
     def run(self):
-        valid_logs = self.GenerateLogEntry()
-        unvalid_logs = self.GenerateLogEntry()
+        """Generate valid and invalid log entries."""
+        valid_logs = self.generate_log_entry()
+        unvalid_logs = self.generate_log_entry()
         for log in unvalid_logs:
             field_to_remove = self.select_enum(self.fields)
             if field_to_remove in log:
