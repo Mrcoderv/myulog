@@ -7,7 +7,7 @@ between schemas, including shared controlled vocabularies from _common.json.
 
 import json
 import pathlib
-from urllib.parse import urljoin
+from typing import Callable
 
 from jsonschema import Draft7Validator, RefResolver
 import pytest
@@ -16,7 +16,7 @@ CORE_API_SCHEMA = "core_api/v0/core_api.schema.json"
 
 
 @pytest.fixture(scope="session")
-def schema_validator():
+def schema_validator() -> Callable[[str], Draft7Validator]:
     """
     Returns a callable that builds a JSON Schema validator for any schema
     file under the /schemas directory.
@@ -36,23 +36,25 @@ def schema_validator():
         if not schema_path.exists():
             raise FileNotFoundError(f"Schema not found: {schema_path}")
 
-        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        # Load the root schema
+        schema = load_json(schema_path)
         Draft7Validator.check_schema(schema)
 
-        store = {}
+        store: dict[str, dict] = {}
 
-        # Load _common.json if it exists and add to store
+        # Load _common.json and controlled_vocabulary.json into the store
         common_path = schemas_dir / "_common.json"
         if common_path.exists():
-            common_schema = json.loads(common_path.read_text(encoding="utf-8"))
+            common_schema = load_json(common_path)
+            store[common_path.resolve().as_uri()] = common_schema
 
-            # Resolve the URI for _common.json relative to this schema's $id
-            if "$id" in schema and schema["$id"].startswith(("http://", "https://")):
-                common_uri = urljoin(schema["$id"], "../../_common.json")
-                store[common_uri] = common_schema
+        vocab_path = schemas_dir.parent / "vocab" / "controlled_vocabulary.json"
+        if vocab_path.exists():
+            vocab_schema = load_json(vocab_path)
+            store[vocab_path.resolve().as_uri()] = vocab_schema
 
         # Determine the base URI for resolving relative references
-        base_uri = schema.get("$id", f"file://{schema_path.parent.resolve()}/")
+        base_uri = schema_path.parent.resolve().as_uri().rstrip("/") + "/"
 
         resolver = RefResolver(base_uri=base_uri, referrer=schema, store=store)
 
@@ -61,11 +63,12 @@ def schema_validator():
     return _get_validator
 
 
-def json_files(dirpath: pathlib.Path):
+def json_files(dirpath: pathlib.Path) -> list[pathlib.Path]:
     """Return a sorted list of all JSON files in a directory."""
     return sorted(dirpath.glob("*.json"))
 
 
-def load_json(path: pathlib.Path):
+def load_json(path: pathlib.Path) -> dict:
     """Load and parse a JSON file with UTF-8 encoding."""
-    return json.loads(path.read_text(encoding="utf-8"))
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
