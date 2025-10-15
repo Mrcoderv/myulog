@@ -16,20 +16,23 @@ class GenerateCVLog(GenerateLog):
     def generate_metrics(self):
         """Generate a realistic set of CV metrics."""
         quality = self.generate_float(0.6, 0.99)  # good models hover high
-        noise = lambda: self.generate_float(-0.05, 0.05)
 
         metrics = {}
 
-        metrics["accuracy"] = round(quality + noise(), 4)
+        metrics["accuracy"] = round(quality + self.generate_float(-0.05, 0.05), 4)
         metrics["loss"] = round((1 - quality) * 2 + self.generate_float(0, 0.3), 4)
 
-        metrics["precision"] = round(min(max(quality + noise(), 0), 1), 4)
-        metrics["recall"] = round(min(max(quality + noise(), 0), 1), 4)
+        metrics["precision"] = round(min(max(quality + self.generate_float(-0.05, 0.05), 0), 1), 4)
+        metrics["recall"] = round(min(max(quality + self.generate_float(-0.05, 0.05), 0), 1), 4)
 
         p, r = metrics["precision"], metrics["recall"]
         metrics["f1-score"] = round(2 * p * r / (p + r + 1e-6), 4)
 
-        metrics["mAP"] = round(min(max(metrics["f1-score"] + self.generate_float(-0.05, 0.05), 0), 1), 4)
+        metrics["mAP"] = (round(min(max(metrics["f1-score"] + 
+                                        self.generate_float(-0.05, 0.05), 0),
+                                    1),
+                                4)
+                        )
 
         sample_count = self.generate_integer(1, len(self.metrics))
         sample = self.random.sample(self.metrics, sample_count)

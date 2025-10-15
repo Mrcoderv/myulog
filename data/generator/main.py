@@ -3,11 +3,9 @@ import json
 import os
 import pathlib
 
+from agentic_generator import AgenticGenerator
 from api_generator import GenerateAPILog
 from cv_generator import GenerateCVLog
-from agentic_generator import AgenticGenerator
-
-
 
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
@@ -53,7 +51,8 @@ parser.add_argument("-arg",
                     type=str,
                     action="append",
                     default=[],
-                    help="Optional parameters for agentic logs; repeatable, e.g. --argument cost --argument level")
+                    help="""Optional parameters for agentic logs; repeatable, e.g. 
+                    --argument cost --argument level""")
 
 args = parser.parse_args()
 

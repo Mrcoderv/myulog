@@ -4,7 +4,8 @@ from generator import GenerateLog
 
 
 class AgenticGenerator(GenerateLog):
-    def __init__(self, fields : list[str], seed: int, size: int,option_params : list[str] | None = None)-> None:
+    def __init__(self, fields : list[str], seed: int, size: int,
+                 option_params : list[str] | None = None)-> None:
         super().__init__(fields, size, seed)
         self.logger = Logger(__name__)
         self.parser_versions = ["1.0.0", "1.1.0", "2.0.0"]
@@ -170,7 +171,8 @@ class AgenticGenerator(GenerateLog):
         valid_logs = self.generate_log_entries()
         invalid_logs = self.generate_log_entries()
 
-        # apply option params after we mutate invalid_logs (so both valid and invalid get same shape)
+        # apply option params after we mutate invalid_logs 
+        # (so both valid and invalid get same shape)
         if self.option_params:
             valid_logs = [self.generate_option_params(log) for log in valid_logs]
             invalid_logs = [self.generate_option_params(log) for log in invalid_logs]
