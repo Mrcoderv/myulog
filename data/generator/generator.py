@@ -34,4 +34,7 @@ class GenerateLog:
 
     def generate_timestamp(self) -> str:
         """Generate a timestamp string."""
-        return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        base = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+        seconds = self.generate_integer(0, 86400)
+        ts = base + dt.timedelta(seconds=seconds)
+        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
