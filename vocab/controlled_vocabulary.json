@@ -198,9 +198,7 @@
         "flag_violent_image",
         "none"
       ]
-<<<<<<< HEAD
     },
-<<<<<<< HEAD
     "error_codes": {
       "type": "string",
       "enum": [
@@ -220,21 +218,3 @@
     }
   }
 }
-=======
-    "finish_reason": {
-      "type": "string",
-      "enum": [
-        "stop",
-        "length",
-        "content_filter",
-        "tool_calls",
-        "timeout",
-        "interrupted",
-        "other"
-      ]
-=======
->>>>>>> 36a44cb (format vocab)
-    }
-  }
-}
->>>>>>> 75b9f89 (updated 1.4 with new refs)
