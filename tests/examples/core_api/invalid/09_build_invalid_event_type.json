@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "raw_message": "[BUILD] 2025-10-08T12:00:00Z ml-training-service:model-builder npm install completed in 45.6 seconds"
+  },
+  "timestamp": "2025-10-08T12:00:00.000Z",
+  "event_type": "npm_install",
+  "service": "ml-training-service",
+  "component": "model-builder",
+  "env": "development",
+  "outcome": "success",
+  "level": "info",
+  "category": "core_api",
+  "duration_ms": 45600
+}

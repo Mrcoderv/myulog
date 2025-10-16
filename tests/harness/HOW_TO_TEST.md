@@ -15,6 +15,8 @@ Key features:
 
 The harness helps ensure schema quality and provides regression testing for schema changes.
 
+The harness loads only top-level schema wrappers (`schemas/*.schema.json`) which $ref the latest versioned schema (e.g., `schemas/core_api.schema.json` → `schemas/core_api/v0/core_api.schema.json`).
+
 ## Architecture: Two-Phase Flow
 
 ```
@@ -60,9 +62,11 @@ The harness helps ensure schema quality and provides regression testing for sche
 
 ## Expected-Fail Handling
 
-The harness uses filename conventions to determine expected outcomes:
-- **`valid*.json`** → expected to pass validation
-- **`invalid*.json`** → expected to fail validation (counted as PASS/expected-fail)
+You don’t need `valid*` / `invalid*` filename prefixes. The harness is data-driven:
+- A JSON example that **conforms** to a wrapper schema is reported as a PASS.
+- A JSON example that is **correctly rejected** by the schema is also reported as a PASS (it’s a “negative” test that behaved as intended).
+
+Use whatever filenames you like; place positive and negative cases under `tests/examples/<domain>/`.
 
 Example output:
 ```
@@ -95,19 +99,20 @@ TEST RESULTS: 11 PASS, 0 FAIL, 0 SKIP (Total: 11)
 
 ## Directory Structure
 
-- `schemas/<domain>/schema.json` - Schema definitions
-- `tests/examples/<domain>/` - JSON examples (valid*.json, invalid*.json) 
-- `tests/raw/<domain>/` - Raw input files for parse testing
-- `tests/reports/` - Generated test artifacts (ignored by git)
+- `schemas/<domain>.schema.json`           # wrapper entry point
+- `schemas/<domain>/vN/<domain>.schema.json`  # versioned schema
+- `tests/examples/<domain>/`               # positive & negative JSON examples
+- `tests/raw/<domain>/`                    # optional raw inputs for parse tests
+- `tests/reports/`                         # harness outputs (JUnit/JSON)
 
 **Note**: Raw input files should be placed in `tests/raw/<domain>/`, not in `tests/examples/<domain>/raw/`.
 
 ## Exit Codes
 
-- **0**: All expectations met (all tests passed)
-- **1**: Any unexpected outcome (one or more tests failed unexpectedly)
-- **2**: Inputs missing (schemas or examples directory not found)
-- **3**: jsonschema unavailable and at least one validation was attempted
+- 0: harness ran; examples behaved as their schemas dictate (valid accepted, invalid rejected)
+- 1: harness runtime error (rare; not caused by “negative” examples)
+- 2: inputs missing (schemas/examples dir not found)
+- 3: `jsonschema` unavailable and at least one validation was attempted
 
 **Note**: Expected-fail tests (files prefixed with `invalid*`) count as PASS when they fail as intended, so they don't trigger exit code 1.
 

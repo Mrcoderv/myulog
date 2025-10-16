@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 17:20:00.000 WARN Rate limit exceeded for /v1/llm/predict"
+  },
+  "timestamp": "2025-10-08T17:20:00.000Z",
+  "event_type": "http_response",
+  "service": "ml-inference",
+  "env": "production",
+  "outcome": "failure",
+  "level": "warn",
+  "category": "core_api",
+  "sub_category": "rate_limit",
+  "endpoint": "/v1/llm/predict",
+  "action": "POST",
+  "http_status": 429,
+  "latency_ms": 2.1,
+  "error": "Rate limit exceeded: 100 requests per minute",
+  "safety_flags": [
+    "none"
+  ],
+  "request_id": "req_llm_456"
+}

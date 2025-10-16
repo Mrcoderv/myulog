@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "raw_message": "2025-10-09 15:00:00.000 INFO Test with invalid safety flag"
+  },
+  "timestamp": "2025-10-09T15:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "category": "core_api",
+  "endpoint": "/test",
+  "action": "GET",
+  "http_status": 200,
+  "safety_flags": [
+    "invalid_flag"
+  ]
+}

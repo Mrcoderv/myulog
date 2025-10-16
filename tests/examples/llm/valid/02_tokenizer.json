@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-13T12:00:03Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "tokenizer",
+  "outcome": "success",
+  "latency_ms": 10,
+  "usage": { "prompt_tokens": 42, "completion_tokens": 0, "total_tokens": 42 },
+  "result": { "output_preview": "[PENDING]", "output_text_length": 0 },
+  "meta": { "raw_message": "[SUMMARY: tokenized input]", "parse": { "parser_name": "llm-tokenizer", "parser_version": "1.0.0", "pattern_id": "tok.ok", "confidence": 0.99 } }
+}

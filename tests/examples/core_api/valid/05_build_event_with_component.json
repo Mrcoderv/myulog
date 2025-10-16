@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "raw_message": "[BUILD] 2025-10-08T12:00:00Z ml-training-service:model-builder npm install completed in 45.6 seconds",
+    "parse": {
+      "parser_name": "build_log_parser",
+      "parser_version": "1.1.0",
+      "pattern_id": "npm_install",
+      "confidence": 0.97
+    }
+  },
+  "timestamp": "2025-10-08T12:00:00.000Z",
+  "event_type": "build",
+  "service": "ml-training-service",
+  "component": "model-builder",
+  "env": "development",
+  "outcome": "success",
+  "level": "info",
+  "category": "core_api",
+  "sub_category": "deployment",
+  "duration_ms": 45600,
+  "metadata": {
+    "package_manager": "npm",
+    "operation": "install"
+  }
+}

@@ -8,9 +8,21 @@ from typing import Any, Dict
 TOP_LEVEL_REQUIRED_KEYS = {"metadata", "vocabulary"}
 VOCAB_REQUIRED_KEYS = {"levels", "categories", "sub_categories", "outcomes", "safety_flags"}
 MIN_REQUIRED_SUBCATS = {
-    "infrastructure","build","dependency","model_load","tokenizer","quantization",
-    "kv_cache","rag_timeout","embedding_service","reranker","tracking","streaming",
-    "preproc","data_io","safety"
+    "infrastructure",
+    "build",
+    "dependency",
+    "model_load",
+    "tokenizer",
+    "quantization",
+    "kv_cache",
+    "rag_timeout",
+    "embedding_service",
+    "reranker",
+    "tracking",
+    "streaming",
+    "preproc",
+    "data_io",
+    "safety",
 }
 SEMVER_RE = re.compile(r"^v\d+\.\d+(\.\d+)?$")
 
@@ -48,6 +60,7 @@ def load_json(path: Path) -> Any:
     except json.JSONDecodeError as e:
         print(f"❌ Invalid JSON in {path}: {e}")
         sys.exit(1)
+
 
 def check_examples(vocab: Dict[str, Any]) -> None:
     """Sanity check example JSON files under vocab/examples:
@@ -105,15 +118,16 @@ def check_examples(vocab: Dict[str, Any]) -> None:
             print(f"❌ {p}: sub_category '{node['sub_category']}' not in controlled vocabulary.")
             sys.exit(1)
 
+
 def maybe_check_common_drift(vocab: Dict[str, Any]) -> None:
     """If schemas/_common.json exists, compare enums for drift
-(best-effort; non-fatal if missing)."""
+    (best-effort; non-fatal if missing)."""
     common_path = Path("schemas/_common.json")
     if not common_path.exists():
         print(
-    "ℹ️  schemas/_common.json not present (expected after tickets 1.3–1.6); "
-    "skipping drift check."
-)
+            "ℹ️  schemas/_common.json not present (expected after tickets 1.3–1.6); "
+            "skipping drift check."
+        )
         return
     common = load_json(common_path)
     expected = {
@@ -130,6 +144,7 @@ def maybe_check_common_drift(vocab: Dict[str, Any]) -> None:
     if drift:
         print(f"❌ Drift between vocab and schemas/_common.json for: {', '.join(drift)}")
         sys.exit(1)
+
 
 def main():
     vocab_path = Path("vocab/controlled_vocabulary.json")
@@ -190,9 +205,9 @@ def main():
     formatted = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     if content != formatted:
         print(
-    "❌ File not formatted correctly. "
-    "Run `make format-vocab` to fix spacing/indentation (order preserved)."
-)
+            "❌ File not formatted correctly. "
+            "Run `make format-vocab` to fix spacing/indentation (order preserved)."
+        )
         sys.exit(1)
 
     # 8) example sanity checks (≥10, and in-vocabulary)
@@ -203,6 +218,7 @@ def main():
 
     print("✅ Vocabulary + examples passed all checks.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
