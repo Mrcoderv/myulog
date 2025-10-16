@@ -1,0 +1,17 @@
+{
+  "phase": "inference",
+  "model_name": "resnet50_v2",
+  "dataset_id": "imagenet_train",
+  "image_count": 10000,
+  "metrics": { "loss": 0.45, "accuracy": 0.82 },
+  "latency_ms": 120.5,
+  "batch_size": 32,
+  "hardware": { "accelerator": "GPU", "memory_gb": 16 },
+  "outcome": "failure",
+  "error": { "message": "Out of memory error during training." },
+  "category": "cv",
+  "meta": {
+    "raw_message": "example v04",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v04", "ok": true }
+  }
+}

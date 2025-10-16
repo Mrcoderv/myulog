@@ -1,0 +1,16 @@
+{
+  "phase": "preprocess",
+  "model_name": "yolov8n",
+  "dataset_id": "coco_train",
+  "image_count": 64000,
+  "metrics": { "extra": { "resize": "640x640" } },
+  "latency_ms": 3.2,
+  "batch_size": 64,
+  "hardware": { "accelerator": "CPU", "runtime": "NumPy 2.0", "memory_gb": 8 },
+  "outcome": "success",
+  "category": "cv",
+  "meta": {
+    "raw_message": "preproc resize=640x640 latency_ms=3.2",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v14", "ok": true }
+  }
+}

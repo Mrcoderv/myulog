@@ -1,0 +1,17 @@
+{
+  "phase": "inference",
+  "model_name": "yolov5",
+  "dataset_id": "coco_val",
+  "image_count": 2000,
+  "metrics": { "map": 0.45 },
+  "latency_ms": 55.3,
+  "batch_size": 8,
+  "hardware": { "accelerator": "GPU", "memory_gb": 12 },
+  "outcome": "failure",
+  "error": { "message": "Corrupted input images detected" },
+  "category": "cv",
+  "meta": {
+    "raw_message": "example v07",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v07", "ok": true }
+  }
+}
