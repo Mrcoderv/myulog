@@ -8,15 +8,16 @@ between schemas, including shared controlled vocabularies from _common.json.
 import json
 import pathlib
 from typing import Callable
+from urllib.parse import urljoin
 
-from jsonschema import Draft7Validator, RefResolver
+from jsonschema import RefResolver, validators
 import pytest
 
 CORE_API_SCHEMA = "core_api/v0/core_api.schema.json"
 
 
 @pytest.fixture(scope="session")
-def schema_validator() -> Callable[[str], Draft7Validator]:
+def schema_validator() -> Callable[[str], object]:
     """
     Returns a callable that builds a JSON Schema validator for any schema
     file under the /schemas directory.
@@ -38,7 +39,10 @@ def schema_validator() -> Callable[[str], Draft7Validator]:
 
         # Load the root schema
         schema = load_json(schema_path)
-        Draft7Validator.check_schema(schema)
+
+        # Pick the appropriate validator for the schema's declared draft
+        Validator = validators.validator_for(schema)
+        Validator.check_schema(schema)
 
         store: dict[str, dict] = {}
 
@@ -53,12 +57,27 @@ def schema_validator() -> Callable[[str], Draft7Validator]:
             vocab_schema = load_json(vocab_path)
             store[vocab_path.resolve().as_uri()] = vocab_schema
 
+        # If the root schema is a wrapper with an HTTP $id and a relative $ref,
+        # pre-map the absolute HTTP ref to the local target file in the store.
+        ref_value = schema.get("$ref")
+        schema_id = schema.get("$id")
+        if (
+            isinstance(schema_id, str)
+            and isinstance(ref_value, str)
+            and ref_value.startswith("./")
+        ):
+            absolute_http_ref = urljoin(schema_id, ref_value)
+            local_target_path = (schema_path.parent / ref_value).resolve()
+            if local_target_path.exists():
+                store[absolute_http_ref] = load_json(local_target_path)
+
         # Determine the base URI for resolving relative references
         base_uri = schema_path.parent.resolve().as_uri().rstrip("/") + "/"
 
+        # Use RefResolver for backward compatibility with jsonschema < 4.18
         resolver = RefResolver(base_uri=base_uri, referrer=schema, store=store)
 
-        return Draft7Validator(schema, resolver=resolver)
+        return Validator(schema, resolver=resolver)
 
     return _get_validator
 

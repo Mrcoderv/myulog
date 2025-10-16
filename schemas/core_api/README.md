@@ -24,7 +24,7 @@ This schema accepts normalized events after parsing raw log lines. It uses ULog 
 - **sub_category**: 38 sub-categories including `infrastructure`, `build`, `inference`, `planner`, `tool_call`, `model_drift`, etc.
 - **outcome**: `success`, `failure`, `timeout`, `cancelled`, `running`, `pending` (6 states)
 - **error_code**: `ULOG-[CAT]-[NNN]` format (e.g., `ULOG-AUTH-001`, `ULOG-NET-001`, `ULOG-DATA-001`)
-- **safety_flag**: `flag_pii`, `flag_security`, `flag_bias`, `flag_hallucination`, `flag_bias_visual`, `none`, etc. (19 flags with `flag_` prefix)
+- **safety_flags**: `flag_pii`, `flag_security`, `flag_bias`, `flag_hallucination`, `flag_bias_visual`, `none`, etc. (array of flags with `flag_` prefix)
 
 ### Event Types
 
@@ -51,7 +51,7 @@ This schema accepts normalized events after parsing raw log lines. It uses ULog 
 
 **Raw Log Line:**
 
-```txt
+```
 2025-10-08 14:23:45.123 INFO [api-gateway] GET /v1/users/123 returned 200 in 45.2ms
 ```
 
@@ -101,7 +101,7 @@ This schema accepts normalized events after parsing raw log lines. It uses ULog 
 
 **Raw Log Lines:**
 
-```txt
+```
 2025-10-08 15:30:12.456 ERROR [auth-service] Exception in /v1/auth/login
 Traceback (most recent call last):
   File "/app/auth.py", line 42, in login
@@ -162,7 +162,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 
 **Raw Log Line:**
 
-```txt
+```
 [2025-10-08T10:15:32.100Z] payment-service v2.1.4 started successfully in 1.234s
 ```
 
@@ -209,7 +209,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 
 **Raw Log Line:**
 
-```txt
+```
 2025-10-08 16:45:30 WARN [data-pipeline] POST /api/process-batch timed out after 30s (30000ms elapsed)
 ```
 
@@ -260,7 +260,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 
 **Raw Log Line:**
 
-```txt
+```
 [BUILD] 2025-10-08T12:00:00Z ml-training-service:model-builder npm install completed in 45.6 seconds
 ```
 
@@ -310,7 +310,7 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 
 **Raw Log Line:**
 
-```txt
+```
 2025-10-07 11:02:03 ERROR unauthorized request from IP 212.68.10.15 attempting to access /admin
 ```
 
