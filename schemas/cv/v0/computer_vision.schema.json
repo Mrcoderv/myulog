@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/computer_vision/v0/computer_vision.schema.json",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/cv/v0/computer_vision.schema.json",
   "title": "Computer Vision Contract v0",
   "description": "Normalized telemetry for CV phases with metrics, hardware, and provenance.",
   "type": "object",

@@ -9,8 +9,8 @@ ROOT = pathlib.Path(__file__).parents[2]
 SCHEMAS_DIR = ROOT / "schemas"
 
 # Canonical IDs used by $id/$ref in main
-ALIAS_ID = "https://github.com/OmdenaAI/ULog/schemas/computer_vision.schema.json"
-V0_ID = "https://github.com/OmdenaAI/ULog/schemas/computer_vision/v0/computer_vision.schema.json"
+ALIAS_ID = "https://github.com/OmdenaAI/ULog/schemas/cv.schema.json"
+V0_ID = "https://github.com/OmdenaAI/ULog/schemas/cv/v0/computer_vision.schema.json"
 COMMON_ID = "https://github.com/OmdenaAI/ULog/schemas/_common.json"
 VOCAB_ID = "https://github.com/OmdenaAI/ULog/vocab/controlled_vocabulary.json"
 
@@ -32,9 +32,9 @@ def _ensure_draft202012(contents: dict) -> dict:
 
 def _build_registry():
     # Load the FINAL alias (wrapper), versioned schema, common, and vocab.
-    alias_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "computer_vision.schema.json"))
+    alias_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "cv.schema.json"))
     v0_schema = _ensure_draft202012(_load_json(
-        SCHEMAS_DIR / "computer_vision" / "v0" / "computer_vision.schema.json"))
+        SCHEMAS_DIR / "cv" / "v0" / "computer_vision.schema.json"))
     common_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "_common.json"))
 
     # NOTE: The vocab lives at repo root: /vocab/controlled_vocabulary.json

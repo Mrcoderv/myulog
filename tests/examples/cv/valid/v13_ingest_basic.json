@@ -1,0 +1,16 @@
+{
+  "phase": "ingest",
+  "model_name": "n/a",
+  "dataset_id": "retail_cameras_2025w40",
+  "image_count": 250000,
+  "metrics": { "extra": { "files_processed": 250000 } },
+  "latency_ms": 1200,
+  "batch_size": 1000,
+  "hardware": "CPU / Python 3.12",
+  "outcome": "success",
+  "category": "cv",
+  "meta": {
+    "raw_message": "ingest files=250000 took=1.2s",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v13", "ok": true }
+  }
+}

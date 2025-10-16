@@ -26,7 +26,7 @@ This schema normalizes CV pipeline telemetry across phases:
 
 ## Raw → JSON examples (per phase)
 
-### 1) `injest` (bulk import; custom metric via `metrics.extra`)
+### 1) `ingest` (bulk import; custom metric via `metrics.extra`)
 **raw**
 ```
 ingest files=250000 took=1.2s
