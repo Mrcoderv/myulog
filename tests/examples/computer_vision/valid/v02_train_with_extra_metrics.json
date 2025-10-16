@@ -7,7 +7,7 @@
   "latency_ms": 220.5,
   "batch_size": 32,
   "hardware": { "accelerator": "GPU", "memory_gb": 12 },
-  "result": "success",
+  "outcome": "success",
   "category": "cv",
   "meta": {
     "raw_message": "example v02",

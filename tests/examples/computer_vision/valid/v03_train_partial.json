@@ -7,7 +7,7 @@
   "latency_ms": 180.0,
   "batch_size": 16,
   "hardware": { "accelerator": "GPU", "memory_gb": 8 },
-  "result": "failure",
+  "outcome": "failure",
   "error": { "message": "Out of memory on device 0" },
   "category": "cv",
   "meta": {
