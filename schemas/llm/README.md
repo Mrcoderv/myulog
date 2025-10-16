@@ -151,4 +151,56 @@ Normalized, CI-validated events for LLM interactions across stages: serve, token
       }
     }
 
-> You can add similar worked examples for `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, and `sampling` as needed.
+### 6) RAG – Retrieve
+**Raw**
+    { "id":"req-abc-123", "ts":"2025-10-13T12:00:07Z", "retriever":"vectordb", "k":5, "elapsed_ms":120 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:07Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-quant",
+      "pipeline_stage": "rag_retrieve",
+      "outcome": "success",
+      "latency_ms": 120,
+      "result": { "output_preview": "[SUMMARY: 5 docs retrieved]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: retrieval step]",
+        "parse": { "parser_name": "llm-rag", "parser_version": "1.0.0", "pattern_id": "rag.retrieve", "confidence": 0.95 }
+      }
+    }
+
+### 7) RAG – Embed
+**Raw**
+    { "id":"req-abc-123", "ts":"2025-10-13T12:00:08Z", "elapsed_ms":60 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:08Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-embed",
+      "pipeline_stage": "rag_embed",
+      "outcome": "success",
+      "latency_ms": 60,
+      "result": { "output_preview": "[SUMMARY: query embedded]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: embed step]",
+        "parse": { "parser_name": "llm-rag", "parser_version": "1.0.0", "pattern_id": "rag.embed", "confidence": 0.95 }
+      }
+    }
+
+### 8) RAG – Rerank
+**Raw**
+    { "id":"req-abc-123", "ts":"2025-10-13T12:00:09Z", "from":5, "to":3, "elapsed_ms":70 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:09Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-reranker",
+      "pipeline_stage": "rag_rerank",
+      "outcome": "success",
+      "latency_ms": 70,
+      "result": { "output_preview": "[SUMMARY: reranked 5→3]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: rerank step]",
+        "parse": { "parser_name": "llm-rag", "parser_version": "1.0.0", "pattern_id": "rag.rerank", "confidence": 0.94 }
+      }
+    }
