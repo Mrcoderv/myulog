@@ -5,12 +5,14 @@ import sys
 VOCAB_PATH = Path("vocab/controlled_vocabulary.json")
 COMMON_PATH = Path("schemas/_common.json")
 
+
 def load(path: Path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"❌ Cannot read {path}: {e}")
         sys.exit(1)
+
 
 def contains_inline_enum(node) -> bool:
     if isinstance(node, dict):
@@ -20,6 +22,7 @@ def contains_inline_enum(node) -> bool:
     if isinstance(node, list):
         return any(contains_inline_enum(v) for v in node)
     return False
+
 
 def main():
     if not COMMON_PATH.exists():
@@ -38,11 +41,11 @@ def main():
     vocab_defs = vocab.get("$defs", {})
 
     required = {
-        "level":        "levels",
-        "category":     "categories",
+        "level": "levels",
+        "category": "categories",
         "sub_category": "sub_categories",
-        "outcome":      "outcomes",
-        "safety_flag":  "safety_flags",
+        "outcome": "outcomes",
+        "safety_flag": "safety_flags",
     }
 
     common_defs = common.get("$defs", {})
@@ -69,6 +72,7 @@ def main():
 
     print("✅ _common.json is ref-only and aligned with vocabulary $defs.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

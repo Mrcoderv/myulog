@@ -64,18 +64,18 @@ def test_valid_category(validator, category):
 @pytest.mark.parametrize(
     "category",
     [
-        "auth",        # Old category
-        "network",     # Old category
-        "data",        # Old category
-        "model",       # Old category
-        "service",     # Old category
-        "system",      # Old category
-        "storage",     # Old category
+        "auth",  # Old category
+        "network",  # Old category
+        "data",  # Old category
+        "model",  # Old category
+        "service",  # Old category
+        "system",  # Old category
+        "storage",  # Old category
         "deployment",  # Old category
-        "security",    # Old category
-        "database",    # Invalid
-        "api",         # Invalid
-        "unknown",     # Invalid
+        "security",  # Old category
+        "database",  # Invalid
+        "api",  # Invalid
+        "unknown",  # Invalid
     ],
 )
 def test_invalid_category(validator, category):
@@ -201,11 +201,11 @@ def test_valid_safety_flags(validator, flags):
     "flags",
     [
         ["invalid"],
-        ["llm"],        # Old format without flag_ prefix
-        ["cv"],         # Old format without flag_ prefix
-        ["pii"],        # Missing flag_ prefix
-        ["security"],   # Missing flag_ prefix
-        ["FLAG_PII"],   # Wrong case
+        ["llm"],  # Old format without flag_ prefix
+        ["cv"],  # Old format without flag_ prefix
+        ["pii"],  # Missing flag_ prefix
+        ["security"],  # Missing flag_ prefix
+        ["FLAG_PII"],  # Wrong case
         ["flag_gdpr"],  # Not in vocabulary
     ],
 )
@@ -241,12 +241,12 @@ def test_valid_error_code(validator, error_code):
     "error_code",
     [
         "ULOG-AUTH-000",  # Invalid: numbering starts at 001
-        "ULOG-XYZ-001",   # Invalid: unknown category
-        "ERR-AUTH-001",   # Invalid: wrong prefix
+        "ULOG-XYZ-001",  # Invalid: unknown category
+        "ERR-AUTH-001",  # Invalid: wrong prefix
         "ulog-auth-001",  # Invalid: lowercase
-        "E001",           # Invalid: old format
-        "E005",           # Invalid: old format
-        "E012",           # Invalid: old format
+        "E001",  # Invalid: old format
+        "E005",  # Invalid: old format
+        "E012",  # Invalid: old format
     ],
 )
 def test_invalid_error_code(validator, error_code):

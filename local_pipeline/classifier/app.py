@@ -13,6 +13,7 @@ import sys
 IN_DIR = Path(os.getenv("IN_DIR", "/in"))
 OUT_DIR = Path(os.getenv("OUT_DIR", "/out"))
 
+
 def main() -> int:
     IN_DIR.mkdir(parents=True, exist_ok=True)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -30,6 +31,7 @@ def main() -> int:
     # Drop a marker so users can see it worked
     (OUT_DIR / "_DONE").write_text("ok\n")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
