@@ -1,320 +1,154 @@
-# ULog – LLM Interaction Contract (v1.2.0)
+# ULog – LLM Interaction Contract (v0)
 
-This schema defines the normalized logging format for Large-Language-Model (LLM) interactions within the ULog pipeline.  
-It standardizes fields, vocabulary, and provenance so that logs from APIs, agents, and RAG components can be validated, classified, and monitored consistently.
+**Schema wrapper:** `schemas/llm.schema.json`  
+**Versioned schema:** `schemas/llm/v0/llm.schema.json`  
+**Controlled vocabulary:** `schemas/_common.json` → `vocab/controlled_vocabulary.json`
 
----
+## Purpose
+Normalized, CI-validated events for LLM interactions across stages: serve, tokenizer, quant, load, inference, RAG (retrieve/embed/rerank), safety_check, sampling. Tracks provenance (`meta.raw_message`, `meta.parse`), ms-based timings, usage and sampler parameters, and safety flags.
 
-##  Overview
+## PII & Safety
+- **Never** store full prompts/outputs. Use `result.output_preview` (≤256 chars) and `result.output_text_length`.
+- **Redact/anonymize** PII and sensitive data in `meta.raw_message`.
+- If truncation/redaction occurs, note it in `meta.parse` (e.g., `pattern_id`, lower `confidence`).
+- Follow product policy; blocklists/filters should be reflected via `finish_reason: "content_filter"` and appropriate `result.safety_flags`.
 
-**Schema path:** `schemas/llm/llm.schema.json`  
-**Controlled vocabulary:** defined in [`schemas/_common.json`](../_common.json)
+## Units & Conversions
+- Time fields are **milliseconds** (`*_ms`). Convert seconds to ms where required.
+- Token counts are **integers ≥ 0**.
+- Sampler parameters are optional; attach when available.
 
-Each normalized log represents a single pipeline stage event and includes:
-- **Top-level required fields:** `timestamp`, `request_id`, `model`, `pipeline_stage`, `latency_ms`, `result`, `meta`
-- **Optional telemetry:** `endpoint`, `usage`, `ttft_ms`, `finish_reason`, `sampler`, `component`, `level`, `metrics`
-- **Provenance:** `meta.raw_message` and `meta.parse` (source, parser, ok, warnings, units)
+## Required fields (summary)
+- Top-level: `timestamp`, `request_id`, `model`, `pipeline_stage`, `outcome`, `meta.raw_message` (and `meta.parse.*` when available).
+- `result.output_text_length` must be present when `outcome: "success"`.
+- `error` (string or object) must be present when `outcome: "failure"`.
 
----
-
-##  Required Structure
-
-| Field | Type | Description | 
-|--------|------|-------------|
-| `timestamp` | string (date-time) | When the event occurred (UTC ISO-8601). 
-| `request_id` | string (uuid) | Unique request or correlation ID. 
-| `model` | string | Model name/version used. 
-| `pipeline_stage` | string enum | One of: `serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`.
-| `latency_ms` | number | Total latency in milliseconds for this stage.
-| `result` | object | Outcome summary and output metadata. 
-| `meta.raw_message` | string | Redacted/summarized original input log line. 
-| `meta.parse` | object | Provenance of the parser. Must include `source`, `parser`, and `ok`. 
+## Pipeline stages (enum)
+`serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`.
 
 ---
 
-## Controlled Vocabulary
+## Worked mappings (raw → normalized JSON)
 
-Defined in `_common.json`:
+> **Notes**
+> - Replace sensitive text with summaries or `[REDACTED]`.
+> - Convert any seconds fields to ms in the normalized event.
+> - `meta.parse` aligns with Core/API (Ticket 1.3): `parser_name`, `parser_version`, optional `pattern_id`, `confidence`.
 
-| Field | Values |
-|--------|---------|
-| `level` | `debug`, `info`, `warning`, `error`, `critical` |
-| `category` | `request`, `response`, `system`, `model`, `data`, `network`, `safety`, `quota`, `latency`, `scheduler`, `third_party` |
-| `outcome` | `success`, `error`, `blocked` |
-| `safety_flag` | `prompt_sensitive`, `output_sensitive`, `policy_block`, `pii_flagged`, `toxicity_flagged`, `jailbreak_detected`, `bias_flagged`, `security_violation` |
-| `finish_reason` | `stop`, `length`, `content_filter`, `tool_calls`, `timeout`, `interrupted`, `other` |
-
----
-
-##  PII & Anonymization Policy
-
-Logs **must not include** personally identifiable or sensitive text.  
-Instead:
-- **Truncate** long prompts/responses to a small preview (`result.output_preview` ≤ 256 chars).  
-- **Redact** names, emails, IDs, and free-form confidential data.  
-- Record total character/token count via `result.output_text_length`.  
-- Include a redaction note under `meta.parse.warnings` if content was sanitized.
-
-Example snippet:
-```json
-{
-  "result": {
-    "output_preview": "[SUMMARY: redacted assistant reply]",
-    "output_text_length": 845
-  },
-  "meta": {
-    "raw_message": "POST /v1/chat ...",
-    "parse": {
-      "source": "gateway",
-      "parser": "llm-shaper@1.0.0",
-      "ok": true,
-      "warnings": ["truncated 256 chars", "PII redacted"]
+### 1) Serve
+**Raw (example)**
+    {
+      "id": "req-abc-123",
+      "received": "2025-10-13T12:00:01Z",
+      "model": "gpt-4o-mini",
+      "sampler": {"temperature": 0.4, "top_p": 0.95},
+      "route": "POST /v1/chat/completions",
+      "body": "...user text..."
     }
-  }
-}
-```
-
-## Worked Mappings (raw → normalized JSON)
-Each example shown below is an illustrative raw event and the corresponding normalized JSON that conforms to `schemas/llm.schema.json`.
-
-Notes
-- Use summaries or `[REDACTED]` for sensitive text.
-- Convert durations to milliseconds; ensure token counts are integers ≥ 0.
-
-### 1) Serve (request received → normalized)
-Raw
-```
-{
-  "id": "2fb979e0-6f6a-4e2b-bc9b-8f1a4d8d28b9",
-  "received_at": "2025-10-13T12:01:22Z",
-  "model_name": "gpt-4o-mini",
-  "prompt": "Hi, my name is John Doe. My SSN is 123-45-6789.",
-  "params": {"temperature": 0.4, "top_p": 0.9, "max_tokens": 256}
-}
-```
-Normalized
-```
-{
-  "timestamp": "2025-10-13T12:01:22Z",
-  "request_id": "2fb979e0-6f6a-4e2b-bc9b-8f1a4d8d28b9",
-  "model": "gpt-4o-mini",
-  "pipeline_stage": "serve",
-  "latency_ms": 0,
-
-  "sampler": {
-    "temperature": 0.4,
-    "top_p": 0.9,
-    "max_tokens": 256
-  },
-
-  "result": {
-    "result_id": "e8f2a1f7-1a0b-4d1b-8f3a-abcdefabcdef",
-    "outcome": "success",
-    "output_preview": "[SUMMARY: Assistant greeting generated]",
-    "output_text_length": 64
-  },
-
-  "meta": {
-    "raw_message": "[REDACTED: PII removed; user greeting summarized]",
-    "parse": {
-      "source": "gateway",
-      "parser": "serve@1.2.0",
-      "ok": true
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:01Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-mini",
+      "pipeline_stage": "serve",
+      "outcome": "success",
+      "endpoint": "chat.completions",
+      "component": "api",
+      "result": {
+        "output_preview": "[SUMMARY: request accepted]",
+        "output_text_length": 0
+      },
+      "sampler": { "temperature": 0.4, "top_p": 0.95 },
+      "meta": {
+        "raw_message": "[REDACTED: HTTP body summarized]",
+        "parse": { "parser_name": "llm-serve", "parser_version": "1.0.0", "pattern_id": "serve.accept", "confidence": 0.98 }
+      }
     }
-  }
-}
 
-```
-
-### 2)  Tokenizer
-Raw
-```
-{
-  "uuid": "f9c7c7ff-9fb0-4c9e-bf33-0b0cf8a8b6a1",
-  "ts": 1697200900,
-  "model": "gpt-4o",
-  "text_in": "Query: What are the clinic hours?",
-  "tokens_in": 10
-}
-```
-Normalized
-```
-{
-  "timestamp": "2025-10-13T12:01:40Z",
-  "request_id": "f9c7c7ff-9fb0-4c9e-bf33-0b0cf8a8b6a1",
-  "model": "gpt-4o",
-  "pipeline_stage": "tokenizer",
-  "latency_ms": 0,
-
-  "usage": {
-    "prompt_tokens": 10,
-    "completion_tokens": 0,
-    "total_tokens": 10
-  },
-
-  "result": {
-    "result_id": "f4d85b79-9c98-4f2e-8b55-abcdefabcdef",
-    "outcome": "pending",
-    "output_preview": "[PENDING: generated later]",
-    "output_text_length": 0
-  },
-
-  "meta": {
-    "raw_message": "[REDACTED: query summarized]",
-    "parse": {
-      "source": "tokenizer",
-      "parser": "tokenizer@1.2.0",
-      "ok": true
+### 2) Tokenizer
+**Raw**
+    { "id":"req-abc-123", "ts":"2025-10-13T12:00:03Z", "tokens_in": 42, "elapsed_s": 0.01 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:03Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-mini",
+      "pipeline_stage": "tokenizer",
+      "outcome": "success",
+      "latency_ms": 10,
+      "usage": { "prompt_tokens": 42, "completion_tokens": 0, "total_tokens": 42 },
+      "result": { "output_preview": "[PENDING: generation later]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: tokenized input]",
+        "parse": { "parser_name": "llm-tokenizer", "parser_version": "1.0.0", "pattern_id": "tok.ok", "confidence": 0.99 }
+      }
     }
-  }
-}
-```
 
-### 3) Inference
-Raw
-```
-{
-  "req_id": "bb2c6b0b-7a2e-4b90-8a0a-eeeeeeeeeeee",
-  "time": "2025-10-13T12:02:10Z",
-  "model": "gpt-4-turbo",
-  "input": "Summarize patient message (contains name & phone)",
-  "sampler": {"temperature": 0.7, "top_p": 0.95, "stop": ["\n\n"]},
-  "tokens_in": 120,
-  "tokens_out": 180,
-  "duration_ms": 2100,
-  "finish_reason": "stop"
-}
-```
-Normalized
-```
-{
-  "timestamp": "2025-10-13T12:02:10Z",
-  "request_id": "bb2c6b0b-7a2e-4b90-8a0a-eeeeeeeeeeee",
-  "model": "gpt-4-turbo",
-  "pipeline_stage": "inference",
-  "latency_ms": 2100,
-  "finish_reason": "stop",
-
-  "sampler": {
-    "temperature": 0.7,
-    "top_p": 0.95,
-    "stop_sequences": ["\n\n"],
-    "max_tokens": 256
-  },
-
-  "usage": {
-    "prompt_tokens": 120,
-    "completion_tokens": 180,
-    "total_tokens": 300
-  },
-
-  "result": {
-    "result_id": "2c07c6b3-6a3d-4f32-8a7e-abcdefabcdef",
-    "outcome": "success",
-    "output_preview": "[SUMMARY: concise response generated]",
-    "output_text_length": 512
-  },
-
-  "meta": {
-    "raw_message": "[REDACTED: PHI removed; task summarized]",
-    "parse": {
-      "source": "inference",
-      "parser": "inference@1.2.0",
-      "ok": true
+### 3) Quant
+**Raw**
+    { "id":"req-abc-123", "model":"gpt-4o-quant", "ts":"2025-10-13T12:00:04Z", "took_ms": 85 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:04Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-quant",
+      "pipeline_stage": "quant",
+      "outcome": "success",
+      "latency_ms": 85,
+      "result": { "output_preview": "[SUMMARY: weights quantized]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: quant step]",
+        "parse": { "parser_name": "llm-quant", "parser_version": "1.0.0", "pattern_id": "quant.ok", "confidence": 0.95 }
+      }
     }
-  }
-}
 
-```
-
-### 4) RAG – Retrieve
-Raw
-```
-{
-  "id": "b7cdb7e8-43dc-4a7e-9f0a-aaaaaaaaaaaa",
-  "ts": "2025-10-13T12:03:05Z",
-  "model": "gpt-4o",
-  "query": "What is the refund policy for service X?",
-  "retrieved_docs": 5,
-  "elapsed_sec": 0.42
-}
-```
-Normalized
-```
-{
-  "timestamp": "2025-10-13T12:03:05Z",
-  "request_id": "b7cdb7e8-43dc-4a7e-9f0a-aaaaaaaaaaaa",
-  "model": "gpt-4o",
-  "pipeline_stage": "rag_retrieve",
-  "latency_ms": 420,
-
-  "result": {
-    "result_id": "9c57f2e1-59a2-4b44-9a65-abcdefabcdef",
-    "outcome": "success",
-    "output_preview": "[SUMMARY: 5 docs retrieved]",
-    "output_text_length": 0
-  },
-
-  "meta": {
-    "raw_message": "[SUMMARY: user asked for refund policy]",
-    "parse": {
-      "source": "rag",
-      "parser": "rag.retrieve@1.2.0",
-      "ok": true,
-      "units": { "latency": "s" }
+### 4) Load
+**Raw**
+    { "id":"req-abc-123", "model":"gpt-4o-quant", "loaded_in_ms": 320 }
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:04Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-quant",
+      "pipeline_stage": "load",
+      "outcome": "success",
+      "latency_ms": 320,
+      "result": { "output_preview": "[SUMMARY: model loaded]", "output_text_length": 0 },
+      "meta": {
+        "raw_message": "[SUMMARY: load step]",
+        "parse": { "parser_name": "llm-loader", "parser_version": "1.0.0", "pattern_id": "load.ok", "confidence": 0.96 }
+      }
     }
-  }
-}
 
-```
-
-### 5) Safety Check
-Raw
-```
-{
-  "uuid": "cc33b5be-9d48-4c08-b9d0-bbbbbbbbbbbb",
-  "time": "2025-10-13T12:04:30Z",
-  "model": "gpt-4o",
-  "input": "User provided phone + email in message",
-  "tokens_in": 64,
-  "generated": "Assistant response...",
-  "tokens_out": 96,
-  "latency_ms": 980,
-  "flags": ["pii"],
-  "finish_reason": "content_filter"
-}
-```
-Normalized
-```
-{
-  "timestamp": "2025-10-13T12:04:30Z",
-  "request_id": "cc33b5be-9d48-4c08-b9d0-bbbbbbbbbbbb",
-  "model": "gpt-4o",
-  "pipeline_stage": "safety_check",
-  "latency_ms": 980,
-  "finish_reason": "content_filter",
-
-  "usage": {
-    "prompt_tokens": 64,
-    "completion_tokens": 96,
-    "total_tokens": 160
-  },
-
-  "result": {
-    "result_id": "3a6a91d0-23b7-41e0-b579-abcdefabcdef",
-    "outcome": "success",
-    "output_preview": "[REDACTED: output withheld due to policy]",
-    "output_text_length": 0,
-    "safety_flags": ["pii"]
-  },
-
-  "meta": {
-    "raw_message": "[REDACTED: PII removed; safety filter applied]",
-    "parse": {
-      "source": "safety",
-      "parser": "safety@1.2.0",
-      "ok": true
+### 5) Inference
+**Raw**
+    {
+      "id":"req-abc-123",
+      "time":"2025-10-13T12:00:06Z",
+      "sampler":{"temperature":0.7,"top_p":0.9,"max_tokens":128},
+      "ttft_ms": 80,
+      "duration_ms": 900,
+      "tokens_in": 42,
+      "tokens_out": 120,
+      "finish_reason": "stop"
     }
-  }
-}
-```
+**Normalized**
+    {
+      "timestamp": "2025-10-13T12:00:06Z",
+      "request_id": "req-abc-123",
+      "model": "gpt-4o-quant",
+      "pipeline_stage": "inference",
+      "outcome": "success",
+      "latency_ms": 900,
+      "ttft_ms": 80,
+      "finish_reason": "stop",
+      "usage": { "prompt_tokens": 42, "completion_tokens": 120, "total_tokens": 162 },
+      "sampler": { "temperature": 0.7, "top_p": 0.9, "max_tokens": 128 },
+      "result": { "output_preview": "[SUMMARY: concise answer]", "output_text_length": 420 },
+      "meta": {
+        "raw_message": "[REDACTED: user prompt and response summarized]",
+        "parse": { "parser_name": "llm-infer", "parser_version": "1.0.0", "pattern_id": "infer.ok", "confidence": 0.97 }
+      }
+    }
+
+> You can add similar worked examples for `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, and `sampling` as needed.
