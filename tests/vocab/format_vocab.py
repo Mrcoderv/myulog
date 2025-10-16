@@ -12,6 +12,7 @@ categories = sorted(v.get("categories", {}).keys())
 sub_categories = sorted(v.get("sub_categories", {}).keys())
 outcomes = sorted(v.get("outcomes", {}).keys())
 safety_flags = sorted(v.get("safety_flags", {}).keys())
+error_codes = sorted(v.get("error_codes", {}).keys())
 
 data["$defs"] = {
     "levels": {"type": "string", "enum": levels},
@@ -19,6 +20,7 @@ data["$defs"] = {
     "sub_categories": {"type": "string", "enum": sub_categories},
     "outcomes": {"type": "string", "enum": outcomes},
     "safety_flags": {"type": "string", "enum": safety_flags},
+    "error_codes": {"type": "string", "enum": error_codes},
 }
 
 # Pretty-print with stable indentation and trailing newline
