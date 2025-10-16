@@ -1,0 +1,16 @@
+{
+  "phase": "inference",
+  "model_name": "efficientnet_b0",
+  "dataset_id": "imagenet_val",
+  "image_count": 5000,
+  "metrics": { "accuracy": 0.91 },
+  "latency_ms": 850.0,
+  "batch_size": 16,
+  "hardware": { "accelerator": "GPU", "memory_gb": 12 },
+  "result": "success",
+  "category": "cv",
+  "meta": {
+    "raw_message": "example v06",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v06", "ok": true }
+  }
+}

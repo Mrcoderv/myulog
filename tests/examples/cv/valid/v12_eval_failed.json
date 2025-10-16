@@ -1,0 +1,17 @@
+{
+  "phase": "eval",
+  "model_name": "vit_large",
+  "dataset_id": "imagenet_v2",
+  "image_count": 20000,
+  "metrics": { "accuracy": 0.0 },
+  "latency_ms": 550.0,
+  "batch_size": 64,
+  "hardware": { "accelerator": "TPU", "memory_gb": 64 },
+  "result": "failure",
+  "error": { "message": "Missing ground truth labels" },
+  "category": "cv",
+  "meta": {
+    "raw_message": "example v12",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v12", "ok": true }
+  }
+}

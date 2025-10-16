@@ -1,12 +1,11 @@
 {
-  "phase": "inference",
+  "phase": "testing",
   "model_name": "vit_base",
   "dataset_id": "imagenet_val",
   "image_count": 200,
   "metrics": { "accuracy": 0.8 },
   "latency_ms": 50,
   "batch_size": 16,
-  "hardware": { "device": "GPU", "memory_gb": 16 },
-  "result": "success",
-  "gpu_type": "RTX 3080"
+  "hardware": { "accelerator": "GPU", "memory_gb": 16 },
+  "result": "success"
 }

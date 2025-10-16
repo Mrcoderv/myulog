@@ -6,6 +6,6 @@
   "metrics": { "accuracy": 0.8 },
   "latency_ms": 50,
   "batch_size": 16,
-  "hardware": { "device": "GPU", "memory_gb": 16 },
+  "hardware": { "accelerator": "GPU", "memory_gb": 16 },
   "result": "failure"
 }

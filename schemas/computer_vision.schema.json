@@ -1,4 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/computer_vision.schema.json",
+  "title": "Computer Vision Event Schema Reference",
+  "description": "Compatibility wrapper that references the latest version of Computer Vision schema",
   "$ref": "./computer_vision/v0/computer_vision.schema.json"
 }

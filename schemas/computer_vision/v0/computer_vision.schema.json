@@ -79,14 +79,12 @@
       "required": ["raw_message", "parse"]
     },
 
-    "level": { "$ref": "../_common.json#/$defs/level" },
-    "category": { "$ref": "../_common.json#/$defs/category" },
-    "outcome": { "$ref": "../_common.json#/$defs/outcome" },
-    "safety_flags": {
-      "type": "array",
-      "items": { "$ref": "../_common.json#/$defs/safety_flag" },
-      "uniqueItems": true
-    },
+    "level": { "$ref": "../../_common.json#/$defs/level" },
+    "category": { "$ref": "../../_common.json#/$defs/category" },
+
+    "result": { "$ref": "../../_common.json#/$defs/outcome" },
+
+    "safety_flags": { "$ref": "../../_common.json#/$defs/safety_flag" },
 
     "error": {
       "type": "object",
@@ -109,13 +107,13 @@
     "latency_ms",
     "batch_size",
     "hardware",
-    "outcome",
+    "result",
     "meta"
   ],
 
   "allOf": [
     {
-      "if": { "properties": { "outcome": { "const": "failure" } }, "required": ["outcome"] },
+      "if": { "properties": { "result": { "const": "failure" } }, "required": ["result"] },
       "then": { "required": ["error"] }
     }
   ]

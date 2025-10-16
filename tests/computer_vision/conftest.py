@@ -1,34 +1,61 @@
 import json
 import pathlib
-import pytest
 
 from jsonschema import Draft202012Validator
-from jsonschema.validators import RefResolver
-
+import pytest
+from referencing import Registry, Resource
 
 ROOT = pathlib.Path(__file__).parents[2]
 SCHEMAS_DIR = ROOT / "schemas"
 
+# Canonical IDs used by $id/$ref in main
+ALIAS_ID = "https://github.com/OmdenaAI/ULog/schemas/computer_vision.schema.json"
+V0_ID = "https://github.com/OmdenaAI/ULog/schemas/computer_vision/v0/computer_vision.schema.json"
+COMMON_ID = "https://github.com/OmdenaAI/ULog/schemas/_common.json"
+VOCAB_ID = "https://github.com/OmdenaAI/ULog/vocab/controlled_vocabulary.json"
 
-def _load_schema(path: pathlib.Path):
+
+def _load_json(path: pathlib.Path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _ensure_draft202012(contents: dict) -> dict:
     """
-    Load the FINAL alias schema and resolve refs to the versioned schema and _common.json,
-    using the /schemas folder as the resolver base, exactly like previous tickets.
+    Ensure the loaded document declares a JSON Schema dialect so the referencing
+    library can detect a specification. This DOES NOT touch files on disk.
     """
-    schema = json.loads(path.read_text(encoding="utf-8"))
-    Draft202012Validator.check_schema(schema)
-    resolver = RefResolver(
-        base_uri=SCHEMAS_DIR.as_uri() + "/",
-        referrer=schema
+    if isinstance(contents, dict) and "$schema" not in contents:
+        contents = dict(contents)
+        contents["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    return contents
+
+
+def _build_registry():
+    # Load the FINAL alias (wrapper), versioned schema, common, and vocab.
+    alias_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "computer_vision.schema.json"))
+    v0_schema = _ensure_draft202012(_load_json(
+        SCHEMAS_DIR / "computer_vision" / "v0" / "computer_vision.schema.json"))
+    common_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "_common.json"))
+
+    # NOTE: The vocab lives at repo root: /vocab/controlled_vocabulary.json
+    vocab_schema = _ensure_draft202012(_load_json(ROOT / "vocab" / "controlled_vocabulary.json"))
+
+    registry = (
+        Registry()
+        .with_resource(ALIAS_ID, Resource.from_contents(alias_schema))
+        .with_resource(V0_ID, Resource.from_contents(v0_schema))
+        .with_resource(COMMON_ID, Resource.from_contents(common_schema))
+        .with_resource(VOCAB_ID, Resource.from_contents(vocab_schema))
     )
-    return Draft202012Validator(schema, resolver=resolver)
+    return alias_schema, registry
 
 
 @pytest.fixture(scope="session")
 def cv_validator():
-    # IMPORTANT: always use the final alias, not the version path.
-    schema_path = SCHEMAS_DIR / "computer_vision.schema.json"
-    return _load_schema(schema_path)
+    # Always validate against the FINAL alias, consistent with other tickets.
+    alias_schema, registry = _build_registry()
+    Draft202012Validator.check_schema(alias_schema)
+    return Draft202012Validator(alias_schema, registry=registry)
 
 
 def json_files(dirpath: pathlib.Path):
@@ -36,4 +63,4 @@ def json_files(dirpath: pathlib.Path):
 
 
 def load_json(path: pathlib.Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _load_json(path)
