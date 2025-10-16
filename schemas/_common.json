@@ -1,12 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "schemas/_common.json",
-  "title": "ULog Common Enums (ref-only)",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/_common.json",
+  "title": "ULog Common Vocabulary",
   "$defs": {
     "level":       { "$ref": "../vocab/controlled_vocabulary.json#/$defs/levels" },
     "category":    { "$ref": "../vocab/controlled_vocabulary.json#/$defs/categories" },
     "sub_category":{ "$ref": "../vocab/controlled_vocabulary.json#/$defs/sub_categories" },
     "outcome":     { "$ref": "../vocab/controlled_vocabulary.json#/$defs/outcomes" },
-    "safety_flag": { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" }
+    "safety_flag": { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" },
+    "error_code":  { "$ref": "../vocab/controlled_vocabulary.json#/$defs/error_codes" }
   }
 }

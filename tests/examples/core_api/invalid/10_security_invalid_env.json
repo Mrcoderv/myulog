@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "raw_message": "2025-10-07 11:02:03 ERROR unauthorized request from IP 212.68.10.15 attempting to access /admin"
+  },
+  "timestamp": "2025-10-07T11:02:03.000Z",
+  "event_type": "http_response",
+  "service": "api-gateway",
+  "env": "prod",
+  "outcome": "failure",
+  "level": "error",
+  "category": "core_api",
+  "endpoint": "/admin",
+  "action": "GET",
+  "http_status": 403,
+  "error": {
+    "type": "UNAUTHORIZED_ACCESS",
+    "message": "Access denied for IP 212.68.10.15"
+  }
+}

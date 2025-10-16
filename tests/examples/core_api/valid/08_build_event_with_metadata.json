@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "raw_message": "[BUILD] 2025-10-08T11:00:00Z frontend-app webpack build completed in 45.6s",
+    "parse": {
+      "parser_name": "build_log_parser",
+      "parser_version": "1.5.0",
+      "pattern_id": "webpack_build",
+      "confidence": 0.96
+    }
+  },
+  "timestamp": "2025-10-08T11:00:00.000Z",
+  "event_type": "build",
+  "service": "frontend-app",
+  "component": "build-pipeline",
+  "env": "development",
+  "outcome": "success",
+  "level": "info",
+  "category": "core_api",
+  "sub_category": "deployment",
+  "duration_ms": 45600,
+  "metadata": {
+    "build_tool": "webpack",
+    "node_version": "18.17.0",
+    "target": "production",
+    "output_size_mb": 8.4,
+    "chunks": 24
+  }
+}

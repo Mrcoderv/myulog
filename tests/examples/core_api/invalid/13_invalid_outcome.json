@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "raw_message": "2025-10-09 17:00:00.000 INFO Test with invalid outcome"
+  },
+  "timestamp": "2025-10-09T17:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "unknown_outcome",
+  "level": "info",
+  "category": "core_api",
+  "endpoint": "/test",
+  "action": "GET",
+  "http_status": 200
+}

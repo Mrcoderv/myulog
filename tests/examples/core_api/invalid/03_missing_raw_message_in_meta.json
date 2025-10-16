@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "parse": {
+      "parser_name": "test_parser",
+      "parser_version": "1.0.0"
+    }
+  },
+  "timestamp": "2025-10-08T14:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/test",
+  "action": "GET"
+}

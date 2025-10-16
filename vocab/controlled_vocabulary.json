@@ -87,6 +87,18 @@
       "flag_tampering": "Detects manipulated or synthetic content.",
       "flag_misclassification": "Incorrect label or prediction.",
       "flag_data_drift": "Input data deviated from training distribution."
+    },
+    "error_codes": {
+      "ULOG-AUTH-001": "auth_token_expired - Access token expired for a user or service",
+      "ULOG-NET-001": "upstream_timeout - Request to upstream service timed out",
+      "ULOG-DATA-001": "schema_mismatch - Incoming payload does not match expected schema",
+      "ULOG-MODEL-001": "model_drift_detected - Model performance metrics drifted beyond thresholds",
+      "ULOG-STORE-001": "redis_connection_refused - Unable to connect to cache service",
+      "ULOG-DB-001": "db_transaction_deadlock - Database transaction rolled back due to deadlock",
+      "ULOG-SVC-001": "missing_environment_variable - Required configuration variable missing",
+      "ULOG-TP-001": "external_502_bad_gateway - Third-party vendor returned 502 error",
+      "ULOG-SYS-001": "cpu_sustained_high - CPU usage sustained above threshold",
+      "ULOG-SEC-001": "pii_exposed_in_log - Personal information detected in logs"
     }
   },
   "$defs": {
@@ -186,6 +198,23 @@
         "flag_violent_image",
         "none"
       ]
+    },
+    "error_codes": {
+      "type": "string",
+      "enum": [
+        "ULOG-AUTH-001",
+        "ULOG-NET-001",
+        "ULOG-DATA-001",
+        "ULOG-MODEL-001",
+        "ULOG-STORE-001",
+        "ULOG-DB-001",
+        "ULOG-SVC-001",
+        "ULOG-TP-001",
+        "ULOG-SYS-001",
+        "ULOG-SEC-001"
+      ],
+      "pattern": "^ULOG-[A-Z]{2,10}-[0-9]{3}$",
+      "description": "Standardized error codes following ULOG-[CAT]-[NNN] convention"
     }
   }
 }
