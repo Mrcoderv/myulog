@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Create a tiny demo schema, examples and raw inputs for the harness.
+"""Create a tiny demo schema (with wrapper), examples and raw inputs for the harness.
 
-This helps developers exercise the two-phase flow locally with a minimal domain.
+The harness only collects top-level wrappers under `schemas/*.schema.json`.
 """
 
 import argparse
@@ -79,6 +79,12 @@ def main():
         (EXAMPLES / "demo" / "invalid1.json", '{ "msg": 123 }'),
         (RAW / "demo" / "valid_log.txt", json.dumps({"message": "hello from raw"})),
         (RAW / "demo" / "invalid_parse.txt", ""),
+        (SCHEMAS / "demo.schema.json", json.dumps({
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "Demo schema (wrapper)",
+            "description": "Compatibility wrapper that references the current demo schema",
+            "$ref": "./demo/schema.json"
+        }, indent=2)),
     ]
 
     # Write all files
