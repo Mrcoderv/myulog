@@ -20,7 +20,7 @@ The `$id` serves as:
 **Current Version:** `v0` (baseline)  
 **Path:** `schemas/agentic/v0/step.schema.json`
 
-Future versions will be organized in separate directories (`v1/`, `v2`, etc.). Breaking changes require a major version bump.
+Future versions will be organized in separate directories (`v1/`, `v2/`, etc.). Breaking changes require a major version bump.
 
 ---
 
