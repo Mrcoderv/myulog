@@ -6,21 +6,21 @@ Each schema version includes a unique `$id` field for precise identification and
 
 ```json
 {
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step_schema.json"
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step.schema.json"
 }
 ```
 
 The `$id` serves as:
 - **Canonical URI** for the schema document
-- **Base URI** for resolving relative `$ref` references  
+- **Base URI** for resolving relative `$ref` references
 - **Version identifier** embedded in the path
 
 ## Versioning
 
 **Current Version:** `v0` (baseline)  
-**Path:** `schemas/agentic/v0/step_schema.json`
+**Path:** `schemas/agentic/v0/step.schema.json`
 
-Future versions will be organized in separate directories (`v1/`, `v2/`, etc.). Breaking changes require a major version bump.
+Future versions will be organized in separate directories (`v1/`, `v2`, etc.). Breaking changes require a major version bump.
 
 ---
 
@@ -299,20 +299,19 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 
 ---
 
-## Workflow Sequence Diagram
+## ASCII Sequence Diagram
 
-| Event               | From           | To             | step_kind       | Notes                                  |
-|---------------------|----------------|----------------|-----------------|----------------------------------------|
-| session_start       | User           | Orchestrator   | session_start   |                                         |
-| plan created        | Orchestrator   | Planner        | plan_created    | plan_id=plan-alpha-001                  |
-| tool selection      | Orchestrator   | ToolSelector   | tool_selected   | ranked_tools=["sentiment_analyzer_v3","sentiment_analyzer_v2","basic_nlp"] |
-| cache check         | Orchestrator   | Cache          | cache           | status="success"                        |
-| step #1 (analyze)   | Orchestrator   | LLM Backend    | step            | duration_ms=3500, status="success"      |
-| guardrails check    | Guardrails     | Orchestrator   | guardrails      | safety_flags=["flag_pii","flag_security"] |
-| step #2 (retry)     | Orchestrator   | LLM Backend    | step            | status="success"                        |
-| cost emit           | Orchestrator   | Guardrails     | cost            | tokens_in=12500, tokens_out=850, est_cost_usd=0.142 |
-| stream start        | Orchestrator   | User           | stream_start    | component="streaming_engine"            |
-| final answer        | Orchestrator   | User           | —               |                                         |
+```
+User            -> Orchestrator : session_start
+Orchestrator    -> Planner      : plan_created (plan_id=plan-alpha-001)
+Orchestrator    -> ToolSelector : tool_selected (ranked_tools=[sentiment_analyzer_v3,sentiment_analyzer_v2,basic_nlp])
+ToolSelector    -> Orchestrator : success
+Orchestrator    -> LLM Backend  : step (duration_ms=3500, status=success, category=llm)
+Orchestrator    -> Guardrails   : guardrails (safety_flags=[flag_pii,flag_security])
+Guardrails      -> Orchestrator : success
+Orchestrator    -> Cache        : cache (status=success)
+Orchestrator    -> User         : stream_start
+```
 
 ---
 
@@ -334,6 +333,6 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
 
 ## Schema Validation
 
-All examples above validate against `schemas/agentic/v0/step_schema.json` and reference controlled vocabularies from `schemas/_common.json`.
+All examples above validate against `schemas/agentic/v0/step.schema.json` and reference controlled vocabularies from `schemas/_common.json`.
 
-See `/tests/examples/agentic/` for complete test suite with >=14 valid and >=10 invalid examples.
+See `/tests/examples/agentic/` for the complete test suite with >=14 valid and >=10 invalid examples.
