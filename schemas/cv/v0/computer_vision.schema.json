@@ -109,6 +109,7 @@
     "latency_ms",
     "batch_size",
     "hardware",
+    "result",
     "outcome",
     "meta"
   ],
