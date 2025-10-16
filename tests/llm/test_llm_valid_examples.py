@@ -1,5 +1,6 @@
 import json
 import pathlib
+
 import pytest
 
 EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "llm" / "valid"

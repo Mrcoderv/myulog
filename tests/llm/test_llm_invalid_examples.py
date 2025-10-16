@@ -1,7 +1,8 @@
 import json
 import pathlib
-import pytest
+
 from jsonschema import ValidationError
+import pytest
 
 EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "llm" / "invalid"
 

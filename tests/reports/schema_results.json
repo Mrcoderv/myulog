@@ -1,13 +1,13 @@
 {
   "summary": {
-    "total_tests": 30,
-    "passed": 30,
+    "total_tests": 45,
+    "passed": 45,
     "failed": 0,
     "skipped": 0,
     "raw_tests": 0,
     "raw_parse_ok": 0,
     "raw_parse_rate": 0.0,
-    "timestamp": 1760612440.3271961
+    "timestamp": 1760620523.367212
   },
   "domain_metrics": {
     "core_api": {
@@ -16,6 +16,16 @@
       "parse_error": 0,
       "schema_violation": 14,
       "total_tests": 30,
+      "raw_tests": 0,
+      "raw_parse_ok": 0,
+      "raw_parse_error": 0
+    },
+    "llm": {
+      "domain": "llm",
+      "parse_ok": 15,
+      "parse_error": 0,
+      "schema_violation": 5,
+      "total_tests": 15,
       "raw_tests": 0,
       "raw_parse_ok": 0,
       "raw_parse_error": 0
@@ -1030,6 +1040,561 @@
           "action": "GET",
           "latency_ms": 12.3,
           "request_id": "req_abc_123"
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/invalid/01_bad_pipeline_stage.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "fail",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:10:00Z",
+          "request_id": "bad-001",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "prewarm",
+          "outcome": "success",
+          "result": {
+            "output_preview": "x",
+            "output_text_length": 1
+          },
+          "meta": {
+            "raw_message": "x",
+            "parse": {
+              "parser_name": "x",
+              "parser_version": "1.0.0",
+              "pattern_id": "x",
+              "confidence": 1.0
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": false,
+        "error_message": "'prewarm' is not one of ['serve', 'tokenizer', 'quant', 'load', 'inference', 'rag_retrieve', 'rag_embed', 'rag_rerank', 'safety_check', 'sampling']"
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/invalid/02_negative_latency.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "fail",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:10:01Z",
+          "request_id": "bad-002",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "inference",
+          "outcome": "success",
+          "latency_ms": -5,
+          "result": {
+            "output_preview": "x",
+            "output_text_length": 1
+          },
+          "meta": {
+            "raw_message": "x",
+            "parse": {
+              "parser_name": "x",
+              "parser_version": "1.0.0",
+              "pattern_id": "x",
+              "confidence": 1.0
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": false,
+        "error_message": "-5 is less than the minimum of 0"
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/invalid/03_missing_required_meta.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "fail",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:10:02Z",
+          "request_id": "bad-003",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "serve",
+          "outcome": "success",
+          "result": {
+            "output_preview": "x",
+            "output_text_length": 0
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": false,
+        "error_message": "'meta' is a required property"
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/invalid/04_vocab_violation_level.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "fail",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:10:03Z",
+          "request_id": "bad-004",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "inference",
+          "outcome": "success",
+          "level": "warning",
+          "result": {
+            "output_preview": "x",
+            "output_text_length": 10
+          },
+          "meta": {
+            "raw_message": "x",
+            "parse": {
+              "parser_name": "x",
+              "parser_version": "1.0.0",
+              "pattern_id": "x",
+              "confidence": 1.0
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": false,
+        "error_message": "'warning' is not one of ['critical', 'debug', 'error', 'info', 'warn']"
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/invalid/05_missing_error_on_failure.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "fail",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:10:04Z",
+          "request_id": "bad-005",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "inference",
+          "outcome": "failure",
+          "result": {
+            "output_preview": "x",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "x",
+            "parse": {
+              "parser_name": "x",
+              "parser_version": "1.0.0",
+              "pattern_id": "x",
+              "confidence": 1.0
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": false,
+        "error_message": "'error' is a required property"
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/01_serve.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:01Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "serve",
+          "outcome": "success",
+          "endpoint": "chat.completions",
+          "component": "api",
+          "result": {
+            "output_preview": "[SUMMARY: request accepted]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[REDACTED]",
+            "parse": {
+              "parser_name": "llm-serve",
+              "parser_version": "1.0.0",
+              "pattern_id": "serve.accept",
+              "confidence": 0.98
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/02_tokenizer.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:03Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "tokenizer",
+          "outcome": "success",
+          "latency_ms": 10,
+          "usage": {
+            "prompt_tokens": 42,
+            "completion_tokens": 0,
+            "total_tokens": 42
+          },
+          "result": {
+            "output_preview": "[PENDING]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: tokenized input]",
+            "parse": {
+              "parser_name": "llm-tokenizer",
+              "parser_version": "1.0.0",
+              "pattern_id": "tok.ok",
+              "confidence": 0.99
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/03_quant.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:04Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-quant",
+          "pipeline_stage": "quant",
+          "outcome": "success",
+          "latency_ms": 85,
+          "result": {
+            "output_preview": "[SUMMARY: weights quantized]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: quant step]",
+            "parse": {
+              "parser_name": "llm-quant",
+              "parser_version": "1.0.0",
+              "pattern_id": "quant.ok",
+              "confidence": 0.95
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/04_load.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:04Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-quant",
+          "pipeline_stage": "load",
+          "outcome": "success",
+          "latency_ms": 320,
+          "result": {
+            "output_preview": "[SUMMARY: model loaded]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: load step]",
+            "parse": {
+              "parser_name": "llm-loader",
+              "parser_version": "1.0.0",
+              "pattern_id": "load.ok",
+              "confidence": 0.96
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/05_inference_success.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:06Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-quant",
+          "pipeline_stage": "inference",
+          "outcome": "success",
+          "latency_ms": 900,
+          "ttft_ms": 80,
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 42,
+            "completion_tokens": 120,
+            "total_tokens": 162
+          },
+          "sampler": {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "max_tokens": 128
+          },
+          "result": {
+            "output_preview": "[SUMMARY: concise answer]",
+            "output_text_length": 420
+          },
+          "meta": {
+            "raw_message": "[REDACTED]",
+            "parse": {
+              "parser_name": "llm-infer",
+              "parser_version": "1.0.0",
+              "pattern_id": "infer.ok",
+              "confidence": 0.97
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/06_rag_retrieve.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:07Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-quant",
+          "pipeline_stage": "rag_retrieve",
+          "outcome": "success",
+          "latency_ms": 120,
+          "result": {
+            "output_preview": "[SUMMARY: 5 docs retrieved]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: retrieval step]",
+            "parse": {
+              "parser_name": "llm-rag",
+              "parser_version": "1.0.0",
+              "pattern_id": "rag.retrieve",
+              "confidence": 0.95
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/07_rag_embed.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:08Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-embed",
+          "pipeline_stage": "rag_embed",
+          "outcome": "success",
+          "latency_ms": 60,
+          "result": {
+            "output_preview": "[SUMMARY: query embedded]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: embed step]",
+            "parse": {
+              "parser_name": "llm-rag",
+              "parser_version": "1.0.0",
+              "pattern_id": "rag.embed",
+              "confidence": 0.95
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/08_rag_rerank.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:09Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-reranker",
+          "pipeline_stage": "rag_rerank",
+          "outcome": "success",
+          "latency_ms": 70,
+          "result": {
+            "output_preview": "[SUMMARY: reranked 5\u21923]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: rerank step]",
+            "parse": {
+              "parser_name": "llm-rag",
+              "parser_version": "1.0.0",
+              "pattern_id": "rag.rerank",
+              "confidence": 0.94
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/09_safety_check.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:10Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "safety_check",
+          "outcome": "success",
+          "latency_ms": 55,
+          "finish_reason": "content_filter",
+          "result": {
+            "output_preview": "[REDACTED: blocked]",
+            "output_text_length": 0,
+            "safety_flags": [
+              "flag_pii"
+            ]
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: safety flagged]",
+            "parse": {
+              "parser_name": "llm-safety",
+              "parser_version": "1.0.0",
+              "pattern_id": "safety.filter",
+              "confidence": 0.93
+            }
+          }
+        },
+        "error_message": ""
+      },
+      "validation_result": {
+        "success": true,
+        "error_message": ""
+      },
+      "final_status": "PASS"
+    },
+    {
+      "file_path": "/workspaces/ULog/tests/examples/llm/valid/10_sampling.json",
+      "domain": "llm",
+      "test_type": "json",
+      "expected_outcome": "pass",
+      "parse_result": {
+        "success": true,
+        "normalized_json": {
+          "timestamp": "2025-10-13T12:00:11Z",
+          "request_id": "req-serve-001",
+          "model": "gpt-4o-mini",
+          "pipeline_stage": "sampling",
+          "outcome": "success",
+          "latency_ms": 45,
+          "sampler": {
+            "temperature": 0.8,
+            "top_p": 0.95,
+            "max_tokens": 64
+          },
+          "result": {
+            "output_preview": "[SUMMARY: sampler parameters applied]",
+            "output_text_length": 0
+          },
+          "meta": {
+            "raw_message": "[SUMMARY: sampling step]",
+            "parse": {
+              "parser_name": "llm-sampler",
+              "parser_version": "1.0.0",
+              "pattern_id": "sampling.ok",
+              "confidence": 0.96
+            }
+          }
         },
         "error_message": ""
       },

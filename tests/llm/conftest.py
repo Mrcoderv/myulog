@@ -7,10 +7,10 @@ import json
 import pathlib
 from urllib.parse import urljoin
 
+from jsonschema import Draft202012Validator as Validator
 import pytest
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
-from jsonschema import Draft202012Validator as Validator
 
 # Keep this for tests that import it
 LLM_SCHEMA = "llm.schema.json"
@@ -22,7 +22,13 @@ def _load(path: pathlib.Path) -> dict:
 
 def _add_resource(reg: Registry, uri: str | None, doc: dict) -> Registry:
     if isinstance(uri, str) and uri:
-        return reg.with_resource(uri, Resource.from_contents(doc, default_specification=DRAFT202012))
+        return reg.with_resource(
+            uri,
+            Resource.from_contents(
+                doc,
+                default_specification=DRAFT202012,
+            ),
+        )
     return reg
 
 
@@ -80,7 +86,8 @@ def schema_validator():
         ):
             reg = _add_resource(reg, urljoin(base, "../vocab/controlled_vocabulary.json"), vocab)
 
-        # 5) Convenience aliases from wrapper/v0 bases to _common and vocab (if ever referenced relatively)
+        # 5) Convenience aliases from wrapper/v0 bases to _common and vocab
+#    (if ever referenced relatively)
         for base in (
             wrapper.get("$id"),
             wrapper_path.as_uri(),
