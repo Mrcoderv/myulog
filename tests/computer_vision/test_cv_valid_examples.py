@@ -4,7 +4,7 @@ import pytest
 
 from .conftest import load_json
 
-EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "cv" / "valid"
+EXAMPLES_DIR = pathlib.Path(__file__).parents[1] / "examples" / "computer_vision" / "valid"
 PATHS = sorted(EXAMPLES_DIR.glob("*.json"))
 
 
