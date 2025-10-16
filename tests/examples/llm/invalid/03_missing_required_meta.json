@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-10-13T12:10:02Z",
+  "request_id": "bad-003",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "serve",
+  "outcome": "success",
+  "result": { "output_preview": "x", "output_text_length": 0 }
+}
