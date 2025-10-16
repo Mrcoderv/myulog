@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step.schema.json",
+  "title": "Agentic Workflow Step",
+  "description": "Schema for multi-step agent workflows with metadata, traceability, and controlled vocabulary references.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the raw message and parsing process",
+      "properties": {
+        "raw_message": {
+          "type": "string",
+          "description": "Original raw log message before parsing"
+        },
+        "parse": {
+          "type": "object",
+          "description": "Information about the parsing process",
+          "properties": {
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO 8601 timestamp when the message was parsed"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the parser used to process this message"
+            }
+          }
+        }
+      },
+      "required": ["raw_message"]
+    },
+    "step_kind": {
+      "type": "string",
+      "description": "Type of workflow step",
+      "enum": [
+        "session_start",
+        "plan_created",
+        "tool_selected",
+        "step",
+        "stream_start",
+        "guardrails",
+        "cost",
+        "cache"
+      ]
+    },
+    "workflow_id": {
+      "type": "string",
+      "description": "Unique identifier for the workflow run; all steps in the same run share this value.",
+      "minLength": 1
+    },
+    "step_id": {
+      "type": "string",
+      "description": "Unique identifier of this step within the workflow.",
+      "minLength": 1
+    },
+    "parent_step_id": {
+      "type": "string",
+      "description": "Optional: step_id of the direct parent step to form the execution chain/graph.",
+      "minLength": 1
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "Optional: identifier for the plan being executed",
+      "minLength": 1
+    },
+    "tool_name": {
+      "type": "string",
+      "description": "Name of the tool or action invoked at this step.",
+      "minLength": 1
+    },
+    "ranked_tools": {
+      "type": "array",
+      "description": "Optional: array of tool rankings or selections",
+      "items": {
+        "type": "string"
+      }
+    },
+    "input_summary": {
+      "type": "string",
+      "description": "Description of the inputs or prompt for this step.",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "output_summary": {
+      "type": "string",
+      "description": "Description of the outputs/results produced by this step.",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "status": {
+      "type": "string",
+      "description": "Outcome of the step execution.",
+      "enum": ["success", "retry", "timeout", "failed"]
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Optional: End-to-end runtime of the step in milliseconds (non-negative).",
+      "minimum": 0
+    },
+    "cost": {
+      "type": "object",
+      "description": "Optional: cost tracking for this step",
+      "properties": {
+        "tokens_in": {
+          "type": "integer",
+          "description": "Number of input tokens",
+          "minimum": 0
+        },
+        "tokens_out": {
+          "type": "integer",
+          "description": "Number of output tokens",
+          "minimum": 0
+        },
+        "est_cost_usd": {
+          "type": "number",
+          "description": "Estimated cost in USD",
+          "minimum": 0
+        }
+      }
+    },
+    "component": {
+      "type": "string",
+      "description": "Optional: component that generated this step"
+    },
+    "level": {
+      "$ref": "../../_common.json#/$defs/level"
+    },
+    "category": {
+      "$ref": "../../_common.json#/$defs/category"
+    },
+    "sub_category": {
+      "$ref": "../../_common.json#/$defs/sub_category"
+    },
+    "outcome": {
+      "$ref": "../../_common.json#/$defs/outcome"
+    },
+    "safety_flags": {
+      "type": "array",
+      "description": "Optional: array of safety flags",
+      "items": {
+        "$ref": "../../_common.json#/$defs/safety_flag"
+      }
+    },
+    "error": {
+      "type": "object",
+      "description": "Error object required when status is 'failed' or 'timeout'.",
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message explaining the failure/timeout.",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": ["message"]
+    }
+  },
+  "required": [
+    "meta",
+    "step_kind",
+    "workflow_id",
+    "step_id",
+    "tool_name",
+    "input_summary",
+    "output_summary",
+    "status"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "enum": ["failed", "timeout"] } },
+        "required": ["status"]
+      },
+      "then": { "required": ["error"] }
+    }
+  ]
+}

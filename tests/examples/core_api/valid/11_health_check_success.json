@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 20:00:00.000 INFO Health check passed"
+  },
+  "timestamp": "2025-10-08T20:00:00.000Z",
+  "event_type": "health_check",
+  "service": "api-gateway",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "category": "core_api",
+  "endpoint": "/health",
+  "action": "GET",
+  "http_status": 200,
+  "latency_ms": 1.2
+}

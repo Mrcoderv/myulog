@@ -1,0 +1,11 @@
+{
+    "raw": "KV cache reuse disabled due to sequence length > 64k",
+    "mapped": {
+      "level": "info",
+      "category": "llm",
+      "sub_category": "kv_cache",
+      "outcome": "success",
+      "safety_flags": ["none"],
+      "notes": "Proceeding without cache; expected for long context"
+    }
+  }

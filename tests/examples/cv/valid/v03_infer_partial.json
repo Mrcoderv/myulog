@@ -1,0 +1,17 @@
+{
+  "phase": "inference",
+  "model_name": "mobilenet_v3",
+  "dataset_id": "imagenet_tiny",
+  "image_count": 10000,
+  "metrics": { "loss": 2.3 },
+  "latency_ms": 180.0,
+  "batch_size": 16,
+  "hardware": { "accelerator": "GPU", "memory_gb": 8 },
+  "outcome": "failure",
+  "error": { "message": "Out of memory on device 0" },
+  "category": "cv",
+  "meta": {
+    "raw_message": "example v03",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v03", "ok": true }
+  }
+}

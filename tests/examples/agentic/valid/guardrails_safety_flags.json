@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "raw_message": "Guardrail check detected PII in output",
+    "parse": {
+      "timestamp": "2025-10-13T10:05:00Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "guardrails",
+  "workflow_id": "wf-003",
+  "step_id": "step-guard-001",
+  "tool_name": "safety_checker",
+  "input_summary": "Checking LLM output for safety violations",
+  "output_summary": "Detected PII: email address and phone number",
+  "status": "success",
+  "duration_ms": 89.5,
+  "safety_flags": ["flag_pii", "flag_security"],
+  "level": "warn",
+  "category": "agentic"
+}
+

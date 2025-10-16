@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "raw_message": "2025-10-09 16:00:00.000 ERROR Test with invalid error code"
+  },
+  "timestamp": "2025-10-09T16:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "failure",
+  "level": "error",
+  "category": "core_api",
+  "endpoint": "/test",
+  "action": "POST",
+  "http_status": 500,
+  "error": "Test error",
+  "error_code": "INVALID-CODE-123"
+}

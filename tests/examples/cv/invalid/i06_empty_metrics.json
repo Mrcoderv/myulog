@@ -1,0 +1,11 @@
+{
+  "phase": "inference",
+  "model_name": "resnet50_v2",
+  "dataset_id": "imagenet_v2",
+  "image_count": 1000,
+  "metrics": {},
+  "latency_ms": 120,
+  "batch_size": 32,
+  "hardware": { "accelerator": "GPU", "memory_gb": 16 },
+  "result": "success"
+}
