@@ -8,6 +8,7 @@ help: ## Show available commands
 	@echo "  make test        - run pytest locally (poetry run)"
 	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
 	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
+	@echo "  make test.determinism
 	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
@@ -44,12 +45,16 @@ test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes J
 	@poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
 
 test.determinism: ## Run determinism tests for data generators
-	@poetry run pytest -q tests/generator/test_determinism.py
+# 	@poetry run pytest -q tests/generator/test_determinism.py
+	@poetry run pytest -q data/generator/test_determinism.py
+
 
 test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) lint
 	@$(MAKE) test
 	@$(MAKE) test.schemas
+	@$(MAKE) test.schemas.json
+	@$(MAKE) test.determinism
 
 demo.generate: ## Create tiny demo schema, examples and raw inputs for the harness
 	@poetry run python3 tests/harness/generate_demo.py
@@ -59,11 +64,11 @@ demo.run: ## Generate demo and run the harness against it (writes JUnit XML)
 	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
 
 generate: ## Create a sample input file
-	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
-# 	@mkdir -p local_pipeline/in local_pipeline/out
-# 	@date > local_pipeline/in/example.log
-# 	@echo "hello, ulog" >> local_pipeline/in/example.log
-# 	@echo "Wrote local_pipeline/in/example.log"
+# 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
+	@mkdir -p local_pipeline/in local_pipeline/out
+	@date > local_pipeline/in/example.log
+	@echo "hello, ulog" >> local_pipeline/in/example.log
+	@echo "Wrote local_pipeline/in/example.log"
 
 classify: ## Run local pipeline (docker compose)
 	@cd local_pipeline && docker compose up --build --abort-on-container-exit
