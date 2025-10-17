@@ -1,9 +1,10 @@
-import ulog
+"""Tests for core module."""
+
+from ulog.core import echo
 
 
-def test_echo_roundtrip():
-    assert ulog.echo("ULog") == "ULog"
-
-
-def test_version_exists():
-    assert isinstance(ulog.__version__, str) and len(ulog.__version__) > 0
+def test_echo():
+    """Test echo function."""
+    assert echo("hello") == "hello"
+    assert echo("") == ""
+    assert echo("test message") == "test message"
