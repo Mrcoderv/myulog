@@ -93,9 +93,7 @@ site/
 # Output directory
 /out/**
 
-# OS junk
-.DS_Store
-.ruffle_cache/*
+# Ignore local pipeline data
 local_pipeline/out/*
 !local_pipeline/out/.gitkeep
 local_pipeline/in/*
