@@ -1,9 +1,13 @@
-# Rules Examples (Concise with Rule IDs)
+# Rules Examples (Concise with Selected Rule IDs)
 
-This file lists concise examples for each rule in `rules.json` (v1.0.0).
-Each example includes a minimal input JSON that triggers the rule, why it fires, and the expected classification outcome.
+This document showcases concise examples for the ULog rule language and a selection of rules.  
+Some examples are **illustrative** (to demonstrate syntax/features) and may not exist in `rules.json`; others map **exactly** to rules currently defined in `rules.json`.
+
+Each example includes a minimal input JSON, why it fires (or what it demonstrates), and the expected classification outcome.  
+When an example corresponds to a real rule in `rules.json`, we include its `rule_id` explicitly.
 
 ---
+
 
 ## Core/API Schema
 

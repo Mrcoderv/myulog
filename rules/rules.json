@@ -198,6 +198,27 @@
         "outcome": "success",
         "tags": ["cv", "throughput"]
       }
+    },
+    {
+      "rule_id": "cv-batch-slow",
+      "version": "1.0.0",
+      "name": "Slow batch inference (by seconds in message)",
+      "description": "Extract seconds from raw message and flag if >= 60s",
+      "applies_to": ["computer_vision"],
+      "when": {
+        "all": [
+          { "field": "phase", "op": "eq", "value": "inference" },
+          { "field": "meta.raw_message", "op": "extract_ms", "pattern": "([0-9]+)\\s*s", "compare": { "gte": 60000 } }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "cv",
+        "sub_category": "inference",
+        "outcome": "success",
+        "tags": ["cv", "slow_batch"]
+      }
     }
+
   ]
 }

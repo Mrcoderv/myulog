@@ -1,7 +1,0 @@
-{
-  "schema_id": "computer_vision",
-  "outcome": "failure",
-  "meta": {
-    "raw_message": "RuntimeError: CUDA out of memory"
-  }
-}
