@@ -1,14 +1,15 @@
-from logging import Logger
-
 from generator import GenerateLog
+from typing import List
 
 
 class AgenticGenerator(GenerateLog):
     def __init__(self, fields : list[str], seed: int, size: int,
-                 option_params : list[str] | None = None)-> None:
-        super().__init__(fields, size, seed)
-        self.logger = Logger(__name__)
+                 input_params : list[str] | None , valid_params : list[str] | None)-> None:
+        super().__init__(fields, size, seed, valid_params)
+
         self.parser_versions = ["1.0.0", "1.1.0", "2.0.0"]
+        self.input_params = input_params if input_params else []
+        
         self.step_kinds = ["session_start",
                             "plan_created",
                             "tool_selected",
@@ -59,39 +60,13 @@ class AgenticGenerator(GenerateLog):
                                 "E011",
                                 "E012"
                             ]
-        self.outcomes = ["success", "failed"]
-        self.safety_flags = ["llm", "cv", "pii", "security"]
-        self.category = [
-                        "auth",
-                        "network",
-                        "data",
-                        "model",
-                        "service",
-                        "system",
-                        "storage",
-                        "scheduler",
-                        "deployment",
-                        "security",
-                        "third_party"
-                        ]
-        self.levels = ["info", "warn", "error"]
-        self.option_params = option_params if option_params else []
+        self.list_of_tools = ["web_search", "image_generation", 
+                              "text_completion", "data_analysis", "code_execution"]
 
-        self.valid_params = {
-            "parse_timestamp",
-            "parser_version",
-            "parent_step_id",
-            "plan_id",
-            "duration_ms",
-            "cost",
-            "level",
-            "category",
-            "safety_flag",
-            "outcome",
-            "error_code"
-        }
+        self.param_dict = {} 
 
-        self.verify_option_params()
+        
+        
 
     def generate_log_entries(self) -> list[dict]:
         """Generate a list of log entries."""
@@ -115,67 +90,81 @@ class AgenticGenerator(GenerateLog):
                 log_entry["error"] = {
                     "message": self.select_enum(self.messages[log_entry["status"]])
                 }
+            if self.input_params:
+                log_entry = self.generate_option_params(log_entry)
             logs.append(log_entry)
 
         return logs
     
-    def verify_option_params(self)-> None:
-        for param in self.option_params:
-            if param not in self.valid_params:
-                self.logger.warning(f"Unknown option param: {param}")
     
     def generate_option_params(self,log:dict)-> dict:
-        for param in self.option_params:
-           
-            if param == "parse_timestamp":
-               log["meta"]["parse_timestamp"] = self.generate_timestamp()
-
-            elif param == "parser_version":
-               log["meta"]["parser_version"] = self.select_enum(self.parser_versions)
-
-            elif param == "parent_step_id":
-                log["parent_step_id"] = self.generate_unique_string()
-
-            elif param == "plan_id":
-                log["plan_id"] = self.generate_unique_string()
-
-            elif param == "duration_ms":
-                log["duration_ms"] = self.generate_float(0.0,500.0)
-
-            elif param == "cost":
-                log["cost"] = {
-                    "tokens_in": self.generate_integer(0,10000),
-                    "tokens_out": self.generate_integer(0,10000),
-                    "est_cost_usd": self.generate_float(0.0,10.0)
-                }
-            elif param == "level":
-                log["level"] = self.select_enum(self.levels)
-
-            elif param == "category":
-                log["category"] = self.select_enum(self.category)
-
-            elif param == "safety_flag":
-                log["safety_flag"] = self.select_enum(self.safety_flags)
-
-            elif param == "outcome":
-                log["outcome"] = self.select_enum(self.outcomes)
-
-            elif param == "error_code":
-                log["error_code"] = self.select_enum(self.error_codes)
-            else:
-                continue # skip unknown params, already logged in verify_option_params
+        for param in self.input_params:
+            match param:
+                case "parse_timestamp":
+                    log["meta"]["parse_timestamp"] = self.generate_timestamp()
+                
+                case "parser_version":
+                    log["meta"]["parser_version"] = self.select_enum(self.parser_versions)
+                
+                case "parent_step_id":
+                    log["parent_step_id"] = self.generate_unique_string()
+                
+                case "plan_id":
+                    log["plan_id"] = self.generate_unique_string()
+                
+                case "duration_ms":
+                    log["duration_ms"] = self.generate_float(0.0,500.0)
+                
+                case "cost":
+                    log["cost"] = {
+                        "tokens_in": self.generate_integer(0,10000),
+                        "tokens_out": self.generate_integer(0,10000),
+                        "est_cost_usd": self.generate_float(0.0,10.0)
+                    }
+                
+                case "level":
+                    log["level"] = self.select_enum(self.param_dict["levels"])
+                
+                case "category":
+                    log["category"] = self.select_enum(self.param_dict["category"])
+                
+                case "safety_flag":
+                    log["safety_flag"] = self.select_enum(self.param_dict["safety_flags"])
+                
+                case "outcome":
+                    log["outcome"] = self.select_enum(self.param_dict["outcomes"])
+                
+                case "error_code":
+                    log["error_code"] = self.select_enum(self.error_codes)
+                
+                case "ranked_tools":
+                    n = self.generate_integer(1, len(self.list_of_tools))
+                    ranked_tools = []
+                    if n > 0:
+                        ranked_tools = self.random.sample(self.list_of_tools, n)
+                    log["ranked_tools"] = ranked_tools
+                
+                case _:
+                    continue  # skip unknown params, already logged in verify_option_params
 
         return log
     
+    def verify_input_params(self) -> list[str]:
+        verified_params = []
+        for param in self.input_params:
+            if self.verify_option_params(param,self.valid_params):
+                verified_params.append(param)
+            else:
+                self.logger.warning(f"Unknown option param: {param}")
+        return verified_params
+
     def run(self)-> tuple[list[dict], list[dict]]:
+        self.input_params = self.verify_input_params()
+        self.param_dict = self.load_param_dict(self.input_params)
+
         valid_logs = self.generate_log_entries()
         invalid_logs = self.generate_log_entries()
 
-        # apply option params after we mutate invalid_logs 
-        # (so both valid and invalid get same shape)
-        if self.option_params:
-            valid_logs = [self.generate_option_params(log) for log in valid_logs]
-            invalid_logs = [self.generate_option_params(log) for log in invalid_logs]
 
         # remove fields from invalid_logs (so they become invalid)
         for log in invalid_logs:
