@@ -1,0 +1,23 @@
+raw_log,level,category,outcome,error_code,safety_flag
+"Login failed for user admin",error,auth,failure,E001,None
+"Model inference took 3.4s",info,model,success,,LLM
+"GET /api/data failed with 404",error,api,failure,E002,None
+"DNS lookup timeout on endpoint",warn,network,failure,E003,None
+"Successfully loaded training dataset",info,data,success,,None
+"UI error: button click unresponsive",warn,ui,failure,E004,None
+"OpenCV failed to decode image",error,model,failure,E008,CV
+"Memory usage exceeded 90%",warn,system,failure,E009,None
+"API limit exceeded for user",error,api,failure,E007,None
+"Request completed in 100ms",info,network,success,,None
+"User login failed due to expired token",error,auth,failure,AUTH_INVALID_TOKEN,
+"LLM returned hallucinated fact",warn,model,failure,MODEL_INFERENCE_ERROR,llm_hallucination
+"Image classification returned wrong label",warn,model,,failure,cv_misclassification
+"Upload failed: disk full",error,storage,failure,STORAGE_WRITE_FAIL,
+"User submitted invalid prompt",warn,user_input,failure,USER_INPUT_TOO_LARGE,llm_prompt_injection
+"Request timed out while calling API",error,network,failure,NETWORK_TIMEOUT,
+"Model loaded successfully",info,model,success,,
+"API response malformed",error,api,failure,API_BAD_RESPONSE,
+"External DB unavailable",error,dependency,failure,DEPENDENCY_UNAVAILABLE,
+"Job stuck in retry loop",warn,scheduler,failure,SCHEDULER_JOB_STALLED,
+"Data processed successfully",info,data_pipeline,success,,
+"Permission denied accessing resource",error,auth,failure,AUTH_PERMISSION_DENIED,llm_prompt_injection

@@ -1,0 +1,5 @@
+{"log": "Job 456 completed successfully.", "level": "info", "outcome": "success"}
+{"log": "Job 457 failed due to file not found.", "level": "error", "outcome": "failure"}
+{"log": "Job 458 cancelled by user.", "level": "warn", "outcome": "cancelled"}
+{"log": "Job 459 still running after 3h.", "level": "info", "outcome": "running"}
+{"log": "Job 460 exceeded walltime.", "level": "error", "outcome": "timeout"}

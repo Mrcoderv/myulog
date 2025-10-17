@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "raw_message": "[2025-10-08T10:15:32.100Z] payment-service v2.1.4 started successfully in 1.234s"
+  },
+  "timestamp": "2025-10-08T10:15:32.100Z",
+  "event_type": "startup",
+  "service": "payment-service",
+  "env": "production",
+  "outcome": "success",
+  "level": "info",
+  "category": "lifecycle",
+  "version": "2.1.4",
+  "duration_ms": 1234
+}

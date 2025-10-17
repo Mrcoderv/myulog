@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-13T12:00:09Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-reranker",
+  "pipeline_stage": "rag_rerank",
+  "outcome": "success",
+  "latency_ms": 70,
+  "result": { "output_preview": "[SUMMARY: reranked 5→3]", "output_text_length": 0 },
+  "meta": { "raw_message": "[SUMMARY: rerank step]", "parse": { "parser_name": "llm-rag", "parser_version": "1.0.0", "pattern_id": "rag.rerank", "confidence": 0.94 } }
+}

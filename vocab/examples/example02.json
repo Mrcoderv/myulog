@@ -1,0 +1,8 @@
+{
+  "raw_line": "Quantized weights loaded with fallback precision (int8 → float16)",
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "quantization",
+  "outcome": "success",
+  "safety_flags": ["none"]
+}

@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "raw_message": "Agent created execution plan with 5 steps",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:15Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "plan_created",
+  "workflow_id": "wf-001",
+  "step_id": "step-002",
+  "parent_step_id": "step-001",
+  "plan_id": "plan-alpha-001",
+  "tool_name": "planner",
+  "input_summary": "User request: Analyze customer sentiment from recent reviews",
+  "output_summary": "Created 5-step plan: fetch data, preprocess, analyze, summarize, report",
+  "status": "success",
+  "duration_ms": 120.5,
+  "component": "ai_planner_v2",
+  "level": "info",
+  "category": "agentic"
+}
+

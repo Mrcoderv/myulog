@@ -1,0 +1,8 @@
+{
+  "raw_line": "Retrying call to embedding_service due to connection reset",
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "embedding_service",
+  "outcome": "running",
+  "safety_flags": ["none"]
+}

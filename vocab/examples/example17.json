@@ -1,0 +1,11 @@
+{
+    "raw": "Embedding service returned 200 but vector dim=0 (upstream payload empty)",
+    "mapped": {
+      "level": "error",
+      "category": "llm",
+      "sub_category": "embedding_service",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Successful HTTP but invalid embedding payload"
+    }
+  }

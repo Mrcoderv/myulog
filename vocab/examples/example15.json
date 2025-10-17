@@ -1,0 +1,11 @@
+{
+    "raw": "Quantization check: activation clipping detected on layer=attn.11",
+    "mapped": {
+      "level": "warn",
+      "category": "llm",
+      "sub_category": "quantization",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Quality risk from clipping in int8 path"
+    }
+  }

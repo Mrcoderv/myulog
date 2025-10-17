@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-13T12:00:10Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "safety_check",
+  "outcome": "success",
+  "latency_ms": 55,
+  "finish_reason": "content_filter",
+  "result": { "output_preview": "[REDACTED: blocked]", "output_text_length": 0, "safety_flags": ["flag_pii"] },
+  "meta": { "raw_message": "[SUMMARY: safety flagged]", "parse": { "parser_name": "llm-safety", "parser_version": "1.0.0", "pattern_id": "safety.filter", "confidence": 0.93 } }
+}

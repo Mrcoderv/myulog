@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "raw_message": "Tool selection completed with rankings",
+    "parse": {
+      "timestamp": "2025-10-13T10:01:00Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "tool_selected",
+  "workflow_id": "wf-001",
+  "step_id": "step-003",
+  "parent_step_id": "step-002",
+  "plan_id": "plan-alpha-001",
+  "tool_name": "tool_selector",
+  "ranked_tools": ["sentiment_analyzer_v3", "sentiment_analyzer_v2", "basic_nlp"],
+  "input_summary": "Selecting best sentiment analysis tool",
+  "output_summary": "Selected sentiment_analyzer_v3 based on accuracy score",
+  "status": "success",
+  "level": "info",
+  "category": "agentic"
+}
+
