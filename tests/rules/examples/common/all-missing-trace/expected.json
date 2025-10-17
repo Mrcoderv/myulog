@@ -1,9 +1,7 @@
 {
   "level": "info",
-  "category": "system",
+  "category": "cv",
   "outcome": "failure",
-  "tags": [
-    "no_trace_id"
-  ],
+  "tags": ["no_trace_id"],
   "_rule_id": "all-missing-trace"
 }

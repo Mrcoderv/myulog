@@ -1,10 +1,7 @@
 {
-  "level": "info",
-  "category": "scheduler",
-  "outcome": "failure",
-  "tags": [
-    "agentic",
-    "planner_long_run"
-  ],
+  "level": "warn",
+  "category": "agentic",
+  "outcome": "running",
+  "tags": ["agentic", "planner_long_run"],
   "_rule_id": "agentic-planner-long-running"
 }

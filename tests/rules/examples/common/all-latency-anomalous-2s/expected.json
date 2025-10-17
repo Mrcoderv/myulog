@@ -1,9 +1,7 @@
 {
   "level": "warn",
-  "category": "service",
+  "category": "agentic",
   "outcome": "failure",
-  "tags": [
-    "latency>2s"
-  ],
+  "tags": ["latency>2s"],
   "_rule_id": "all-latency-anomalous-2s"
 }

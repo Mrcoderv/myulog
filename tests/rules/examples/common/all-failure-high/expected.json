@@ -1,9 +1,7 @@
 {
   "level": "error",
-  "category": "service",
+  "category": "llm",
   "outcome": "failure",
-  "tags": [
-    "failed"
-  ],
+  "tags": ["failed"],
   "_rule_id": "all-failure-high"
 }

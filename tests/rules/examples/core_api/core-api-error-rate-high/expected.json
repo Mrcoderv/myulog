@@ -1,0 +1,7 @@
+{
+  "level": "warn",
+  "category": "core_api",
+  "outcome": "failure",
+  "tags": ["core_api", "error_rate"],
+  "_rule_id": "core-api-error-rate-high"
+}

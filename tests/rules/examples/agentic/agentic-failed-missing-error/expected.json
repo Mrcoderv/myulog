@@ -1,10 +1,7 @@
 {
   "level": "warn",
-  "category": "data",
+  "category": "agentic",
   "outcome": "failure",
-  "tags": [
-    "agentic",
-    "missing_error"
-  ],
+  "tags": ["agentic", "missing_error"],
   "_rule_id": "agentic-failed-missing-error"
 }

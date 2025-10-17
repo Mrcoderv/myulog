@@ -1,10 +1,7 @@
 {
   "level": "warn",
-  "category": "service",
-  "outcome": "failure",
-  "tags": [
-    "agentic",
-    "search"
-  ],
+  "category": "agentic",
+  "outcome": "success",
+  "tags": ["agentic", "search"],
   "_rule_id": "agentic-search-slow"
 }

@@ -1,0 +1,7 @@
+{
+  "level": "info",
+  "category": "cv",
+  "outcome": "success",
+  "tags": ["cv", "throughput"],
+  "_rule_id": "cv-throughput-high"
+}
