@@ -1,0 +1,10 @@
+{
+  "step_kind": "session_start",
+  "workflow_id": "wf-001",
+  "step_id": "step-001",
+  "tool_name": "session_manager",
+  "input_summary": "User initiated new workflow session",
+  "output_summary": "Session initialized successfully",
+  "status": "success"
+}
+

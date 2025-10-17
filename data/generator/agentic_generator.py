@@ -77,8 +77,21 @@ class AgenticGenerator(GenerateLog):
         self.levels = ["info", "warn", "error"]
         self.option_params = option_params if option_params else []
 
-        if not self.verify_option_params():
-            raise ValueError("Invalid option params provided.")
+        self.valid_params = {
+            "parse_timestamp",
+            "parser_version",
+            "parent_step_id",
+            "plan_id",
+            "duration_ms",
+            "cost",
+            "level",
+            "category",
+            "safety_flag",
+            "outcome",
+            "error_code"
+        }
+
+        self.verify_option_params()
 
     def generate_log_entries(self) -> list[dict]:
         """Generate a list of log entries."""
@@ -106,25 +119,10 @@ class AgenticGenerator(GenerateLog):
 
         return logs
     
-    def verify_option_params(self)-> bool:
-        valid_params = {
-            "parse_timestamp",
-            "parser_version",
-            "parent_step_id",
-            "plan_id",
-            "duration_ms",
-            "cost",
-            "level",
-            "category",
-            "safety_flag",
-            "outcome",
-            "error_code"
-        }
+    def verify_option_params(self)-> None:
         for param in self.option_params:
-            if param not in valid_params:
+            if param not in self.valid_params:
                 self.logger.warning(f"Unknown option param: {param}")
-                return False
-        return True
     
     def generate_option_params(self,log:dict)-> dict:
         for param in self.option_params:
@@ -164,6 +162,8 @@ class AgenticGenerator(GenerateLog):
 
             elif param == "error_code":
                 log["error_code"] = self.select_enum(self.error_codes)
+            else:
+                continue # skip unknown params, already logged in verify_option_params
 
         return log
     

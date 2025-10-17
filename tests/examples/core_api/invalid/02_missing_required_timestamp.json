@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "raw_message": "test log"
+  },
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "success",
+  "endpoint": "/test",
+  "action": "GET"
+}

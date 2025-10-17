@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "raw_message": "Starting streaming response to client",
+    "parse": {
+      "timestamp": "2025-10-13T10:15:00Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "stream_start",
+  "workflow_id": "wf-stream-001",
+  "step_id": "step-stream-002",
+  "tool_name": "stream_handler",
+  "input_summary": "Begin streaming LLM response",
+  "output_summary": "Stream initialized, first chunk sent",
+  "status": "success",
+  "duration_ms": 8.5,
+  "level": "info",
+  "category": "core_api",
+  "sub_category": "streaming"
+}

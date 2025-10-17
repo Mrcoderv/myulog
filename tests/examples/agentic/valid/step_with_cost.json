@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "raw_message": "LLM inference completed with token usage tracking",
+    "parse": {
+      "timestamp": "2025-10-13T10:02:30Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-001",
+  "step_id": "step-004",
+  "parent_step_id": "step-003",
+  "tool_name": "gpt4_analyzer",
+  "input_summary": "Analyze sentiment: 500 customer reviews",
+  "output_summary": "Sentiment distribution: 65% positive, 25% neutral, 10% negative",
+  "status": "success",
+  "duration_ms": 3450.8,
+  "cost": {
+    "tokens_in": 12500,
+    "tokens_out": 850,
+    "est_cost_usd": 0.142
+  },
+  "level": "info",
+  "category": "llm"
+}
+

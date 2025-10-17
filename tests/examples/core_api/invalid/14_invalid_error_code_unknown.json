@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "raw_message": "2025-10-09 18:00:00.000 ERROR Test with error_code matching pattern but not in enum"
+  },
+  "timestamp": "2025-10-09T18:00:00.000Z",
+  "event_type": "http_response",
+  "service": "test-service",
+  "env": "production",
+  "outcome": "failure",
+  "level": "error",
+  "category": "core_api",
+  "endpoint": "/test",
+  "action": "GET",
+  "http_status": 500,
+  "error": "Simulated server error",
+  "error_code": "ULOG-FOO-999"
+}

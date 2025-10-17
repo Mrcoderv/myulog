@@ -1,21 +1,56 @@
-# Local env
-.env
-
-# Python junk
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.python-version
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments
 .venv/
 venv/
+env/
+ENV/
+.Python
 
-# Local pipeline artifacts
-local_pipeline/out/*
-!local_pipeline/out/.gitkeep
+# Testing & Coverage
+.python-version
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+.hypothesis/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
 
-local_pipeline/in/*
-!local_pipeline/in/.gitkeep
+# Type checking
+.mypy_cache/
+.dmypy.json
+.pytype/
+.pyre/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
 
 # Test artifacts
 tests/reports/*
@@ -23,9 +58,41 @@ tests/reports/*
 
 tests/perf_artifacts/
 
+# OS junk
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+
+# Poetry
+# poetry.lock
+
+# Documentation builds
+docs/_build/
+site/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.cache/
+
 # Output directory
 /out/**
 
 # OS junk
 .DS_Store
-.ruff_cache/
+.ruffle_cache/*
+

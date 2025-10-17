@@ -1,0 +1,16 @@
+{
+  "phase": "track",
+  "model_name": "yolov7",
+  "dataset_id": "mot17",
+  "image_count": 10000,
+  "metrics": { "map": 0.62, "fps": 120 },
+  "latency_ms": 7,
+  "batch_size": 8,
+  "hardware": "RTX 3080 / Torch 2.3",
+  "outcome": "success",
+  "category": "cv",
+  "meta": {
+    "raw_message": "tracker=bytetrack map=0.62 fps=120 latency=7ms",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v17", "ok": true }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic.schema.json",
+  "title": "Agentic Workflow Step Schema Reference",
+  "description": "Compatibility wrapper that references the latest version of the Agentic schema",
+  "$ref": "./agentic/v0/step.schema.json"
+}

@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "raw_message": "2025-10-13T10:00:00Z [INFO] Session started for user workflow",
+    "parse": {
+      "timestamp": "2025-10-13T10:00:01Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "session_start",
+  "workflow_id": "wf-001",
+  "step_id": "step-001",
+  "tool_name": "session_manager",
+  "input_summary": "User initiated new workflow session",
+  "output_summary": "Session initialized successfully",
+  "status": "success",
+  "duration_ms": 45.2,
+  "level": "info",
+  "category": "agentic"
+}
+
