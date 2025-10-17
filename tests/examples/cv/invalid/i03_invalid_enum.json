@@ -1,0 +1,11 @@
+{
+  "phase": "testing",
+  "model_name": "vit_base",
+  "dataset_id": "imagenet_val",
+  "image_count": 200,
+  "metrics": { "accuracy": 0.8 },
+  "latency_ms": 50,
+  "batch_size": 16,
+  "hardware": { "accelerator": "GPU", "memory_gb": 16 },
+  "result": "success"
+}
