@@ -1,8 +1,10 @@
 {
   "schema_id": "computer_vision",
-  "phase": "evaluation",
+  "phase": "eval",
   "metrics": {
-    "mAP_50_95": 0.15
+    "extra": {
+      "map_50_95": 0.15
+    }
   },
-  "result": "succeeded"
+  "outcome": "success"
 }

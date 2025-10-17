@@ -2,7 +2,7 @@
   "schema_id": "computer_vision",
   "phase": "inference",
   "metrics": {
-    "mAP": 0.25
+    "map": 0.25
   },
-  "result": "succeeded"
+  "outcome": "success"
 }

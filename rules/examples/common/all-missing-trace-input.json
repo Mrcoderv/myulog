@@ -1,5 +1,5 @@
 {
   "schema_id": "computer_vision",
   "phase": "inference",
-  "result": "succeeded"
+  "outcome": "success"
 }

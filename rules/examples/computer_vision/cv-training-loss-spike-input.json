@@ -4,5 +4,5 @@
   "metrics": {
     "loss": 5.8
   },
-  "result": "succeeded"
+  "outcome": "success"
 }

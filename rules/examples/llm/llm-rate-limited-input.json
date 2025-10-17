@@ -1,7 +1,7 @@
 {
   "schema_id": "llm",
-  "result": "failed",
   "error": {
     "code": 429
-  }
+  },
+  "outcome": "failure"
 }

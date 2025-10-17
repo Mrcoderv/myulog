@@ -210,7 +210,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
   "schema_id": "llm",
   "pipeline_stage": "rag_retrieve",
   "outcome": "failure",
-  "duration_ms": 1200
+  "latency_ms": 1200
 }
 ```
 
@@ -330,7 +330,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-tool-slow`
 
 ```json
-{"schema_id": "agentic", "step_kind": "step", "status": "success", "duration_ms": 7000}
+{"schema_id": "agentic", "step_kind": "step", "status": "success", "latency_ms": 7000}
 ```
 
 **Why fires:** Tool step succeeded/retried but took >= 5000 ms.  
@@ -352,7 +352,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-planner-long-running`
 
 ```json
-{"schema_id": "agentic", "tool_name": "planner", "status": "running", "duration_ms": 65000}
+{"schema_id": "agentic", "tool_name": "planner", "status": "running", "latency_ms": 65000}
 ```
 
 **Why fires:** Planner tool running for >= 60000 ms.  
@@ -374,7 +374,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-search-slow`
 
 ```json
-{"schema_id": "agentic", "tool_name": "search_web", "status": "succeeded", "duration_ms": 2000}
+{"schema_id": "agentic", "tool_name": "search_web", "status": "succeeded", "latency_ms": 2000}
 ```
 
 **Why fires:** Search tool succeeded but took >= 1500 ms.  

@@ -1,5 +1,5 @@
 {
   "schema_id": "llm",
   "input_tokens": 9500,
-  "result": "succeeded"
+  "outcome": "success"
 }
