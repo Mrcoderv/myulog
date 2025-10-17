@@ -96,4 +96,7 @@ site/
 # OS junk
 .DS_Store
 .ruffle_cache/*
-
+local_pipeline/out/*
+!local_pipeline/out/.gitkeep
+local_pipeline/in/*
+!local_pipeline/in/.gitkeep
