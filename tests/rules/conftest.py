@@ -78,6 +78,44 @@ def _match_atomic(field_val: Any, op: str, value: Any) -> bool:
     return result
 
 
+def _apply_compare(val: float, compare: Dict[str, float] | None) -> bool:
+    """Apply numeric compare dict (gt/gte/lt/lte/eq) to a value."""
+    if not isinstance(compare, dict) or not compare:
+        return False
+    if "gt" in compare:
+        return val > compare["gt"]
+    if "gte" in compare:
+        return val >= compare["gte"]
+    if "lt" in compare:
+        return val < compare["lt"]
+    if "lte" in compare:
+        return val <= compare["lte"]
+    if "eq" in compare:
+        return val == compare["eq"]
+    return False
+
+
+def _extract_value(text: str | Any, op: str, pattern: str | None):
+    """Extract numeric value from text using capture pattern depending on op."""
+    if not isinstance(text, str) or not pattern:
+        return None
+    m = re.search(pattern, text)
+    if not m or not m.groups():
+        return None
+    g = m.group(1)
+    try:
+        if op == "extract_ms":
+            # Treat captured number as seconds unless explicitly in ms in pattern; convert to ms
+            return float(g) * 1000.0
+        if op == "extract_number":
+            return float(g.replace(",", "").replace("_", ""))
+        if op == "extract_percent":
+            return float(g.replace("%", ""))
+    except ValueError:
+        return None
+    return None
+
+
 def _matches(
     event: Dict[str, Any], cond: Dict[str, Any], aliases: Dict[str, List[str]]
 ) -> bool:
@@ -101,7 +139,15 @@ def _matches(
                     val = _find_value_in_path(event, paths)
                 else:
                     val = _resolve_path(event, p)
-                if _match_atomic(val, cond["op"], cond.get("value")):
+                op = cond["op"]
+                if op in {"extract_ms", "extract_number", "extract_percent"}:
+                    extracted = _extract_value(val, op, cond.get("pattern"))
+                    if extracted is not None and _apply_compare(
+                        extracted, cond.get("compare")
+                    ):
+                        result = True
+                        break
+                elif _match_atomic(val, op, cond.get("value")):
                     result = True
                     break
         else:
@@ -113,7 +159,14 @@ def _matches(
                     field_val = _find_value_in_path(event, aliases.get(field, []))
                 else:
                     field_val = _resolve_path(event, field)
-                result = _match_atomic(field_val, cond["op"], cond.get("value"))
+                op = cond["op"]
+                if op in {"extract_ms", "extract_number", "extract_percent"}:
+                    extracted = _extract_value(field_val, op, cond.get("pattern"))
+                    result = extracted is not None and _apply_compare(
+                        extracted, cond.get("compare")
+                    )
+                else:
+                    result = _match_atomic(field_val, op, cond.get("value"))
 
     return result
 
