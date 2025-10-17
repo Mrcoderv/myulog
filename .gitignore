@@ -64,6 +64,7 @@ tests/perf_artifacts/
 ._*
 Thumbs.db
 ehthumbs.db
+.ruff_cache/
 
 # Environment & Secrets
 .env
