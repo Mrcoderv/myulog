@@ -46,13 +46,15 @@ parser.add_argument("-d",
                     choices=["cv", "api", "agentic"],
                     help="Domain of the log"
                     )
-parser.add_argument("-arg",
-                    "--argument",
+parser.add_argument("-args",
+                    "--arguments",
                     type=str,
-                    action="append",
-                    default=[],
+                    nargs=argparse.REMAINDER,
+                    default="",
                     help="""Optional parameters for agentic logs; repeatable, e.g. 
-                    --argument cost --argument level""")
+                    "--arguments , write parameter separated by space 
+                    --arguments <value>  <value> ...
+                    note : this argument should be the last one in the command line""")
 
 args = parser.parse_args()
 
@@ -61,19 +63,30 @@ if not output_dir.exists():
     output_dir.mkdir(parents=True, exist_ok=True)
 
 generator_classes = {
-    "cv": { "class": GenerateCVLog, "fields": [
-            "phase",
-            "model_name",
-            "dataset_id",
-            "image_count",
-            "metrics",
-            "latency_ms",
-            "batch_size",
-            "hardware",
-            "result",
-        ]},
+    "cv": { "class": GenerateCVLog, 
+           "fields": [
+                "phase",
+                "model_name",
+                "dataset_id",
+                "image_count",
+                "metrics",
+                "latency_ms",
+                "batch_size",
+                "hardware",
+                "result",
+            ],
+            "valid_params": [
+                "timestamp"
+                "component"
+                "safety_flag"
+                "category"
+                "level"
+                "ok"]
+            },
+
     "api": { "class": GenerateAPILog,
-             "fields": [
+            
+            "fields": [
                 "request_id",
                 "timestamp",
                 "service",
@@ -85,10 +98,27 @@ generator_classes = {
                 "content_length",
                 "user_agent",
                 "status_code",
+                ],
+            "valid_params": [
+                "parse",
+                "level",
+                "category",
+                "sub_category",
+                "component",
+                "module",
+                "safety_flag",
+                "error_code",
+                "version",
+                "stack",
+                "request_id",
+                "http_status",
+                "latency_ms",
+                "duration_ms"
                 ]
             },
-    "agentic": { "class": AgenticGenerator,
-             "fields": [
+    "agentic": { 
+            "class": AgenticGenerator,
+            "fields": [
                 "meta",
                 "step_kind",
                 "workflow_id",
@@ -97,25 +127,38 @@ generator_classes = {
                 "input_summary",
                 "output_summary",
                 "status",
-                ]
-            },
+                ],
+            "valid_params": [
+                "parse_timestamp",
+                "parser_version",
+                "parent_step_id",
+                "plan_id",
+                "duration_ms",
+                "cost",
+                "level",
+                "category",
+                "safety_flag",
+                "outcome",
+                "error_code",
+                "ranked_tools"
+            ]
+        },
 
     }
 
+
+input_params = args.arguments.split(" ") if args.arguments else []
+
 domain = generator_classes[args.domain]
-if args.domain == "agentic":
-    generator = domain["class"](
-        domain["fields"],
-        size=args.count,
-        seed=args.seed,
-        option_params=args.argument
-    )
-else:
-    generator = domain["class"](
-        domain["fields"],
-        size=args.count,
-        seed=args.seed
-    )
+
+
+generator = domain["class"](
+    domain["fields"],
+    size=args.count,
+    seed=args.seed,
+    input_params=input_params,
+    valid_params=domain["valid_params"],
+)
 
 valid_logs, invalid_logs = generator.run()
 

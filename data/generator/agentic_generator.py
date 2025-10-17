@@ -1,5 +1,5 @@
+
 from generator import GenerateLog
-from typing import List
 
 
 class AgenticGenerator(GenerateLog):
