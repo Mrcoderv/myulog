@@ -1,0 +1,17 @@
+{
+  "schema_id": "agentic",
+  "meta": {
+    "raw_message": "Tool execution failed with ModuleNotFoundError"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-2024-001",
+  "step_id": "step-042",
+  "tool_name": "data_processor",
+  "input_summary": "Process CSV file with 10000 rows",
+  "output_summary": "Failed to import required module",
+  "status": "failed",
+  "duration_ms": 125,
+  "error": {
+    "message": "ModuleNotFoundError: No module named 'pandas'"
+  }
+}

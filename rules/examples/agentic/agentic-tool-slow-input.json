@@ -1,0 +1,14 @@
+{
+  "schema_id": "agentic",
+  "meta": {
+    "raw_message": "Web scraper completed in 6500ms"
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-2024-002",
+  "step_id": "step-103",
+  "tool_name": "web_scraper",
+  "input_summary": "Scrape product data from e-commerce site",
+  "output_summary": "Successfully scraped 250 product listings",
+  "status": "success",
+  "duration_ms": 6500
+}

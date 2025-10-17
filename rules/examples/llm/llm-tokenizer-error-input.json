@@ -1,0 +1,15 @@
+{
+  "schema_id": "llm",
+  "meta": {
+    "raw_message": "[ERROR] Tokenizer initialization failed: incompatible vocab file"
+  },
+  "timestamp": "2025-10-17T14:20:15.332Z",
+  "request_id": "req-llm-001",
+  "model": "llama-7b",
+  "pipeline_stage": "tokenizer",
+  "outcome": "failure",
+  "error": {
+    "type": "TokenizerError",
+    "message": "Tokenizer initialization failed: incompatible vocab file"
+  }
+}

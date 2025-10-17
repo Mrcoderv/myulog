@@ -1,0 +1,8 @@
+{
+  "level": "error",
+  "category": "llm",
+  "sub_category": "tokenizer",
+  "outcome": "failure",
+  "tags": ["llm", "tokenizer"],
+  "_rule_id": "llm-tokenizer-error"
+}

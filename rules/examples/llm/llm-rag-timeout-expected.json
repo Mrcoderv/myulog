@@ -1,0 +1,8 @@
+{
+  "level": "error",
+  "category": "llm",
+  "sub_category": "rag_timeout",
+  "outcome": "timeout",
+  "tags": ["llm", "rag"],
+  "_rule_id": "llm-rag-timeout"
+}

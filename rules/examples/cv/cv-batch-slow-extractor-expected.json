@@ -1,0 +1,8 @@
+{
+  "level": "warn",
+  "category": "cv",
+  "sub_category": "inference",
+  "outcome": "success",
+  "tags": ["cv", "slow_batch"],
+  "_rule_id": "cv-batch-slow"
+}

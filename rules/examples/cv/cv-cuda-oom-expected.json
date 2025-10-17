@@ -1,0 +1,8 @@
+{
+  "level": "critical",
+  "category": "cv",
+  "sub_category": "infrastructure",
+  "outcome": "failure",
+  "tags": ["cv", "cuda", "oom"],
+  "_rule_id": "cv-cuda-oom"
+}

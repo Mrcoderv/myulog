@@ -1,0 +1,13 @@
+{
+  "schema_id": "llm",
+  "meta": {
+    "raw_message": "[RAG][ERROR] Embedding service timeout after 1500ms"
+  },
+  "timestamp": "2025-10-17T14:22:44.128Z",
+  "request_id": "req-rag-8a44",
+  "model": "embedding-model-v2",
+  "pipeline_stage": "rag_embed",
+  "outcome": "failure",
+  "latency_ms": 1500,
+  "error": "Embedding service timeout"
+}

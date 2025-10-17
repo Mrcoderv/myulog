@@ -1,0 +1,20 @@
+{
+  "schema_id": "core_api",
+  "meta": {
+    "raw_message": "Unauthorized access attempt: invalid API key"
+  },
+  "timestamp": "2025-10-17T14:38:15.221Z",
+  "event_type": "http_response",
+  "service": "api-gateway",
+  "env": "production",
+  "outcome": "failure",
+  "http_status": 401,
+  "endpoint": "/api/v1/admin/users",
+  "action": "GET",
+  "request_id": "req-unauth-442",
+  "latency_ms": 12,
+  "error": {
+    "type": "AuthenticationError",
+    "message": "Invalid API key provided"
+  }
+}
