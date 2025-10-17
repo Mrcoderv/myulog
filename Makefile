@@ -10,6 +10,11 @@ help: ## Show available commands
 	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
 	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
+	@echo "Rules:"
+	@echo "  make rules.validate - validate rules.json against rules.schema.json"
+	@echo "  make rules.test  - run unit tests for rules examples"
+	@echo "  make rules.check - validate rules and run tests"
+	@echo ""
 	@echo "Demo:"
 	@echo "  make demo.generate - generate tiny demo schema/examples/raw inputs"
 	@echo "  make demo.run    - generate demo and run the harness against it"
@@ -69,3 +74,18 @@ lint-vocab:
 
 format-vocab:
 	@poetry run python tests/vocab/format_vocab.py
+
+# --- Rules validation and testing ---
+.PHONY: rules.validate rules.test rules.check
+
+rules.validate: ## Validate rules.json against rules.schema.json
+	@poetry run pytest -q tests/rules/test_rules_doc.py::test_rules_schema_validates tests/rules/test_rules_doc.py::test_rule_ids_unique
+
+rules.test: ## Run unit tests for rules examples
+	@echo "Testing rules against examples..."
+	@poetry run pytest tests/rules/test_rules_examples.py
+
+rules.check: ## Run both rules validation and tests
+	@$(MAKE) rules.validate
+	@$(MAKE) rules.test
+	@echo "✓ All rules checks passed"
