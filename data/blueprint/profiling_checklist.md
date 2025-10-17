@@ -6,6 +6,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `timestamp`
+
 - **Type:** datetime (ISO 8601, UTC)
 - **Range:** `1970-01-01` → present
 - **Nullable:** ❌
@@ -14,6 +15,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `log_level`
+
 - **Type:** string (enum)
 - **Allowed values:** from `controlled_vocabulary.json` (e.g. `debug`, `info`, `warn`, `error`, `critical`)
 - **Nullable:** ❌
@@ -22,6 +24,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `event_id`
+
 - **Type:** string (regex: `^evt-[0-9]+$`)
 - **Nullable:** ❌
 - **Example:** `evt-12345`
@@ -29,6 +32,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `service_name`
+
 - **Type:** string (lowercase, alphanumeric + `_`)
 - **Max length:** 64
 - **Nullable:** ❌
@@ -37,6 +41,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `status_code`
+
 - **Type:** integer
 - **Range:** `100–599` (HTTP) or `0–9999` (system)
 - **Nullable:** ✅
@@ -45,6 +50,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `response_time`
+
 - **Type:** float (milliseconds)
 - **Range:** `0 – 60000` (max 60s)
 - **Nullable:** ✅
@@ -53,6 +59,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `message`
+
 - **Type:** string
 - **Max length:** 500 chars
 - **Nullable:** ✅
@@ -61,6 +68,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `error_flag`
+
 - **Type:** boolean
 - **Allowed values:** `true`, `false`
 - **Nullable:** ✅
@@ -69,6 +77,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `meta.raw_message`
+
 - **Type:** string (raw log content)
 - **Nullable:** ✅
 - **Example:** `"User requested order details"`
@@ -76,6 +85,7 @@ Values and allowed vocabularies **must** align with `vocab/controlled_vocabulary
 ---
 
 ## `meta.parse`
+
 - **Type:** object (JSON structure)
 - **Nullable:** ✅
 - **Example:** `{ "intent": "fetch_order", "confidence": 0.94 }`
