@@ -54,7 +54,7 @@ This directory contains worked examples demonstrating the ULog rule language fea
 
 ### Computer Vision Examples
 
-#### cv-slow-latency
+#### cv-batch-slow
 
 - **Demonstrates**: Cross-schema alias matching with `@latency`
 - **Rule**: Uses the `@latency` alias to match high latency across different field names (demonstrates the global `all-latency-anomalous` rule)

@@ -3,5 +3,5 @@
   "safety_flags": [
     "policy_violation"
   ],
-  "result": "failed"
+  "outcome": "failure"
 }

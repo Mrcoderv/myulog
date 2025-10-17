@@ -1,6 +1,6 @@
 {
   "schema_id": "agentic",
   "tool_name": "planner",
-  "status": "running",
+  "status": "success",
   "duration_ms": 65000
 }

@@ -4,5 +4,5 @@
   "metrics": {
     "mAP": 0.25
   },
-  "result": "succeeded"
+  "outcome": "success"
 }

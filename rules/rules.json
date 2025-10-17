@@ -1,9 +1,21 @@
 {
   "rules_version": "v1.0.0",
   "aliases": {
-    "@status": ["outcome", "status", "result"],
-    "@latency": ["latency_ms", "duration_ms", "ttft_ms"],
-    "@errorCode": ["http_status", "error.code", "response.status"]
+    "@status": [
+      "outcome",
+      "status",
+      "result"
+    ],
+    "@latency": [
+      "latency_ms",
+      "duration_ms",
+      "ttft_ms"
+    ],
+    "@errorCode": [
+      "http_status",
+      "error.code",
+      "response.status"
+    ]
   },
   "default_action": {
     "level": "info",
@@ -17,11 +29,21 @@
       "version": "1.0.0",
       "name": "Critical 5xx server errors",
       "description": "Classify 5xx HTTP errors as critical service failures",
-      "applies_to": ["core_api"],
+      "applies_to": [
+        "core_api"
+      ],
       "when": {
         "all": [
-          { "field": "@errorCode", "op": "gte", "value": 500 },
-          { "field": "@errorCode", "op": "lt", "value": 600 }
+          {
+            "field": "@errorCode",
+            "op": "gte",
+            "value": 500
+          },
+          {
+            "field": "@errorCode",
+            "op": "lt",
+            "value": 600
+          }
         ]
       },
       "then": {
@@ -29,7 +51,10 @@
         "category": "core_api",
         "sub_category": "service",
         "outcome": "failure",
-        "tags": ["core_api", "5xx"]
+        "tags": [
+          "core_api",
+          "5xx"
+        ]
       }
     },
     {
@@ -37,11 +62,21 @@
       "version": "1.0.0",
       "name": "Authentication failures",
       "description": "Flag 401/403 unauthorized access attempts",
-      "applies_to": ["core_api"],
+      "applies_to": [
+        "core_api"
+      ],
       "when": {
         "any": [
-          { "field": "@errorCode", "op": "eq", "value": 401 },
-          { "field": "@errorCode", "op": "eq", "value": 403 }
+          {
+            "field": "@errorCode",
+            "op": "eq",
+            "value": 401
+          },
+          {
+            "field": "@errorCode",
+            "op": "eq",
+            "value": 403
+          }
         ]
       },
       "then": {
@@ -49,7 +84,10 @@
         "category": "core_api",
         "sub_category": "auth",
         "outcome": "failure",
-        "tags": ["core_api", "auth"]
+        "tags": [
+          "core_api",
+          "auth"
+        ]
       }
     },
     {
@@ -57,14 +95,18 @@
       "version": "1.0.0",
       "name": "High error rate detected",
       "description": "Extract % from raw message and flag if >= 10%",
-      "applies_to": ["core_api"],
+      "applies_to": [
+        "core_api"
+      ],
       "when": {
         "all": [
           {
             "field": "meta.raw_message",
             "op": "extract_percent",
             "pattern": "([0-9]+)\\s*%",
-            "compare": { "gte": 10 }
+            "compare": {
+              "gte": 10
+            }
           }
         ]
       },
@@ -73,7 +115,10 @@
         "category": "core_api",
         "sub_category": "metrics",
         "outcome": "failure",
-        "tags": ["core_api", "error_rate"]
+        "tags": [
+          "core_api",
+          "error_rate"
+        ]
       }
     },
     {
@@ -81,12 +126,26 @@
       "version": "1.0.0",
       "name": "Tokenizer initialization errors",
       "description": "Flag tokenizer errors during model loading",
-      "applies_to": ["llm"],
+      "applies_to": [
+        "llm"
+      ],
       "when": {
         "all": [
-          { "field": "pipeline_stage", "op": "eq", "value": "tokenizer" },
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          { "field": "meta.raw_message", "op": "regex", "value": "(?i)(tokenizer|merges|vocab).*(error|fail|incompatible)" }
+          {
+            "field": "pipeline_stage",
+            "op": "eq",
+            "value": "tokenizer"
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "regex",
+            "value": "(?i)(tokenizer|merges|vocab).*(error|fail|incompatible)"
+          }
         ]
       },
       "then": {
@@ -94,7 +153,10 @@
         "category": "llm",
         "sub_category": "tokenizer",
         "outcome": "failure",
-        "tags": ["llm", "tokenizer"]
+        "tags": [
+          "llm",
+          "tokenizer"
+        ]
       }
     },
     {
@@ -102,12 +164,30 @@
       "version": "1.0.0",
       "name": "RAG timeout detection",
       "description": "Detect RAG stage timeouts with high latency",
-      "applies_to": ["llm"],
+      "applies_to": [
+        "llm"
+      ],
       "when": {
         "all": [
-          { "field": "pipeline_stage", "op": "in", "value": ["rag_retrieve", "rag_embed", "rag_rerank"] },
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          { "field": "@latency", "op": "gte", "value": 1000 }
+          {
+            "field": "pipeline_stage",
+            "op": "in",
+            "value": [
+              "rag_retrieve",
+              "rag_embed",
+              "rag_rerank"
+            ]
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          },
+          {
+            "field": "@latency",
+            "op": "gte",
+            "value": 1000
+          }
         ]
       },
       "then": {
@@ -115,7 +195,10 @@
         "category": "llm",
         "sub_category": "rag_timeout",
         "outcome": "timeout",
-        "tags": ["llm", "rag"]
+        "tags": [
+          "llm",
+          "rag"
+        ]
       }
     },
     {
@@ -123,12 +206,26 @@
       "version": "1.0.0",
       "name": "Tool execution failures with dependency errors",
       "description": "Flag tool failures caused by missing dependencies",
-      "applies_to": ["agentic"],
+      "applies_to": [
+        "agentic"
+      ],
       "when": {
         "all": [
-          { "field": "step_kind", "op": "eq", "value": "step" },
-          { "field": "status", "op": "eq", "value": "failed" },
-          { "field": "error.message", "op": "regex", "value": "(?i)(modulenotfound|importerror|no module named)" }
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "step"
+          },
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          },
+          {
+            "field": "error.message",
+            "op": "regex",
+            "value": "(?i)(modulenotfound|importerror|no module named)"
+          }
         ]
       },
       "then": {
@@ -136,7 +233,10 @@
         "category": "agentic",
         "sub_category": "dependency",
         "outcome": "failure",
-        "tags": ["agentic", "dependency"]
+        "tags": [
+          "agentic",
+          "dependency"
+        ]
       }
     },
     {
@@ -144,12 +244,29 @@
       "version": "1.0.0",
       "name": "Long-running tool executions",
       "description": "Flag tools running longer than expected",
-      "applies_to": ["agentic"],
+      "applies_to": [
+        "agentic"
+      ],
       "when": {
         "all": [
-          { "field": "step_kind", "op": "eq", "value": "step" },
-          { "field": "status", "op": "in", "value": ["success", "retry", "succeeded"] },
-          { "field": "duration_ms", "op": "gte", "value": 5000 }
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "step"
+          },
+          {
+            "field": "status",
+            "op": "in",
+            "value": [
+              "success",
+              "retry"
+            ]
+          },
+          {
+            "field": "duration_ms",
+            "op": "gte",
+            "value": 5000
+          }
         ]
       },
       "then": {
@@ -157,7 +274,10 @@
         "category": "agentic",
         "sub_category": "tool_call",
         "outcome": "success",
-        "tags": ["agentic", "slow"]
+        "tags": [
+          "agentic",
+          "slow"
+        ]
       }
     },
     {
@@ -165,11 +285,21 @@
       "version": "1.0.0",
       "name": "CUDA out of memory errors",
       "description": "Critical GPU memory allocation failures",
-      "applies_to": ["computer_vision"],
+      "applies_to": [
+        "computer_vision"
+      ],
       "when": {
         "all": [
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          { "field": "meta.raw_message", "op": "contains", "value": "CUDA out of memory" }
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "contains",
+            "value": "CUDA out of memory"
+          }
         ]
       },
       "then": {
@@ -177,7 +307,11 @@
         "category": "cv",
         "sub_category": "infrastructure",
         "outcome": "failure",
-        "tags": ["cv", "cuda", "oom"]
+        "tags": [
+          "cv",
+          "cuda",
+          "oom"
+        ]
       }
     },
     {
@@ -185,10 +319,19 @@
       "version": "1.0.0",
       "name": "High image throughput",
       "description": "Extract image count with separators and flag if >= 3000",
-      "applies_to": ["computer_vision"],
+      "applies_to": [
+        "computer_vision"
+      ],
       "when": {
         "all": [
-          { "field": "meta.raw_message", "op": "extract_number", "pattern": "([0-9,]+)\\s+images", "compare": { "gte": 3000 } }
+          {
+            "field": "meta.raw_message",
+            "op": "extract_number",
+            "pattern": "([0-9,]+)\\s+images",
+            "compare": {
+              "gte": 3000
+            }
+          }
         ]
       },
       "then": {
@@ -196,7 +339,10 @@
         "category": "cv",
         "sub_category": "metrics",
         "outcome": "success",
-        "tags": ["cv", "throughput"]
+        "tags": [
+          "cv",
+          "throughput"
+        ]
       }
     },
     {
@@ -204,11 +350,24 @@
       "version": "1.0.0",
       "name": "Slow batch inference (by seconds in message)",
       "description": "Extract seconds from raw message and flag if >= 60s",
-      "applies_to": ["computer_vision"],
+      "applies_to": [
+        "computer_vision"
+      ],
       "when": {
         "all": [
-          { "field": "phase", "op": "eq", "value": "inference" },
-          { "field": "meta.raw_message", "op": "extract_ms", "pattern": "([0-9]+)\\s*s", "compare": { "gte": 60000 } }
+          {
+            "field": "phase",
+            "op": "eq",
+            "value": "inference"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "extract_ms",
+            "pattern": "([0-9]+)\\s*s",
+            "compare": {
+              "gte": 60000
+            }
+          }
         ]
       },
       "then": {
@@ -216,9 +375,11 @@
         "category": "cv",
         "sub_category": "inference",
         "outcome": "success",
-        "tags": ["cv", "slow_batch"]
+        "tags": [
+          "cv",
+          "slow_batch"
+        ]
       }
     }
-
   ]
 }
