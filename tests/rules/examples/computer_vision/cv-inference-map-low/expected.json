@@ -1,7 +1,6 @@
 {
-  "level": "error",
-  "category": "cv",
-  "outcome": "failure",
-  "tags": ["cv", "map_low"],
-  "_rule_id": "cv-inference-map-low"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

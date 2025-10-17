@@ -1,7 +1,5 @@
 {
   "schema_id": "core_api",
-  "result": "failed",
-  "error": {
-    "code": 503
-  }
+  "event_type": "http_response",
+  "http_status": 503
 }

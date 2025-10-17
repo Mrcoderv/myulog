@@ -1,8 +1,11 @@
 {
-  "level": "error",
+  "level": "critical",
   "category": "core_api",
-  "sub_category": "service",
   "outcome": "failure",
-  "tags": ["core_api", "5xx"],
+  "tags": [
+    "core_api",
+    "5xx"
+  ],
+  "sub_category": "service",
   "_rule_id": "api-5xx-critical"
 }

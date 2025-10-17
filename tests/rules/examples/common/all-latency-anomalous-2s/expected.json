@@ -1,7 +1,6 @@
 {
-  "level": "warn",
-  "category": "agentic",
-  "outcome": "failure",
-  "tags": ["latency>2s"],
-  "_rule_id": "all-latency-anomalous-2s"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

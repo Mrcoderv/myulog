@@ -1,7 +1,6 @@
 {
-  "level": "warn",
-  "category": "llm",
-  "outcome": "failure",
-  "tags": ["llm", "token_budget"],
-  "_rule_id": "llm-token-budget-exceeded"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

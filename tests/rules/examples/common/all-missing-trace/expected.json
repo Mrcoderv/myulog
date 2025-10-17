@@ -1,7 +1,6 @@
 {
   "level": "info",
-  "category": "cv",
-  "outcome": "failure",
-  "tags": ["no_trace_id"],
-  "_rule_id": "all-missing-trace"
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

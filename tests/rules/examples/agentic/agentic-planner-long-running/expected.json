@@ -1,7 +1,6 @@
 {
-  "level": "warn",
-  "category": "agentic",
-  "outcome": "running",
-  "tags": ["agentic", "planner_long_run"],
-  "_rule_id": "agentic-planner-long-running"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

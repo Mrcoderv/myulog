@@ -83,7 +83,7 @@ rules.validate: ## Validate rules.json against rules.schema.json
 
 rules.test: ## Run unit tests for rules examples
 	@echo "Testing rules against examples..."
-	@poetry run pytest tests/rules/test_rules_examples.py
+	@poetry run pytest -q tests/rules/test_rules_examples.py
 
 rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate

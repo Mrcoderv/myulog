@@ -31,27 +31,16 @@
       "required": ["level", "category", "outcome"],
       "properties": {
         "level": {
-          "enum": ["debug", "info", "warn", "error", "critical"],
-          "description": "Severity level from controlled vocabulary"
+          "enum": ["debug", "info", "warn", "error", "critical"]
         },
         "category": {
-          "enum": ["core_api", "llm", "agentic", "cv"],
-          "description": "Primary category from controlled vocabulary"
+          "enum": ["core_api", "llm", "agentic", "cv"]
         },
         "sub_category": {
-          "type": "string",
-          "description": "Sub-category from controlled vocabulary (validated at runtime)"
+          "type": "string"
         },
         "outcome": {
-          "enum": [
-            "success",
-            "failure",
-            "timeout",
-            "cancelled",
-            "running",
-            "pending"
-          ],
-          "description": "Final disposition from controlled vocabulary"
+          "enum": ["success", "failure", "timeout", "cancelled", "running", "pending"]
         },
         "tags": {
           "type": "array",
@@ -78,53 +67,29 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9_-]+$",
           "minLength": 3,
-          "maxLength": 50,
-          "description": "Unique, stable identifier (e.g., api-5xx-critical, llm-rag-timeout)"
+          "maxLength": 50
         },
         "version": {
           "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$",
-          "description": "Rule version (semantic versioning)"
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
         },
-        "name": {
-          "type": "string",
-          "description": "Human-readable rule name",
-          "minLength": 5,
-          "maxLength": 100
-        },
-        "description": {
-          "type": "string",
-          "description": "Detailed explanation of what this rule does",
-          "maxLength": 500
-        },
-        "disabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "If true, rule is skipped during evaluation"
-        },
+        "name": { "type": "string", "minLength": 5, "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "disabled": { "type": "boolean", "default": false },
         "applies_to": {
           "type": "array",
-          "description": "Schema(s) this rule applies to; omit for global rules",
-          "items": {
-            "enum": ["core_api", "llm", "agentic", "computer_vision"]
-          },
+          "items": { "enum": ["core_api", "llm", "agentic", "computer_vision"] },
           "uniqueItems": true,
-          "minItems": 1
+          "minItems": 1,
+          "description": "Schema filter; omit for global rules"
         },
-        "when": {
-          "$ref": "#/$defs/condition",
-          "description": "Condition tree that must evaluate to true for rule to fire"
-        },
-        "then": {
-          "$ref": "#/$defs/action",
-          "description": "Action to apply when rule fires"
-        }
+        "when": { "$ref": "#/$defs/condition" },
+        "then": { "$ref": "#/$defs/action" }
       }
     },
     "condition": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Recursive condition node with logical operators or atomic comparisons",
       "oneOf": [
         { "required": ["all"] },
         { "required": ["any"] },
@@ -133,107 +98,38 @@
         { "required": ["field_any", "op"] }
       ],
       "properties": {
-        "all": {
-          "type": "array",
-          "description": "AND - all subconditions must evaluate to true",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/condition" }
-        },
-        "any": {
-          "type": "array",
-          "description": "OR - at least one subcondition must evaluate to true",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/condition" }
-        },
-        "not": {
-          "description": "NOT - negate the result of the subcondition",
-          "$ref": "#/$defs/condition"
-        },
-        "field": {
-          "type": "string",
-          "description": "Single field path (dot notation) or alias (@status, @latency)",
-          "minLength": 1
-        },
-        "field_any": {
-          "type": "array",
-          "description": "Array of field paths with OR semantics - succeeds if ANY path satisfies operator",
-          "items": { "type": "string" },
-          "minItems": 1
-        },
+        "all": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } },
+        "any": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } },
+        "not": { "$ref": "#/$defs/condition" },
+        "field": { "type": "string", "minLength": 1 },
+        "field_any": { "type": "array", "minItems": 1, "items": { "type": "string" } },
         "op": {
           "enum": [
-            "eq",
-            "neq",
-            "gt",
-            "gte",
-            "lt",
-            "lte",
-            "in",
-            "nin",
-            "exists",
-            "regex",
-            "contains",
-            "starts_with",
-            "ends_with",
-            "extract_ms",
-            "extract_number",
-            "extract_percent"
-          ],
-          "description": "Comparison operator"
+            "eq","neq","gt","gte","lt","lte","in","nin","exists",
+            "regex","contains","starts_with","ends_with",
+            "extract_ms","extract_number","extract_percent"
+          ]
         },
-        "value": {
-          "description": "Value to compare against (type depends on operator)"
-        },
-        "pattern": {
-          "type": "string",
-          "description": "Regex capture pattern used with extractor ops"
-        },
+        "value": {},
+        "pattern": { "type": "string" },
         "compare": { "$ref": "#/$defs/compare" }
       }
     },
     "action": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Classification action to apply when rule matches",
       "minProperties": 1,
       "properties": {
-        "level": {
-          "enum": ["debug", "info", "warn", "error", "critical"],
-          "description": "Severity level from controlled vocabulary"
-        },
-        "category": {
-          "enum": ["core_api", "llm", "agentic", "cv"],
-          "description": "Primary category from controlled vocabulary"
-        },
-        "sub_category": {
-          "type": "string",
-          "description": "Sub-category from controlled vocabulary (see vocab/controlled_vocabulary.json)",
-          "minLength": 1,
-          "maxLength": 50
-        },
-        "outcome": {
-          "enum": [
-            "success",
-            "failure",
-            "timeout",
-            "cancelled",
-            "running",
-            "pending"
-          ],
-          "description": "Final disposition from controlled vocabulary"
-        },
-        "tags": {
-          "type": "array",
-          "description": "Array of string tags for filtering and metrics",
-          "items": { "type": "string" },
-          "uniqueItems": true
-        }
+        "level": { "enum": ["debug", "info", "warn", "error", "critical"] },
+        "category": { "enum": ["core_api", "llm", "agentic", "cv"] },
+        "sub_category": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "outcome": { "enum": ["success","failure","timeout","cancelled","running","pending"] },
+        "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
       }
     },
     "compare": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Numeric comparison applied to extracted value",
       "oneOf": [
         { "required": ["gt"] },
         { "required": ["gte"] },

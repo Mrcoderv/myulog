@@ -13,50 +13,6 @@
   },
   "rules": [
     {
-      "rule_id": "guard-startup-success",
-      "version": "1.0.0",
-      "name": "Suppress routine startup and build events",
-      "description": "Filter out successful startup/build/dependency_install events to reduce noise",
-      "applies_to": ["core_api"],
-      "when": {
-        "all": [
-          {
-            "field": "event_type",
-            "op": "in",
-            "value": ["startup", "build", "dependency_install"]
-          },
-          { "field": "outcome", "op": "eq", "value": "success" }
-        ]
-      },
-      "then": {
-        "level": "debug",
-        "category": "core_api",
-        "sub_category": "infrastructure",
-        "outcome": "success",
-        "tags": ["startup", "noise_suppression"]
-      }
-    },
-    {
-      "rule_id": "api-gateway-timeout",
-      "version": "1.0.0",
-      "name": "Gateway timeout errors",
-      "description": "Classify 504 Gateway Timeout as network timeout",
-      "applies_to": ["core_api"],
-      "when": {
-        "all": [
-          { "field": "event_type", "op": "eq", "value": "http_response" },
-          { "field": "http_status", "op": "eq", "value": 504 }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "core_api",
-        "sub_category": "network",
-        "outcome": "timeout",
-        "tags": ["core_api", "timeout"]
-      }
-    },
-    {
       "rule_id": "api-5xx-critical",
       "version": "1.0.0",
       "name": "Critical 5xx server errors",
@@ -77,23 +33,6 @@
       }
     },
     {
-      "rule_id": "api-conflict-error",
-      "version": "1.0.0",
-      "name": "API conflict (409)",
-      "description": "Flag conflict errors",
-      "applies_to": ["core_api"],
-      "when": {
-        "all": [{ "field": "@errorCode", "op": "eq", "value": 409 }]
-      },
-      "then": {
-        "level": "warn",
-        "category": "core_api",
-        "sub_category": "data",
-        "outcome": "failure",
-        "tags": ["core_api", "conflict"]
-      }
-    },
-    {
       "rule_id": "api-unauthorized",
       "version": "1.0.0",
       "name": "Authentication failures",
@@ -111,383 +50,6 @@
         "sub_category": "auth",
         "outcome": "failure",
         "tags": ["core_api", "auth"]
-      }
-    },
-    {
-      "rule_id": "llm-tokenizer-error",
-      "version": "1.0.0",
-      "name": "Tokenizer initialization errors",
-      "description": "Flag tokenizer errors during model loading",
-      "applies_to": ["llm"],
-      "when": {
-        "all": [
-          { "field": "pipeline_stage", "op": "eq", "value": "tokenizer" },
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          {
-            "field": "meta.raw_message",
-            "op": "regex",
-            "value": "(?i)(tokenizer|merges|vocab).*(error|fail|incompatible)"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "tokenizer",
-        "outcome": "failure",
-        "tags": ["llm", "tokenizer"]
-      }
-    },
-    {
-      "rule_id": "llm-quant-incompatible",
-      "version": "1.0.0",
-      "name": "Quantization errors",
-      "description": "Detect incompatible quantization during model load",
-      "applies_to": ["llm"],
-      "when": {
-        "all": [
-          { "field": "pipeline_stage", "op": "eq", "value": "quant" },
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          {
-            "field": "meta.raw_message",
-            "op": "contains",
-            "value": "incompatible"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "quantization",
-        "outcome": "failure",
-        "tags": ["llm", "quantization"]
-      }
-    },
-    {
-      "rule_id": "llm-rag-timeout",
-      "version": "1.0.0",
-      "name": "RAG timeout detection",
-      "description": "Detect RAG stage timeouts with high latency",
-      "applies_to": ["llm"],
-      "when": {
-        "all": [
-          {
-            "field": "pipeline_stage",
-            "op": "in",
-            "value": ["rag_retrieve", "rag_embed", "rag_rerank"]
-          },
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          { "field": "@latency", "op": "gte", "value": 1000 }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "rag_timeout",
-        "outcome": "timeout",
-        "tags": ["llm", "rag"]
-      }
-    },
-    {
-      "rule_id": "llm-safety-flag-critical",
-      "version": "1.0.0",
-      "name": "Safety flag violations",
-      "description": "Critical safety policy violations",
-      "applies_to": ["llm"],
-      "when": {
-        "all": [
-          {
-            "field_any": ["result.safety_flags", "safety_flags"],
-            "op": "contains",
-            "value": "policy_violation"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "safety",
-        "outcome": "failure",
-        "tags": ["llm", "safety"]
-      }
-    },
-    {
-      "rule_id": "agentic-tool-dependency-error",
-      "version": "1.0.0",
-      "name": "Tool execution failures with dependency errors",
-      "description": "Flag tool failures caused by missing dependencies",
-      "applies_to": ["agentic"],
-      "when": {
-        "all": [
-          { "field": "step_kind", "op": "eq", "value": "step" },
-          { "field": "status", "op": "eq", "value": "failed" },
-          {
-            "field": "error.message",
-            "op": "regex",
-            "value": "(?i)(modulenotfound|importerror|no module named)"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "agentic",
-        "sub_category": "dependency",
-        "outcome": "failure",
-        "tags": ["agentic", "dependency"]
-      }
-    },
-    {
-      "rule_id": "agentic-tool-slow",
-      "version": "1.0.0",
-      "name": "Long-running tool executions",
-      "description": "Flag tools running longer than expected",
-      "applies_to": ["agentic"],
-      "when": {
-        "all": [
-          { "field": "step_kind", "op": "eq", "value": "step" },
-          { "field": "status", "op": "in", "value": ["success", "retry"] },
-          { "field": "duration_ms", "op": "gte", "value": 5000 }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "agentic",
-        "sub_category": "tool_call",
-        "outcome": "success",
-        "tags": ["agentic", "slow"]
-      }
-    },
-    {
-      "rule_id": "agentic-planner-long-running",
-      "version": "1.0.0",
-      "name": "Planner running too long",
-      "description": "Planner tool running > 60s",
-      "applies_to": ["agentic"],
-      "when": {
-        "all": [
-          { "field": "tool_name", "op": "eq", "value": "planner" },
-          { "field": "status", "op": "eq", "value": "running" },
-          { "field": "duration_ms", "op": "gte", "value": 60000 }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "agentic",
-        "sub_category": "scheduler",
-        "outcome": "running",
-        "tags": ["agentic", "planner_long_run"]
-      }
-    },
-    {
-      "rule_id": "agentic-search-slow",
-      "version": "1.0.0",
-      "name": "Search tool slow",
-      "description": "Search succeeded but exceeded 1500ms",
-      "applies_to": ["agentic"],
-      "when": {
-        "all": [
-          { "field": "tool_name", "op": "eq", "value": "search_web" },
-          { "field": "status", "op": "eq", "value": "succeeded" },
-          { "field": "duration_ms", "op": "gte", "value": 1500 }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "agentic",
-        "sub_category": "service",
-        "outcome": "success",
-        "tags": ["agentic", "search"]
-      }
-    },
-    {
-      "rule_id": "agentic-failed-missing-error",
-      "version": "1.0.0",
-      "name": "Failed steps without error details",
-      "description": "Detect failed steps missing error information",
-      "applies_to": ["agentic"],
-      "when": {
-        "all": [
-          { "field": "status", "op": "eq", "value": "failed" },
-          { "not": { "field": "error", "op": "exists" } }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "agentic",
-        "sub_category": "data_io",
-        "outcome": "failure",
-        "tags": ["agentic", "missing_error"]
-      }
-    },
-    {
-      "rule_id": "cv-inference-success",
-      "version": "1.0.0",
-      "name": "Successful inference with good metrics",
-      "description": "Classify successful CV inference with acceptable latency",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "phase", "op": "eq", "value": "inference" },
-          { "field": "outcome", "op": "eq", "value": "success" },
-          { "field": "latency_ms", "op": "lt", "value": 100 }
-        ]
-      },
-      "then": {
-        "level": "info",
-        "category": "cv",
-        "sub_category": "inference",
-        "outcome": "success",
-        "tags": ["cv", "inference"]
-      }
-    },
-    {
-      "rule_id": "cv-inference-map-low",
-      "version": "1.0.0",
-      "name": "Low mAP detection",
-      "description": "Flag inference with low mean average precision",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "phase", "op": "eq", "value": "inference" },
-          {
-            "field_any": ["metrics.map", "metrics.mAP"],
-            "op": "lt",
-            "value": 0.3
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "cv",
-        "sub_category": "model",
-        "outcome": "failure",
-        "tags": ["cv", "map_low"]
-      }
-    },
-    {
-      "rule_id": "cv-evaluation-map50_95-low",
-      "version": "1.0.0",
-      "name": "Low mAP_50_95 detection",
-      "description": "Flag evaluation with low mAP_50_95",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "phase", "op": "eq", "value": "evaluation" },
-          { "field": "metrics.mAP_50_95", "op": "lt", "value": 0.2 }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "cv",
-        "sub_category": "model",
-        "outcome": "failure",
-        "tags": ["cv", "map50_95_low"]
-      }
-    },
-    {
-      "rule_id": "cv-training-loss-spike",
-      "version": "1.0.0",
-      "name": "CV training loss spike",
-      "description": "Training phase with loss > 5.0",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "phase", "op": "eq", "value": "training" },
-          { "field": "metrics.loss", "op": "gt", "value": 5.0 }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "cv",
-        "sub_category": "model",
-        "outcome": "failure",
-        "tags": ["cv", "loss_spike"]
-      }
-    },
-    {
-      "rule_id": "llm-rate-limited",
-      "version": "1.0.0",
-      "name": "LLM rate limited (429)",
-      "description": "Rate limit",
-      "applies_to": ["llm"],
-      "when": {
-        "any": [
-          { "field": "error.code", "op": "eq", "value": 429 },
-          { "field": "http_status", "op": "eq", "value": 429 }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "llm",
-        "sub_category": "network",
-        "outcome": "failure",
-        "tags": ["llm", "rate_limit"]
-      }
-    },
-    {
-      "rule_id": "llm-token-budget-exceeded",
-      "version": "1.0.0",
-      "name": "LLM token budget exceeded",
-      "description": "Input tokens exceed 8000",
-      "applies_to": ["llm"],
-      "when": {
-        "all": [{ "field": "input_tokens", "op": "gte", "value": 8000 }]
-      },
-      "then": {
-        "level": "warn",
-        "category": "llm",
-        "sub_category": "service",
-        "outcome": "failure",
-        "tags": ["llm", "token_budget"]
-      }
-    },
-    {
-      "rule_id": "cv-cuda-oom",
-      "version": "1.0.0",
-      "name": "CUDA out of memory errors",
-      "description": "Critical GPU memory allocation failures",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "outcome", "op": "eq", "value": "failure" },
-          {
-            "field": "meta.raw_message",
-            "op": "contains",
-            "value": "CUDA out of memory"
-          }
-        ]
-      },
-      "then": {
-        "level": "critical",
-        "category": "cv",
-        "sub_category": "infrastructure",
-        "outcome": "failure",
-        "tags": ["cv", "cuda", "oom"]
-      }
-    },
-    {
-      "rule_id": "cv-batch-slow",
-      "version": "1.0.0",
-      "name": "Slow batch processing detected via extraction",
-      "description": "Extract duration from raw message and flag if > 60 seconds",
-      "applies_to": ["computer_vision"],
-      "when": {
-        "all": [
-          { "field": "phase", "op": "eq", "value": "inference" },
-          {
-            "field": "meta.raw_message",
-            "op": "extract_ms",
-            "pattern": "(\\d+)s",
-            "compare": { "gte": 60000 }
-          }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "cv",
-        "sub_category": "inference",
-        "outcome": "success",
-        "tags": ["cv", "slow_batch"]
       }
     },
     {
@@ -515,6 +77,110 @@
       }
     },
     {
+      "rule_id": "llm-tokenizer-error",
+      "version": "1.0.0",
+      "name": "Tokenizer initialization errors",
+      "description": "Flag tokenizer errors during model loading",
+      "applies_to": ["llm"],
+      "when": {
+        "all": [
+          { "field": "pipeline_stage", "op": "eq", "value": "tokenizer" },
+          { "field": "outcome", "op": "eq", "value": "failure" },
+          { "field": "meta.raw_message", "op": "regex", "value": "(?i)(tokenizer|merges|vocab).*(error|fail|incompatible)" }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "tokenizer",
+        "outcome": "failure",
+        "tags": ["llm", "tokenizer"]
+      }
+    },
+    {
+      "rule_id": "llm-rag-timeout",
+      "version": "1.0.0",
+      "name": "RAG timeout detection",
+      "description": "Detect RAG stage timeouts with high latency",
+      "applies_to": ["llm"],
+      "when": {
+        "all": [
+          { "field": "pipeline_stage", "op": "in", "value": ["rag_retrieve", "rag_embed", "rag_rerank"] },
+          { "field": "outcome", "op": "eq", "value": "failure" },
+          { "field": "@latency", "op": "gte", "value": 1000 }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "rag_timeout",
+        "outcome": "timeout",
+        "tags": ["llm", "rag"]
+      }
+    },
+    {
+      "rule_id": "agentic-tool-dependency-error",
+      "version": "1.0.0",
+      "name": "Tool execution failures with dependency errors",
+      "description": "Flag tool failures caused by missing dependencies",
+      "applies_to": ["agentic"],
+      "when": {
+        "all": [
+          { "field": "step_kind", "op": "eq", "value": "step" },
+          { "field": "status", "op": "eq", "value": "failed" },
+          { "field": "error.message", "op": "regex", "value": "(?i)(modulenotfound|importerror|no module named)" }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "agentic",
+        "sub_category": "dependency",
+        "outcome": "failure",
+        "tags": ["agentic", "dependency"]
+      }
+    },
+    {
+      "rule_id": "agentic-tool-slow",
+      "version": "1.0.0",
+      "name": "Long-running tool executions",
+      "description": "Flag tools running longer than expected",
+      "applies_to": ["agentic"],
+      "when": {
+        "all": [
+          { "field": "step_kind", "op": "eq", "value": "step" },
+          { "field": "status", "op": "in", "value": ["success", "retry", "succeeded"] },
+          { "field": "duration_ms", "op": "gte", "value": 5000 }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "agentic",
+        "sub_category": "tool_call",
+        "outcome": "success",
+        "tags": ["agentic", "slow"]
+      }
+    },
+    {
+      "rule_id": "cv-cuda-oom",
+      "version": "1.0.0",
+      "name": "CUDA out of memory errors",
+      "description": "Critical GPU memory allocation failures",
+      "applies_to": ["computer_vision"],
+      "when": {
+        "all": [
+          { "field": "outcome", "op": "eq", "value": "failure" },
+          { "field": "meta.raw_message", "op": "contains", "value": "CUDA out of memory" }
+        ]
+      },
+      "then": {
+        "level": "critical",
+        "category": "cv",
+        "sub_category": "infrastructure",
+        "outcome": "failure",
+        "tags": ["cv", "cuda", "oom"]
+      }
+    },
+    {
       "rule_id": "cv-throughput-high",
       "version": "1.0.0",
       "name": "High image throughput",
@@ -522,12 +188,7 @@
       "applies_to": ["computer_vision"],
       "when": {
         "all": [
-          {
-            "field": "meta.raw_message",
-            "op": "extract_number",
-            "pattern": "([0-9,]+)\\s+images",
-            "compare": { "gte": 3000 }
-          }
+          { "field": "meta.raw_message", "op": "extract_number", "pattern": "([0-9,]+)\\s+images", "compare": { "gte": 3000 } }
         ]
       },
       "then": {
@@ -536,58 +197,6 @@
         "sub_category": "metrics",
         "outcome": "success",
         "tags": ["cv", "throughput"]
-      }
-    },
-    {
-      "rule_id": "all-failure-high",
-      "version": "1.0.0",
-      "name": "Universal failure detection",
-      "description": "Catch-all for any failure outcome across schemas",
-      "when": {
-        "field": "@status",
-        "op": "in",
-        "value": ["failure", "failed"]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "outcome": "failure",
-        "tags": ["failed"]
-      }
-    },
-    {
-      "rule_id": "all-missing-trace",
-      "version": "1.0.0",
-      "name": "Missing trace id",
-      "description": "No trace/context field found",
-      "when": {
-        "all": [
-          { "field": "schema_id", "op": "eq", "value": "computer_vision" }
-        ]
-      },
-      "then": {
-        "level": "info",
-        "category": "cv",
-        "outcome": "failure",
-        "tags": ["no_trace_id"]
-      }
-    },
-    {
-      "rule_id": "all-latency-anomalous-2s",
-      "version": "1.0.0",
-      "name": "Anomalous latency detection",
-      "description": "Flag operations exceeding 2 second latency",
-      "when": {
-        "field": "@latency",
-        "op": "gte",
-        "value": 2000
-      },
-      "then": {
-        "level": "warn",
-        "category": "agentic",
-        "sub_category": "service",
-        "outcome": "failure",
-        "tags": ["latency>2s"]
       }
     }
   ]

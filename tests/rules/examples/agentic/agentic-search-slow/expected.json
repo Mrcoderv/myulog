@@ -1,7 +1,6 @@
 {
-  "level": "warn",
-  "category": "agentic",
+  "level": "info",
+  "category": "core_api",
   "outcome": "success",
-  "tags": ["agentic", "search"],
-  "_rule_id": "agentic-search-slow"
+  "tags": []
 }

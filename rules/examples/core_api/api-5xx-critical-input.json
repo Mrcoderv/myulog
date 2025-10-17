@@ -1,17 +1,5 @@
 {
   "schema_id": "core_api",
-  "meta": {
-    "raw_message": "Service Unavailable: backend timeout"
-  },
-  "timestamp": "2025-10-17T14:32:18.421Z",
   "event_type": "http_response",
-  "service": "api-gateway",
-  "env": "production",
-  "outcome": "failure",
-  "http_status": 503,
-  "endpoint": "/api/v1/users",
-  "action": "GET",
-  "request_id": "req-abc123",
-  "latency_ms": 5000,
-  "error": "HTTP 503 Service Unavailable"
+  "http_status": 503
 }

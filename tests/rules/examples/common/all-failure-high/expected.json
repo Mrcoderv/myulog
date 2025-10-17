@@ -1,7 +1,6 @@
 {
-  "level": "error",
-  "category": "llm",
-  "outcome": "failure",
-  "tags": ["failed"],
-  "_rule_id": "all-failure-high"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

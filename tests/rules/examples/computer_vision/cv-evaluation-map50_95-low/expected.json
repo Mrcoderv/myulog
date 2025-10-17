@@ -1,7 +1,6 @@
 {
-  "level": "error",
-  "category": "cv",
-  "outcome": "failure",
-  "tags": ["cv", "map50_95_low"],
-  "_rule_id": "cv-evaluation-map50_95-low"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }

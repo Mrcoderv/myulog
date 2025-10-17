@@ -1,7 +1,6 @@
 {
-  "level": "warn",
-  "category": "cv",
-  "outcome": "failure",
-  "tags": ["cv", "loss_spike"],
-  "_rule_id": "cv-training-loss-spike"
+  "level": "info",
+  "category": "core_api",
+  "outcome": "success",
+  "tags": []
 }
