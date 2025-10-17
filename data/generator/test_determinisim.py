@@ -1,10 +1,4 @@
-import sys
-import pathlib
-
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-sys.path.append(str(ROOT))
-
-from data.generator.generator import GenerateLog  # replace with actual module name
+from generator import GenerateLog
 
 
 def test_determinism_integer():
