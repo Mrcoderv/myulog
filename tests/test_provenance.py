@@ -1,6 +1,5 @@
 """Tests for provenance tracking."""
 
-import pytest
 
 from ulog.parsers.base import BaseParser, ParseResult
 from ulog.provenance import ProvenanceTracker

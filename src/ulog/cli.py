@@ -2,13 +2,13 @@
 
 import json
 import sys
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import click
 
-from .router import DomainRouter
 from .normalizer import Normalizer
 from .provenance import ProvenanceTracker
+from .router import DomainRouter
 
 
 @click.group()
@@ -210,7 +210,7 @@ def stats(input, format, threshold):
         ulog stats --input logs.txt --threshold llm=95,agentic=95,cv=80,core_api=70
         cat logs.txt | ulog stats --format json
     """
-    from collections import defaultdict, Counter
+    from collections import Counter
     
     # Default thresholds
     default_thresholds = {
@@ -367,7 +367,11 @@ def stats(input, format, threshold):
     else:
         # Table format
         click.echo()
-        click.echo(f"{'Domain':<12} {'Total':>7} {'Parsed':>7} {'Failed':>7} {'Rate':>7} {'Threshold':>10} {'Status':>8}")
+        header = (
+            f"{'Domain':<12} {'Total':>7} {'Parsed':>7} {'Failed':>7} "
+            f"{'Rate':>7} {'Threshold':>10} {'Status':>8}"
+        )
+        click.echo(header)
         click.echo("-" * 80)
         
         for domain in ['core_api', 'llm', 'agentic', 'cv']:

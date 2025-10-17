@@ -1,10 +1,10 @@
 """Computer Vision domain parser for image/video processing logs."""
 
 import re
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
+from ..patterns.base import FieldExtraction, Pattern
 from .base import BaseParser, ParseResult
-from ..patterns.base import Pattern, FieldExtraction
 
 
 class DataLoadPattern(Pattern):

@@ -1,5 +1,5 @@
 # ruff.toml (top-level keys only)
-line-length = 100
+line-length = 120
 target-version = "py312"
 src = ["src", "tests"]     # tell Ruff where your code lives
 
@@ -12,6 +12,7 @@ select = ["E", "F", "I"]
 known-first-party = ["ulog"]
 force-sort-within-sections = true
 
-# OPTIONAL: if you ever want to relax imports in tests only, uncomment:
-# [lint.per-file-ignores]
-# "tests/*" = ["I001"]
+# Ignore line length in docstrings and comments
+[lint.per-file-ignores]
+# Allow longer lines in test files for readability
+"tests/*" = ["E501"]

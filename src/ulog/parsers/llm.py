@@ -1,10 +1,10 @@
 """LLM domain parser for model inference, tokenizer, RAG, and training logs."""
 
 import re
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
+from ..patterns.base import FieldExtraction, Pattern
 from .base import BaseParser, ParseResult
-from ..patterns.base import Pattern, FieldExtraction
 
 
 class ComponentLogPattern(Pattern):
@@ -55,7 +55,10 @@ class ComponentLogPattern(Pattern):
             elif component in ["cache"]:
                 fields["category"] = "cache"
                 fields["pipeline_stage"] = "cache"
-            elif component in ["train", "trainer", "lora", "qlora", "optimizer", "checkpoint", "eval", "merge", "export"]:
+            elif component in [
+                "train", "trainer", "lora", "qlora", "optimizer",
+                "checkpoint", "eval", "merge", "export"
+            ]:
                 fields["category"] = "training"
                 fields["pipeline_stage"] = "train"
             elif component in ["http", "stream", "sse", "grpc"]:
@@ -153,7 +156,10 @@ class ComponentLogPatternNoLevel(Pattern):
             elif component in ["cache"]:
                 fields["category"] = "cache"
                 fields["pipeline_stage"] = "cache"
-            elif component in ["train", "trainer", "lora", "qlora", "optimizer", "checkpoint", "eval", "merge", "export"]:
+            elif component in [
+                "train", "trainer", "lora", "qlora", "optimizer",
+                "checkpoint", "eval", "merge", "export"
+            ]:
                 fields["category"] = "training"
                 fields["pipeline_stage"] = "train"
             elif component in ["http", "stream", "sse", "grpc", "serve"]:

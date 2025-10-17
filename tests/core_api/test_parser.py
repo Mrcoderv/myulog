@@ -1,6 +1,5 @@
 """Tests for Core/API parser."""
 
-import pytest
 from ulog.parsers.core_api import CoreAPIParser
 
 

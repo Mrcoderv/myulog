@@ -3,7 +3,7 @@
 import re
 from typing import Optional
 
-from .parsers import BaseParser, CoreAPIParser, LLMParser, AgenticParser, CVParser
+from .parsers import AgenticParser, BaseParser, CoreAPIParser, CVParser, LLMParser
 
 
 class DomainRouter:

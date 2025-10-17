@@ -1,8 +1,8 @@
 """Base pattern classes for log field extraction."""
 
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import re
 from typing import Any, Callable, Dict, Optional
 
 
