@@ -1,0 +1,5 @@
+{
+  "schema_id": "core_api",
+  "event_type": "http_response",
+  "http_status": 403
+}

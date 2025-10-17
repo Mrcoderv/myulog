@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "core_api",
+  "outcome": "failure",
+  "tags": [
+    "core_api",
+    "auth"
+  ],
+  "sub_category": "auth",
+  "_rule_id": "api-unauthorized"
+}
