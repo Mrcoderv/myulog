@@ -98,3 +98,9 @@ local_pipeline/out/*
 !local_pipeline/out/.gitkeep
 local_pipeline/in/*
 !local_pipeline/in/.gitkeep
+
+# Synthetic data
+data/synthetic/*.jsonl
+!data/synthetic/.gitkeep
+data/synthetic/raw/*.jsonl
+!data/synthetic/raw/.gitkeep
