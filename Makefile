@@ -51,10 +51,7 @@ demo.run: ## Generate demo and run the harness against it (writes JUnit XML)
 	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
 
 generate: ## Create a sample input file
-	@mkdir -p local_pipeline/in local_pipeline/out
-	@date > local_pipeline/in/example.log
-	@echo "hello, ulog" >> local_pipeline/in/example.log
-	@echo "Wrote local_pipeline/in/example.log"
+	@poetry run python3 data/generator/main.py
 
 classify: ## Run local pipeline (docker compose)
 	@cd local_pipeline && docker compose up --build --abort-on-container-exit
@@ -69,3 +66,4 @@ lint-vocab:
 
 format-vocab:
 	@poetry run python tests/vocab/format_vocab.py
+
