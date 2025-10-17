@@ -46,19 +46,23 @@ def test_rules_examples(test_id, input_file, output_file):
     expected_rule_id = expected.pop("_rule_id", None)
 
     # Compare the action fields
-    assert actual.get("severity") == expected.get("severity"), (
-        f"Severity mismatch for {test_id}"
-    )
-    assert actual.get("category") == expected.get("category"), (
-        f"Category mismatch for {test_id}"
-    )
-    assert actual.get("outcome") == expected.get("outcome"), (
-        f"Outcome mismatch for {test_id}"
-    )
+    assert actual.get("level") == expected.get("level"), f"Level mismatch for {test_id}"
+    assert actual.get("category") == expected.get(
+        "category"
+    ), f"Category mismatch for {test_id}"
+    assert actual.get("outcome") == expected.get(
+        "outcome"
+    ), f"Outcome mismatch for {test_id}"
     assert actual.get("tags") == expected.get("tags"), f"Tags mismatch for {test_id}"
+
+    # Optional fields: assert only if present in expected
+    if "sub_category" in expected:
+        assert actual.get("sub_category") == expected.get(
+            "sub_category"
+        ), f"Sub-category mismatch for {test_id}"
 
     # Verify the rule_id matches if provided
     if expected_rule_id:
-        assert actual.get("provenance", {}).get("rule_id") == expected_rule_id, (
-            f"Rule ID mismatch for {test_id}"
-        )
+        assert (
+            actual.get("provenance", {}).get("rule_id") == expected_rule_id
+        ), f"Rule ID mismatch for {test_id}"
