@@ -38,6 +38,9 @@ test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit 
 test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes JSON to tests/reports/)
 	@poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
 
+test.determinism: ## Run determinism tests for data generators
+	@poetry run pytest -q tests/generator/test_determinism.py
+
 test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) lint
 	@$(MAKE) test
@@ -51,7 +54,7 @@ demo.run: ## Generate demo and run the harness against it (writes JUnit XML)
 	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
 
 generate: ## Create a sample input file
-	@poetry run python3 data/generator/main.py
+	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
 
 classify: ## Run local pipeline (docker compose)
 	@cd local_pipeline && docker compose up --build --abort-on-container-exit
