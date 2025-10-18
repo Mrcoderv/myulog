@@ -1,0 +1,8 @@
+{
+  "schema_id": "agentic",
+  "step_kind": "step",
+  "status": "failed",
+  "error": {
+    "message": "ModuleNotFoundError: No module named 'pandas'"
+  }
+}

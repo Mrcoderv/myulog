@@ -1,0 +1,18 @@
+# ruff.toml (top-level keys only)
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]     # tell Ruff where your code lives
+
+[lint]
+# E: pycodestyle, F: pyflakes, I: isort(import organization)
+select = ["E", "F", "I"]
+
+[lint.isort]
+# Mark 'ulog' as first-party so import grouping is correct
+known-first-party = ["ulog"]
+force-sort-within-sections = true
+
+# Ignore line length in docstrings and comments
+[lint.per-file-ignores]
+# Allow longer lines in test files for readability
+"tests/*" = ["E501"]

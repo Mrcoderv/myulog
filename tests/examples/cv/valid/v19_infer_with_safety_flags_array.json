@@ -1,0 +1,20 @@
+{
+  "phase": "inference",
+  "model_name": "yolo",
+  "dataset_id": "ds-a",
+  "image_count": 5,
+  "metrics": { "fps": 120 },
+  "latency_ms": 40,
+  "batch_size": 1,
+  "hardware": { "accelerator": "NVIDIA A100" },
+  "outcome": "success",
+  "meta": {
+    "raw_message": "inference ok",
+    "parse": { "parser_name": "demo", "parser_version": "1.0.0", "pattern_id": "p1", "ok": true }
+  },
+  "level": "info",
+  "category": "cv",
+  "safety_flags": ["none"],
+  "timestamp": "2025-10-17T12:20:00Z",
+  "component": "cv-service"
+}

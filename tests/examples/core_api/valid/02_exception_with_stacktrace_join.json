@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "raw_message": "2025-10-08 15:30:12.456 ERROR [auth-service] Exception in /v1/auth/login\nTraceback (most recent call last):\n  File \"/app/auth.py\", line 42, in login\n    user = db.query(User).filter_by(email=email).first()\n  File \"/usr/lib/sqlalchemy/query.py\", line 1234, in first\n    return self.limit(1)._execute_and_instances(context).scalar()\nsqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")",
+    "parse": {
+      "parser_name": "python_traceback_parser",
+      "parser_version": "1.2.0",
+      "pattern_id": "python_exception_full",
+      "confidence": 1.0
+    }
+  },
+  "timestamp": "2025-10-08T15:30:12.456Z",
+  "event_type": "exception",
+  "service": "auth-service",
+  "module": "/app/auth.py",
+  "env": "production",
+  "outcome": "failure",
+  "level": "error",
+  "category": "core_api",
+  "endpoint": "/v1/auth/login",
+  "error": {
+    "type": "sqlalchemy.exc.OperationalError",
+    "message": "(pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")",
+    "stack": "Traceback (most recent call last):\n  File \"/app/auth.py\", line 42, in login\n    user = db.query(User).filter_by(email=email).first()\n  File \"/usr/lib/sqlalchemy/query.py\", line 1234, in first\n    return self.limit(1)._execute_and_instances(context).scalar()\nsqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, \"Can't connect to MySQL server\")"
+  },
+  "error_code": "ULOG-DB-001"
+}

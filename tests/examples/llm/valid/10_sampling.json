@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-13T12:00:11Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "sampling",
+  "outcome": "success",
+  "latency_ms": 45,
+  "sampler": { "temperature": 0.8, "top_p": 0.95, "max_tokens": 64 },
+  "result": { "output_preview": "[SUMMARY: sampler parameters applied]", "output_text_length": 0 },
+  "meta": { "raw_message": "[SUMMARY: sampling step]", "parse": { "parser_name": "llm-sampler", "parser_version": "1.0.0", "pattern_id": "sampling.ok", "confidence": 0.96 } }
+}

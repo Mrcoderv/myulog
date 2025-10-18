@@ -1,0 +1,7 @@
+services:
+  classifier:
+    build: ./classifier
+    env_file: ../.env
+    volumes:
+      - ./in:/in
+      - ./out:/out

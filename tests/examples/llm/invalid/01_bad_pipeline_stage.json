@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-10-13T12:10:00Z",
+  "request_id": "bad-001",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "prewarm",
+  "outcome": "success",
+  "result": { "output_preview": "x", "output_text_length": 1 },
+  "meta": { "raw_message": "x", "parse": { "parser_name": "x", "parser_version": "1.0.0", "pattern_id": "x", "confidence": 1.0 } }
+}

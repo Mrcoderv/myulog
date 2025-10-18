@@ -1,0 +1,16 @@
+{
+  "phase": "postprocess",
+  "model_name": "yolov5s",
+  "dataset_id": "coco_val",
+  "image_count": 2000,
+  "metrics": { "extra": { "nms_threshold": 0.6 } },
+  "latency_ms": 2.1,
+  "batch_size": 16,
+  "hardware": "CUDA / PyTorch 2.4",
+  "outcome": "success",
+  "category": "cv",
+  "meta": {
+    "raw_message": "nms thresh=0.6 latency_ms=2.1",
+    "parse": { "parser_name": "ulog-cv", "parser_version": "1.0.0", "pattern_id": "v15", "ok": true }
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "metadata": {
+    "name": "ULog Controlled Vocabulary",
+    "version": "v0.9",
+    "updated_at": "2025-10-15",
+    "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
+  },
+  "vocabulary": {
+    "levels": {
+      "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
+      "info": "Normal operational events confirming that the system is working as expected.",
+      "warn": "Indicates a potential issue or unexpected behavior that doesn’t interrupt execution.",
+      "error": "A significant problem that caused a specific operation to fail but system remains functional",
+      "critical": "A severe problem causing service interruption or system crash."
+    },
+    "categories": {
+      "core_api": "Internal/external API calls, routing, auth, and request handling logs.",
+      "llm": "LLM prompts, responses, completions, model performance, and behavior.",
+      "agentic": "Agent workflows, tool use, and multi-step task execution.",
+      "cv": "Computer vision, model training, and inference job logs."
+    },
+    "sub_categories": {
+      "infrastructure": "Events related to the state and performance of hardware, containers, VMs, or cloud resources.",
+      "build": "Activities and outcomes during compilation, packaging, or container creation.",
+      "dependency": "Interactions with or issues in external or internal libraries, services, and components.",
+      "model_load": "Processes involving the loading, initialization, or switching of models and their weights.",
+      "tokenizer": "Operations related to text tokenization, including handling of tokens and special characters.",
+      "quantization": "Events concerning model quantization and its effect on accuracy or performance.",
+      "kv_cache": "Usage and management of key-value caches within models or applications.",
+      "rag_timeout": "Occurrences of timeouts or delays during retrieval-augmented generation steps.",
+      "embedding_service": "Events tied to embedding computations or service availability.",
+      "reranker": "Status and performance of reranking processes or models.",
+      "tracking": "Observability and telemetry events related to data tracking and hooks.",
+      "streaming": "Real-time streaming data transmissions and client connection events.",
+      "preproc": "Input data preprocessing actions such as filtering, truncation, and normalization.",
+      "data_io": "Data read/write operations involving files, object stores, or databases.",
+      "safety": "Content moderation and policy enforcement-related events.",
+      "auth": "Authentication and authorization processes including login and token validation.",
+      "network": "Network communications including connectivity, DNS resolution, and latency.",
+      "data": "Data ingestion, validation, parsing, and schema compliance events.",
+      "ui": "User interface interactions and rendering events.",
+      "system": "Operating system and resource-level events like CPU, memory, and disk usage.",
+      "storage": "File system and database storage access and performance.",
+      "job": "Scheduled or background task initiation, progress, or completion.",
+      "security": "Events related to security monitoring, alerts, and potential threats.",
+      "metrics": "Collection and reporting of performance, health, and usage statistics.",
+      "event": "User or business-related significant occurrences or state changes.",
+      "config": "Configuration loading, updates, and validation events.",
+      "rate_limit": "Enforcement and occurrences of usage quotas or throttling.",
+      "user_input": "Events concerning user-provided data or command handling.",
+      "scheduler": "Job scheduling activities including delays, retries, or completions.",
+      "analytics": "Data analysis, metric reporting, and logging events.",
+      "model": "Core model operations including training, inference, and drift monitoring.",
+      "service": "Application or API lifecycle, interactions, and configuration events.",
+      "deployment": "Deployment processes, version rollouts, and release updates.",
+      "third_party": "Interactions or issues with external APIs, services, or vendors.",
+      "planner": "Agent planning phase (e.g., generating or updating the step plan).",
+      "tool_call": "Agent execution of an external tool or action (invoke/handle result).",
+      "inference": "LLM inference/generation step execution.",
+      "model_drift": "Detection or reporting of distribution/performance drift in models."
+    },
+    "outcomes": {
+      "success": "Task or process completed as expected with no errors.",
+      "failure": "Task failed due to an error or exception.",
+      "timeout": "Task did not finish before the configured time limit.",
+      "cancelled": "Task was intentionally stopped by the user or scheduler.",
+      "running": "Task currently in progress.",
+      "pending": "Task queued but not yet started."
+    },
+    "safety_flags": {
+      "none": "No ML model involved, or not safety-critical",
+      "flag_pii": "Personal or sensitive information found in logs.",
+      "flag_security": "Potential security or unauthorized-access risk.",
+      "flag_hate_speech": "Detects language expressing hatred or violence toward a group.",
+      "flag_harassment": "Targets personal insults, threats, or bullying.",
+      "flag_sexual_content": "Flags explicit or suggestive content.",
+      "flag_private_data": "Detects PII (names, emails, phone numbers, etc.) or secrets.",
+      "flag_bias": "Indicates potential gender, racial, or cultural bias.",
+      "flag_hallucination": "Marks unverified factual content.",
+      "flag_violence": "Describes violent acts or harm.",
+      "flag_toxicity": "Response contained toxic or offensive language.",
+      "flag_prompt_injection": "User attempted to subvert prompt.",
+      "flag_nsfw_image": "Detects nudity or sexually explicit visuals.",
+      "flag_violent_image": "Detects blood, weapons, or violent acts.",
+      "flag_privacy_violation": "Identifies faces, license plates, or private locations.",
+      "flag_bias_visual": "Marks dataset or detection bias.",
+      "flag_tampering": "Detects manipulated or synthetic content.",
+      "flag_misclassification": "Incorrect label or prediction.",
+      "flag_data_drift": "Input data deviated from training distribution."
+    },
+    "error_codes": {
+      "ULOG-AUTH-001": "auth_token_expired - Access token expired for a user or service",
+      "ULOG-NET-001": "upstream_timeout - Request to upstream service timed out",
+      "ULOG-DATA-001": "schema_mismatch - Incoming payload does not match expected schema",
+      "ULOG-MODEL-001": "model_drift_detected - Model performance metrics drifted beyond thresholds",
+      "ULOG-STORE-001": "redis_connection_refused - Unable to connect to cache service",
+      "ULOG-DB-001": "db_transaction_deadlock - Database transaction rolled back due to deadlock",
+      "ULOG-SVC-001": "missing_environment_variable - Required configuration variable missing",
+      "ULOG-TP-001": "external_502_bad_gateway - Third-party vendor returned 502 error",
+      "ULOG-SYS-001": "cpu_sustained_high - CPU usage sustained above threshold",
+      "ULOG-SEC-001": "pii_exposed_in_log - Personal information detected in logs"
+    }
+  },
+  "$defs": {
+    "levels": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "debug",
+        "error",
+        "info",
+        "warn"
+      ]
+    },
+    "categories": {
+      "type": "string",
+      "enum": [
+        "agentic",
+        "core_api",
+        "cv",
+        "llm"
+      ]
+    },
+    "sub_categories": {
+      "type": "string",
+      "enum": [
+        "analytics",
+        "auth",
+        "build",
+        "config",
+        "data",
+        "data_io",
+        "dependency",
+        "deployment",
+        "embedding_service",
+        "event",
+        "inference",
+        "infrastructure",
+        "job",
+        "kv_cache",
+        "metrics",
+        "model",
+        "model_drift",
+        "model_load",
+        "network",
+        "planner",
+        "preproc",
+        "quantization",
+        "rag_timeout",
+        "rate_limit",
+        "reranker",
+        "safety",
+        "scheduler",
+        "security",
+        "service",
+        "storage",
+        "streaming",
+        "system",
+        "third_party",
+        "tokenizer",
+        "tool_call",
+        "tracking",
+        "ui",
+        "user_input"
+      ]
+    },
+    "outcomes": {
+      "type": "string",
+      "enum": [
+        "cancelled",
+        "failure",
+        "pending",
+        "running",
+        "success",
+        "timeout"
+      ]
+    },
+    "safety_flags": {
+      "type": "string",
+      "enum": [
+        "flag_bias",
+        "flag_bias_visual",
+        "flag_data_drift",
+        "flag_hallucination",
+        "flag_harassment",
+        "flag_hate_speech",
+        "flag_misclassification",
+        "flag_nsfw_image",
+        "flag_pii",
+        "flag_privacy_violation",
+        "flag_private_data",
+        "flag_prompt_injection",
+        "flag_security",
+        "flag_sexual_content",
+        "flag_tampering",
+        "flag_toxicity",
+        "flag_violence",
+        "flag_violent_image",
+        "none"
+      ]
+    },
+    "error_codes": {
+      "type": "string",
+      "enum": [
+        "ULOG-AUTH-001",
+        "ULOG-NET-001",
+        "ULOG-DATA-001",
+        "ULOG-MODEL-001",
+        "ULOG-STORE-001",
+        "ULOG-DB-001",
+        "ULOG-SVC-001",
+        "ULOG-TP-001",
+        "ULOG-SYS-001",
+        "ULOG-SEC-001"
+      ],
+      "pattern": "^ULOG-[A-Z]{2,10}-[0-9]{3}$",
+      "description": "Standardized error codes following ULOG-[CAT]-[NNN] convention"
+    }
+  }
+}

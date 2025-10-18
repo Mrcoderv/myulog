@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "raw_message": "Database query timeout after 30 seconds",
+    "parse": {
+      "timestamp": "2025-10-13T10:25:00Z",
+      "version": "1.0.0"
+    }
+  },
+  "step_kind": "step",
+  "workflow_id": "wf-006",
+  "step_id": "step-timeout-001",
+  "tool_name": "db_query_executor",
+  "input_summary": "SELECT * FROM large_table WHERE complex_condition",
+  "output_summary": "Query exceeded timeout limit",
+  "status": "timeout",
+  "duration_ms": 30000.0,
+  "level": "error",
+  "category": "agentic",
+  "outcome": "timeout",
+  "error": {
+    "message": "Query execution timeout after 30000ms. Consider optimizing query or increasing timeout limit."
+  }
+}
+

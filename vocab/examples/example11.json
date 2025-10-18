@@ -1,0 +1,11 @@
+{
+    "raw": "Planner returned empty plan for user goal: 'summarize PDF and email to team'",
+    "mapped": {
+      "level": "warn",
+      "category": "agentic",
+      "sub_category": "planner",
+      "outcome": "failure",
+      "safety_flags": ["none"],
+      "notes": "Agent planner failed to propose any actions"
+    }
+  }

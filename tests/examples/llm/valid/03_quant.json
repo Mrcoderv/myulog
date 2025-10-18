@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-13T12:00:04Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-4o-quant",
+  "pipeline_stage": "quant",
+  "outcome": "success",
+  "latency_ms": 85,
+  "result": { "output_preview": "[SUMMARY: weights quantized]", "output_text_length": 0 },
+  "meta": { "raw_message": "[SUMMARY: quant step]", "parse": { "parser_name": "llm-quant", "parser_version": "1.0.0", "pattern_id": "quant.ok", "confidence": 0.95 } }
+}

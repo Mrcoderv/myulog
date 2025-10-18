@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-13T12:00:01Z",
+  "request_id": "req-serve-001",
+  "model": "gpt-4o-mini",
+  "pipeline_stage": "serve",
+  "outcome": "success",
+  "endpoint": "chat.completions",
+  "component": "api",
+  "result": { "output_preview": "[SUMMARY: request accepted]", "output_text_length": 0 },
+  "meta": { "raw_message": "[REDACTED]", "parse": { "parser_name": "llm-serve", "parser_version": "1.0.0", "pattern_id": "serve.accept", "confidence": 0.98 } }
+}
