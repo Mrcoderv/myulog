@@ -1,6 +1,6 @@
 # CONTRIBUTING
 
-**Quick links:** [VERSIONING](./VERSIONING.md) · [CHANGE_PROCESS](./CHANGE_PROCESS.md)
+**Quick links:** [VERSIONING](./VERSIONING.md) · [CHANGE_PROCESS](./CHANGE_PROCESS.md) · [PRIVACY](./PRIVACY.md)
 
 ## How we review (1 page)
 
@@ -16,7 +16,10 @@
 - **Determinism** (rules): adding rules doesn’t steal matches from existing ones unless declared **MAJOR**; rule_id provenance remains stable.
 - **Tests/Examples**: cover the intent; harness green.
 - **Docs**: relevant docs updated (versioning/change process/release notes as needed).
-- **Privacy**: no real data or secrets in code, PR, or examples.
+- **Privacy (strict):** 
+  - No real logs/data in code, tests, docs, or screenshots
+  - Raw `@message` snippets redacted (IPs/emails/hosts/tokens) and sensitive text **summarized**
+  - Examples align with `vocab/controlled_vocabulary.json`
 
 **Approvals**
 - At least 2 approvals when schemas/rules change (Backend + QA). Add PM for governance/docs; SRE if CI/build touched.

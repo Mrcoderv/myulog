@@ -4,6 +4,12 @@
 
 Rules classify normalized log events across Core/API, LLM, Agentic, and Computer Vision domains. They operate on typed JSON with **first-match-wins** semantics for deterministic behavior.
 
+### Privacy & Summaries
+
+Never copy prompts, outputs, agent “plans,” or raw stack traces verbatim into rules, examples, or tests. 
+Use **summaries** and/or **redacted fragments** instead (e.g., `<TOKEN>`, `<EMAIL>`, `<HOST>`). 
+Avoid provider/tenant identifiers. See **docs/PRIVACY.md** for unsafe→safe examples and the reviewer checklist.
+
 **Rule keys**:
 - `rule_id` — unique, stable id (e.g., `api-5xx-critical`)
 - `when` — condition tree
