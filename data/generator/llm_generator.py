@@ -4,6 +4,11 @@ from generator import GenerateLog
 
 
 class GenerateLLMLog(GenerateLog):
+    """
+    Generator for LLM logs according to llm.schema.json
+    Usage pattern follows other generators in the repo.
+    """
+
     def __init__(
         self,
         fields: List[str],
@@ -30,6 +35,12 @@ class GenerateLLMLog(GenerateLog):
 
         # Hardcoded LLM-specific fields
         self.models = [
+            "gpt-4o-mini",
+            "gpt-4o",
+            "gpt-4o-quant",
+            "gpt-4-turbo",
+            "mistral-7b",
+            "llama-3-70b",
             "GPT-3",
             "GPT-4",
             "BERT",

@@ -1,4 +1,5 @@
-from typing import List, Any
+from typing import Any, List
+
 from generator import GenerateLog
 
 
@@ -54,7 +55,11 @@ class GenerateLLMLog(GenerateLog):
         # load vocab-driven choices (outcomes, safety_flags, etc.) later
         self.input_params = input_params if input_params else []
         self.param_dict: dict[str, Any] = {}
-        self.outcomes = self.load_from_vocab(["outcomes"])[0] if "outcomes" in self.common_params else ["success", "failure"]
+        self.outcomes = (
+            self.load_from_vocab(["outcomes"])[0]
+            if "outcomes" in self.common_params
+            else ["success", "failure"]
+        )
 
     def _sample_usage(self) -> dict:
         prompt_tokens = self.generate_integer(0, 2000)
@@ -122,7 +127,10 @@ class GenerateLLMLog(GenerateLog):
                     # place parse nested under meta.parse
                     log.setdefault("meta", {}).setdefault("parse", {})
                     log["meta"]["parse"]["parser_name"] = self.generate_string(8)
-                    log["meta"]["parse"]["parser_version"] = f"{self.generate_integer(0,3)}.{self.generate_integer(0,9)}.{self.generate_integer(0,9)}"
+                    log["meta"]["parse"]["parser_version"] = (
+                        f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 9)}.\
+                            {self.generate_integer(0, 9)}"
+                    )
                     log["meta"]["parse"]["pattern_id"] = self.generate_unique_string()
                     log["meta"]["parse"]["confidence"] = round(self.generate_float(0.0, 1.0), 4)
 
@@ -158,7 +166,9 @@ class GenerateLLMLog(GenerateLog):
                     if "safety_flags" in self.param_dict:
                         # produce an array (may be empty)
                         k = self.generate_integer(0, min(3, len(self.param_dict["safety_flags"])))
-                        log["safety_flags"] = self.random.sample(self.param_dict["safety_flags"], k) if k > 0 else []
+                        log["safety_flags"] = (
+                            self.random.sample(self.param_dict["safety_flags"], k) if k > 0 else []
+                        )
 
                 case "error_code":
                     if "error_codes" in self.param_dict:
@@ -177,7 +187,11 @@ class GenerateLLMLog(GenerateLog):
         logs = []
         for _ in range(self.size):
             pipeline_stage = self.select_enum(self.pipeline_stages)
-            outcome = self.select_enum(self.outcomes) if self.outcomes else self.select_enum(["success", "failure"])
+            outcome = (
+                self.select_enum(self.outcomes)
+                if self.outcomes
+                else self.select_enum(["success", "failure"])
+            )
             log = {
                 "timestamp": self.generate_timestamp(),
                 "request_id": self.generate_unique_string(),
@@ -188,7 +202,8 @@ class GenerateLLMLog(GenerateLog):
                     "raw_message": "[REDACTED: synthetic example]",
                     "parse": {
                         "parser_name": "llm-parser",
-                        "parser_version": f"{self.generate_integer(0,3)}.{self.generate_integer(0,9)}.{self.generate_integer(0,9)}",
+                        "parser_version": f"{self.generate_integer(0, 3)}.\
+                            {self.generate_integer(0, 9)}.{self.generate_integer(0, 9)}",
                         "pattern_id": self.generate_unique_string(),
                         "confidence": round(self.generate_float(0.6, 1.0), 4),
                     },
@@ -220,7 +235,10 @@ class GenerateLLMLog(GenerateLog):
                     log["error"] = self.generate_string(self.generate_integer(5, 200))
                 else:
                     err_type = self.select_enum(["model_error", "timeout", "internal"])
-                    log["error"] = {"type": err_type, "message": self.generate_string(self.generate_integer(10, 200))}
+                    log["error"] = {
+                        "type": err_type,
+                        "message": self.generate_string(self.generate_integer(10, 200)),
+                    }
                     # sometimes include stack
                     if self.generate_integer(0, 3) == 0:
                         log["error"]["stack"] = self.generate_string(200)

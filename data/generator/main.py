@@ -65,7 +65,14 @@ generator_classes = {
             "hardware",
             "result",
         ],
-        "valid_params": ["timestamp", "component", "safety_flag", "category", "level", "ok"],
+        "valid_params": [
+            "timestamp",
+            "component",
+            "safety_flag",
+            "category",
+            "level",
+            "ok",
+        ],
     },
     "api": {
         "class": GenerateAPILog,
@@ -129,32 +136,55 @@ generator_classes = {
     "llm": {
         "class": GenerateLLMLog,
         "fields": [
-            "request_id",
             "timestamp",
+            "request_id",
+            "model",
             "model_name",
+            "pipeline_stage",
+            "outcome",
+            "meta",
+            "result",
+            "usage",
+            "sampler",
             "prompt",
             "response",
             "latency_ms",
+            "ttft_ms",
             "status",
             "error_code",
         ],
         "valid_params": [
+            "parse",
+            "usage",
+            "sampler",
+            "metrics",
             "level",
             "category",
             "sub_category",
             "component",
             "module",
+            "safety_flags",
             "safety_flag",
+            "error_code",
             "version",
             "stack",
             "request_id",
+            "endpoint",
             "latency_ms",
             "duration_ms",
         ],
     },
 }
 
-input_params = args.arguments.split(" ") if args.arguments else []
+
+# parse input params: args.arguments is either list (nargs=REMAINDER) or a single string
+if isinstance(args.arguments, list):
+    # nargs=REMAINDER returns a list; convert to simple list of tokens (skip leading empty strings)
+    input_params = [tok for tok in args.arguments if tok]
+elif isinstance(args.arguments, str) and args.arguments.strip():
+    input_params = args.arguments.split()
+else:
+    input_params = []
 
 domain = generator_classes[args.domain]
 
