@@ -14,6 +14,11 @@ This document provides a comprehensive reference for all log parsing patterns su
 
 ## Core/API Domain Patterns
 
+> **Category vs. sub_category**
+>
+> Top-level `category` MUST be one of: `core_api`, `llm`, `agentic`, `cv`.
+> Domain-specific labels such as `http`, `service`, `build`, `model`, `inference`, `data_loading`, etc. MUST be expressed as `sub_category`.
+
 The Core/API parser handles HTTP requests, service logs, build events, and error messages.
 
 ### http_request_uvicorn
@@ -36,7 +41,8 @@ INFO:     10.0.0.2:35466 - "GET /v1/users/123 HTTP/1.1" 200 OK
 - `http_version`: "1.1"
 - `http_status`: 200 (converted to int)
 - `status_text`: "OK"
-- `category`: "http"
+- `category`: "core_api"
+- `sub_category`: "http"
 - `event_type`: "http_request"
 
 ---
@@ -54,7 +60,8 @@ INFO:     10.0.0.2:35466 - "GET /v1/users/123 HTTP/1.1" 200 OK
 
 **Extracted Fields:**
 - `service`: "AppRunner"
-- `category`: "service"
+- `category`: "core_api"
+- `sub_category`: "service"
 - `event_type`: "deployment_artifact" (or "source_pull", "service_deletion", "service_failure", "pipeline_event")
 - `level`: "info" (inferred from message content)
 - `message`: Full message text
@@ -75,7 +82,8 @@ INFO:     10.0.0.2:35466 - "GET /v1/users/123 HTTP/1.1" 200 OK
 
 **Extracted Fields:**
 - `service`: "Build"
-- `category`: "build"
+- `category`: "core_api"
+- `sub_category`: "build"
 - `event_type`: "dependency_download" (or "dependency_install", "build_error", "build_warning")
 - `level`: "info" (or "error", "warning" based on message)
 - `message`: Full message text
@@ -97,7 +105,8 @@ INFO:     Uvicorn running on http://10.0.0.1:8080 (Press CTRL+C to quit)
 **Extracted Fields:**
 - `level`: "info" (normalized to lowercase)
 - `service`: "uvicorn"
-- `category`: "service"
+- `category`: "core_api"
+- `sub_category`: "service"
 - `event_type`: "server_running" (or "startup", "shutdown", "server_start", "server_stop", "file_change", "signal_received", "watch_start")
 - `message`: Full message text
 - `host`: "10.0.0.1" (extracted from "running on" messages)
@@ -118,7 +127,8 @@ Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 
 **Extracted Fields:**
 - `service`: "uvicorn"
-- `category`: "service"
+- `category`: "core_api"
+- `sub_category`: "service"
 - `event_type`: "server_running"
 - `level`: "info"
 - `url`: "http://127.0.0.1:8000"
@@ -139,7 +149,8 @@ Health check is successful. Routing traffic to application.
 ```
 
 **Extracted Fields:**
-- `category`: "service"
+- `category`: "core_api"
+- `sub_category`: "service"
 - `event_type`: "health_check"
 - `level`: "info" (or "error" for failures)
 - `outcome`: "success" (or "failure", "in_progress")
@@ -160,7 +171,8 @@ Usage: app.main [OPTIONS]
 ```
 
 **Extracted Fields:**
-- `category`: "cli"
+- `category`: "core_api"
+- `sub_category`: "cli"
 - `event_type`: "usage"
 - `level`: "info"
 - `command`: "app.main"
@@ -181,7 +193,8 @@ Usage: app.main [OPTIONS]
 
 **Extracted Fields:**
 - `level`: "error"
-- `category`: "error"
+- `category`: "core_api"
+- `sub_category`: "error"
 - `event_type`: "python_error"
 - `python_path`: "/usr/local/bin/python3" (if present)
 - `error.type`: "python_error" (or exception class name)
@@ -202,7 +215,8 @@ Usage: app.main [OPTIONS]
 
 **Extracted Fields:**
 - `level`: "error"
-- `category`: "error"
+- `category`: "core_api"
+- `sub_category`: "error"
 - `event_type`: "stacktrace"
 - `message`: Full line text (stripped)
 - `error.type`: "stacktrace"
@@ -227,7 +241,8 @@ ERROR: No matching distribution found for orjson
 
 **Extracted Fields:**
 - `level`: "error"
-- `category`: "error"
+- `category`: "core_api"
+- `sub_category`: "error"
 - `event_type`: "error"
 - `error.type`: "generic_error" (or extracted error type)
 - `error.message`: Error message text
@@ -235,6 +250,11 @@ ERROR: No matching distribution found for orjson
 ---
 
 ## LLM Domain Patterns
+
+> **Category vs. sub_category**
+>
+> Top-level `category` MUST be one of: `core_api`, `llm`, `agentic`, `cv`.
+> Domain-specific labels such as `http`, `service`, `build`, `model`, `inference`, `data_loading`, etc. MUST be expressed as `sub_category`.
 
 The LLM parser handles model loading, inference, tokenization, RAG, training, and safety logs.
 
@@ -253,7 +273,8 @@ The LLM parser handles model loading, inference, tokenization, RAG, training, an
 - `component`: "Tokenizer"
 - `level`: "error" (normalized to lowercase)
 - `message`: "Incompatible merges file — falling back to slow tokenizer"
-- `category`: "model" (mapped from component)
+- `category`: "llm"
+- `sub_category`: "model" (mapped from component)
 - `pipeline_stage`: "load" (mapped from component)
 - Additional key=value pairs extracted from message
 
@@ -283,14 +304,15 @@ The LLM parser handles model loading, inference, tokenization, RAG, training, an
 - `component`: "Serve"
 - `level`: "info" (inferred from message content)
 - `message`: Full message text
-- `category`: "http" (mapped from component)
+- `category`: "llm"
+- `sub_category`: "http" (mapped from component)
 - `pipeline_stage`: "serve" (mapped from component)
 - `workers`: 4 (extracted from key=value pairs)
 - `backlog`: 512 (extracted from key=value pairs)
 
 **Level Inference:**
 - Contains "error", "failed", "exception" → level: "error"
-- Contains "warning", "warn" → level: "warning"
+- Contains "warning", "warn" → level: "warn"
 - Otherwise → level: "info"
 
 ---
@@ -310,6 +332,7 @@ MAX_BATCH_TOTAL_TOKENS inferred to be 425472
 - `message`: Full message text
 - `level`: "info" (inferred from message content)
 - `category`: "llm"
+- `sub_category`: "inference"
 - `pipeline_stage`: "inference"
 - Additional key=value pairs extracted from message
 
@@ -454,6 +477,11 @@ The Agentic parser handles workflow, agent, and tool execution logs.
 
 ## Computer Vision Domain Patterns
 
+> **Category vs. sub_category**
+>
+> Top-level `category` MUST be one of: `core_api`, `llm`, `agentic`, `cv`.
+> Domain-specific labels such as `http`, `service`, `build`, `model`, `inference`, `data_loading`, etc. MUST be expressed as `sub_category`.
+
 The CV parser handles image/video processing, model inference, tracking, and evaluation logs.
 
 ### cv_data_load
@@ -468,7 +496,8 @@ The CV parser handles image/video processing, model inference, tracking, and eva
 ```
 
 **Extracted Fields:**
-- `category`: "data_loading"
+- `category`: "cv"
+- `sub_category`: "data_loading"
 - `level`: "info" (inferred from message content)
 - `message`: Full message text
 - `outcome`: "success" (or "failure" based on level)
@@ -488,7 +517,8 @@ The CV parser handles image/video processing, model inference, tracking, and eva
 ```
 
 **Extracted Fields:**
-- `category`: "preprocessing"
+- `category`: "cv"
+- `sub_category`: "preprocessing"
 - `level`: "info" (inferred from message content)
 - `message`: Full message text
 - `outcome`: "success" (or "failure" based on level)
@@ -508,7 +538,8 @@ The CV parser handles image/video processing, model inference, tracking, and eva
 ```
 
 **Extracted Fields:**
-- `category`: "model"
+- `category`: "cv"
+- `sub_category`: "model"
 - `level`: "info" (inferred from message content)
 - `message`: Full message text
 - `outcome`: "success" (or "failure" based on level)
@@ -536,18 +567,18 @@ The CV parser handles image/video processing, model inference, tracking, and eva
 - Additional key=value pairs extracted from message
 
 **Component to Category Mapping:**
-- `infer`, `inference` → category: "inference"
-- `post`, `postproc`, `postprocess` → category: "postprocessing"
-- `track`, `tracking` → category: "tracking"
-- `eval`, `evaluation`, `metrics` → category: "evaluation"
-- `hw`, `hardware`, `gpu`, `cuda` → category: "hardware"
-- `serve`, `server`, `grpc` → category: "serving"
-- `config`, `configuration` → category: "configuration"
-- `train`, `training` → category: "training"
-- `aug`, `augmentation` → category: "augmentation"
-- `onnxruntime`, `tensorrt`, `openvino` → category: "runtime"
-- `ocr` → category: "ocr"
-- `pose` → category: "pose_estimation"
+- `infer`, `inference` → sub_category: "inference"
+- `post`, `postproc`, `postprocess` → sub_category: "postprocessing"
+- `track`, `tracking` → sub_category: "tracking"
+- `eval`, `evaluation`, `metrics` → sub_category: "evaluation"
+- `hw`, `hardware`, `gpu`, `cuda` → sub_category: "hardware"
+- `serve`, `server`, `grpc` → sub_category: "serving"
+- `config`, `configuration` → sub_category: "configuration"
+- `train`, `training` → sub_category: "training"
+- `aug`, `augmentation` → sub_category: "augmentation"
+- `onnxruntime`, `tensorrt`, `openvino` → sub_category: "runtime"
+- `ocr` → sub_category: "ocr"
+- `pose` → sub_category: "pose_estimation"
 - And more...
 
 ---
@@ -564,7 +595,8 @@ error: (-215:Assertion failed) inv_scale_x > 0 in function 'resize'
 ```
 
 **Extracted Fields:**
-- `category`: "error"
+- `category`: "core_api"
+- `sub_category`: "error"
 - `level`: "error" (or "warning" based on message content)
 - `message`: Full message text
 - `outcome`: "failure" (or "success" for warnings)
@@ -583,7 +615,8 @@ Estimating resolution as 70
 ```
 
 **Extracted Fields:**
-- `category`: "general"
+- `category`: "cv"
+- `sub_category`: "general"
 - `level`: "info"
 - `message`: Full message text
 - `outcome`: "success"

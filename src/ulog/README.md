@@ -14,7 +14,7 @@ A Python library and CLI tool that transforms raw, unstructured log messages int
 ## Installation
 
 ```bash
-pip install -e .
+poetry install
 ```
 
 ## Quick Start
@@ -371,7 +371,8 @@ cat llm-logs.jsonl | ulog parse --domain llm
 cat api-logs.jsonl | ulog parse --domain core_api
 ```
 
-## Unit Conversions
+\1
+> *Note: millisecond fields can be integers or decimals (e.g., `45.2ms` → `45.2`).*
 
 The normalizer automatically converts units to standard formats:
 

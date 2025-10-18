@@ -330,7 +330,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-tool-slow`
 
 ```json
-{"schema_id": "agentic", "step_kind": "step", "status": "success", "latency_ms": 7000}
+{"schema_id": "agentic", "step_kind": "step", "status": "success", "duration_ms": 7000}
 ```
 
 **Why fires:** Tool step succeeded/retried but took >= 5000 ms.  
@@ -352,7 +352,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-planner-long-running`
 
 ```json
-{"schema_id": "agentic", "tool_name": "planner", "status": "running", "latency_ms": 65000}
+{"schema_id": "agentic", "tool_name": "planner", "status": "running", "duration_ms": 65000}
 ```
 
 **Why fires:** Planner tool running for >= 60000 ms.  
@@ -374,7 +374,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `agentic-search-slow`
 
 ```json
-{"schema_id": "agentic", "tool_name": "search_web", "status": "succeeded", "latency_ms": 2000}
+{"schema_id": "agentic", "tool_name": "search_web", "status": "success", "duration_ms": 2000}
 ```
 
 **Why fires:** Search tool succeeded but took >= 1500 ms.  
@@ -422,7 +422,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-inference-success`
 
 ```json
-{"schema_id": "computer_vision", "phase": "inference", "outcome": "success", "latency_ms": 85}
+{"schema_id": "cv", "phase": "inference", "outcome": "success", "latency_ms": 85}
 ```
 
 **Why fires:** Inference succeeded with latency < 100 ms.  
@@ -444,7 +444,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-inference-map-low`
 
 ```json
-{"schema_id": "computer_vision", "phase": "inference", "metrics": {"mAP": 0.25}}
+{"schema_id": "cv", "phase": "inference", "metrics": {"mAP": 0.25}}
 ```
 
 **Why fires:** Inference phase with mAP/mAP < 0.30.  
@@ -466,7 +466,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-evaluation-map50_95-low`
 
 ```json
-{"schema_id": "computer_vision", "phase": "evaluation", "metrics": {"mAP_50_95": 0.15}}
+{"schema_id": "cv", "phase": "evaluation", "metrics": {"mAP_50_95": 0.15}}
 ```
 
 **Why fires:** Evaluation phase with mAP_50_95 < 0.20.  
@@ -488,7 +488,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-training-loss-spike`
 
 ```json
-{"schema_id": "computer_vision", "phase": "training", "metrics": {"loss": 5.8}}
+{"schema_id": "cv", "phase": "training", "metrics": {"loss": 5.8}}
 ```
 
 **Why fires:** Training phase with loss > 5.0.  
@@ -510,11 +510,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-cuda-oom`
 
 ```json
-{
-  "schema_id": "computer_vision",
-  "outcome": "failure",
-  "meta": { "raw_message": "CUDA out of memory on device 0" }
-}
+{"schema_id": "cv", "outcome": "failure", "meta": { "raw_message": "CUDA out of memory on device 0" }}
 ```
 
 **Why fires:** Failure with "CUDA out of memory" in message.  
@@ -536,7 +532,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-batch-slow`
 
 ```json
-{"schema_id": "computer_vision", "phase": "inference", "meta": {"raw_message": "processed batch in 75s"}}
+{"schema_id": "cv", "phase": "inference", "meta": {"raw_message": "processed batch in 75s"}}
 ```
 
 **Why fires:** Extracted duration >= 60000 ms from raw message "(\\d+)s".  
@@ -558,7 +554,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `cv-throughput-high`
 
 ```json
-{"schema_id": "computer_vision", "meta": {"raw_message": "Processed 3,276 images in 45s"}}
+{"schema_id": "cv", "meta": {"raw_message": "Processed 3,276 images in 45s"}}
 ```
 
 **Why fires:** Extracted image count >= 3000.  
@@ -605,7 +601,7 @@ When an example corresponds to a real rule in `rules.json`, we include its `rule
 **rule_id:** `all-missing-trace`
 
 ```json
-{"schema_id": "computer_vision"}
+{"schema_id": "cv"}
 ```
 
 **Why fires:** CV event without trace/context (catch-all for CV schema).  
