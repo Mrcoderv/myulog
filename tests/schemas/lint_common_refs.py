@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import sys
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 VOCAB_PATH = Path("vocab/controlled_vocabulary.json")
 COMMON_PATH = Path("schemas/_common.json")
