@@ -97,3 +97,7 @@ local_pipeline/out/*
 !local_pipeline/out/.gitkeep
 local_pipeline/in/*
 !local_pipeline/in/.gitkeep
+
+# Sample logs (not pushed to repo)
+sample_logs/
+data/
