@@ -1,5 +1,5 @@
 extends: default
 rules:
     indentation:
-        indent: 4
+        spaces: 4
         level: warning
