@@ -1,57 +1,41 @@
 import json
+import pathlib
+import sys
 
-from agentic_generator import AgenticGenerator
-from api_generator import GenerateAPILog
-from cv_generator import GenerateCVLog
-from llm_generator import GenerateLLMLog
-import pytest
+# Ensure local imports resolve when pytest is run from repo root
+sys.path.append(str(pathlib.Path(__file__).parent))
+
+from agentic_generator import AgenticGenerator  # noqa: E402
+from api_generator import GenerateAPILog  # noqa: E402
+from cv_generator import GenerateCVLog  # noqa: E402
+from llm_generator import GenerateLLMLog  # noqa: E402
 
 
-# Parse the raw log back to JSON (no file reading/writing)
-def parse_raw_logs(raw_data):
-    parsed_logs = []
-    for line in raw_data:
+def parse_raw_logs(raw_lines):
+    """Parse raw records written by --raw-mirror back to JSON objects."""
+    parsed = []
+    for line in raw_lines:
         record = json.loads(line.strip())
         raw_message = record.get("@message")
         if raw_message:
-            parsed_logs.append(json.loads(raw_message))
-    return parsed_logs
+            parsed.append(json.loads(raw_message))
+    return parsed
 
 
-# Compare logs, ignoring meta fields
 def deep_compare_logs(generated_logs, parsed_logs):
-    # Deep compare ignoring the meta field
-    for generated_log, parsed_log in zip(generated_logs, parsed_logs):
-        # Remove 'meta' from both logs for deep comparison
-        generated_log = {key: value for key, value in generated_log.items() if key != "meta"}
-        parsed_log = {key: value for key, value in parsed_log.items() if key != "meta"}
-
-        if generated_log != parsed_log:
-            print(f"Generated Log: {generated_log}")
-            print(f"Parsed Log: {parsed_log}")
+    """Deep compare (ignoring 'meta' which may carry extra provenance)."""
+    for g, p in zip(generated_logs, parsed_logs):
+        g2 = {k: v for k, v in g.items() if k != "meta"}
+        p2 = {k: v for k, v in p.items() if k != "meta"}
+        if g2 != p2:
+            print("Generated Log:", g2)
+            print("Parsed Log:", p2)
             return False
     return True
 
 
-# Test round-trip for logs
-@pytest.mark.parametrize("domain", ["cv", "api", "agentic", "llm"])
-@pytest.mark.parametrize("count", [1, 10])  # You can adjust the count for testing
-def test_roundtrip(domain, count):
-    seed = 42  # Fixed seed for deterministic output
-
-    # Define the generator classes for each domain
-    generator_classes = {
-        "cv": GenerateCVLog,
-        "api": GenerateAPILog,
-        "agentic": AgenticGenerator,
-        "llm": GenerateLLMLog,
-    }
-
-    # Choose the correct generator class based on the domain
-    generator_class = generator_classes[domain]
-
-    # Define fields and valid parameters for each domain
-    domain_config = {
+def _config(domain):
+    return {
         "cv": {
             "fields": [
                 "phase",
@@ -62,40 +46,19 @@ def test_roundtrip(domain, count):
                 "latency_ms",
                 "batch_size",
                 "hardware",
-                "result",
+                "outcome",
             ],
             "valid_params": ["timestamp", "component", "safety_flag", "category", "level", "ok"],
+            "class": GenerateCVLog,
         },
         "api": {
-            "fields": [
-                "request_id",
-                "timestamp",
-                "service",
-                "path",
-                "method",
-                "result",
-                "latency_ms",
-                "env",
-                "content_length",
-                "user_agent",
-                "status_code",
-            ],
+            "fields": ["request_id", "timestamp", "service", "event_type", "endpoint", "action", "env", "outcome"],
             "valid_params": [
-                "parse",
-                "level",
-                "category",
-                "sub_category",
-                "component",
-                "module",
-                "safety_flag",
-                "error_code",
-                "version",
-                "stack",
-                "request_id",
-                "http_status",
-                "latency_ms",
-                "duration_ms",
+                "parse", "level", "category", "sub_category", "component", "module",
+                "safety_flag", "error_code", "version", "stack", "request_id",
+                "http_status", "latency_ms", "duration_ms",
             ],
+            "class": GenerateAPILog,
         },
         "agentic": {
             "fields": [
@@ -122,55 +85,42 @@ def test_roundtrip(domain, count):
                 "error_code",
                 "ranked_tools",
             ],
+            "class": AgenticGenerator,
         },
         "llm": {
             "fields": [
-                "request_id",
-                "timestamp",
-                "model_name",
-                "prompt",
-                "response",
-                "latency_ms",
-                "status",
-                "error_code",
+                "timestamp", "model", "framework", "component", "phase",
+                "level", "category", "sub_category", "outcome", "message", "duration_ms",
             ],
-            "valid_params": [
-                "level",
-                "category",
-                "sub_category",
-                "component",
-                "module",
-                "safety_flag",
-                "version",
-                "stack",
-                "request_id",
-                "latency_ms",
-                "duration_ms",
-            ],
+            "valid_params": ["request_id", "version", "stack_trace", "latency_ms", "throughput"],
+            "class": GenerateLLMLog,
         },
-    }
+    }[domain]
 
-    input_params = []  # Use default for simplicity
-    generator = generator_class(
-        domain_config[domain]["fields"],
-        size=count,
-        seed=seed,
-        input_params=input_params,
-        valid_params=domain_config[domain]["valid_params"],
-    )
 
-    # Generate logs
-    valid_logs, _ = generator.run()
+def _build_raw_lines(logs, ts_fallback):
+    """Mirror the CLI's raw mirror format: each line is JSON with @timestamp + @message."""
+    lines = []
+    for log in logs:
+        raw_msg = json.dumps(log, separators=(",", ":"))
+        rec = {
+            "@timestamp": log.get("timestamp", ts_fallback),
+            "@message": raw_msg,
+        }
+        lines.append(json.dumps(rec))
+    return lines
 
-    # Simulate the raw log as a string (normally it would be from a file)
-    raw_data = [
-        json.dumps({"@message": json.dumps(log, separators=(",", ":"))}) for log in valid_logs
-    ]
 
-    # Parse the raw logs back (simulating the "raw → parse" process)
-    parsed_logs = parse_raw_logs(raw_data)
+def _roundtrip_for(domain, count):
+    cfg = _config(domain)
+    gen = cfg["class"](cfg["fields"], size=count, seed=42, input_params=[], valid_params=cfg["valid_params"])
+    valid_logs, _ = gen.run()
+    raw_lines = _build_raw_lines(valid_logs, gen.generate_timestamp())
+    parsed = parse_raw_logs(raw_lines)
+    assert deep_compare_logs(valid_logs, parsed), f"Roundtrip failed for {domain} (count={count})"
 
-    # Deep compare the original and parsed logs (only meta field)
-    assert deep_compare_logs(valid_logs, parsed_logs), (
-        f"Roundtrip test failed for domain: {domain}, count: {count}"
-    )
+
+def test_roundtrip_all_domains_small():
+    for dom in ["cv", "api", "agentic", "llm"]:
+        _roundtrip_for(dom, 3)
+        

@@ -1,4 +1,10 @@
-from generator import GenerateLog
+import pathlib
+import sys
+
+# Ensure local imports resolve when pytest is run from repo root
+sys.path.append(str(pathlib.Path(__file__).parent))
+
+from generator import GenerateLog  # noqa: E402
 
 
 def test_determinism_integer():

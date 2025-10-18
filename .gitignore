@@ -102,6 +102,7 @@ local_pipeline/in/*
 # Sample logs (not pushed to repo)
 sample_logs/
 
+# Synthetic artifacts produced locally
 data/synthetic/*.jsonl
 !data/synthetic/.gitkeep
 data/synthetic/raw/*.jsonl

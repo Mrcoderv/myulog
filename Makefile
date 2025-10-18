@@ -59,7 +59,6 @@ test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes J
 	@poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
 
 test.determinism: ## Run determinism tests for data generators
-# 	@poetry run pytest -q tests/generator/test_determinism.py
 	@poetry run pytest -q data/generator/test_determinism.py
 
 
@@ -110,11 +109,8 @@ rules.check: ## Run both rules validation and tests
 	@echo "✓ All rules checks passed"
 
 
-
-
 # --- Synthetic Data Generators ---
-.PHONY: data.generate generate.raw 
-
+.PHONY: data.generate data.generate.raw test.roundtrip
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python3 data/generator/main.py -d agentic -n log_agentic
@@ -122,17 +118,14 @@ data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python3 data/generator/main.py -d api -n log_api
 	@poetry run python3 data/generator/main.py -d llm -n log_llm
 
-# 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
-#  	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count)  -s $(Seed) -n $(name) -args $(Arguments)
+# @poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -s $(Seed) -n $(name) -args $(Arguments)
 
 data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 	@poetry run python3 data/generator/main.py -d agentic -n agentic --raw-mirror
 	@poetry run python3 data/generator/main.py -d cv -n cv --raw-mirror
-	@poetry run python3 data/generator/main.py -d api -n api  --raw-mirror
+	@poetry run python3 data/generator/main.py -d api -n api --raw-mirror
 	@poetry run python3 data/generator/main.py -d llm -n llm --raw-mirror
 
 # --- Round-trip test ---
-.PHONY: test.roundtrip
-
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py

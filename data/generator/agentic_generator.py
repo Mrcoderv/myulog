@@ -60,20 +60,7 @@ class AgenticGenerator(GenerateLog):
                 "output": "The response to the user's query is generated.",
             },
         ]
-        self.error_codes = [
-            "E001",
-            "E002",
-            "E003",
-            "E004",
-            "E005",
-            "E006",
-            "E007",
-            "E008",
-            "E009",
-            "E010",
-            "E011",
-            "E012",
-        ]
+        self.error_codes = [f"E{str(i).zfill(3)}" for i in range(1, 13)]
         self.list_of_tools = [
             "web_search",
             "image_generation",
@@ -85,11 +72,12 @@ class AgenticGenerator(GenerateLog):
         self.param_dict = {}
 
     def generate_log_entries(self) -> list[dict]:
-        """Generate a list of log entries."""
         logs = []
         for _ in range(self.size):
             input_output = self.select_enum(self.input_output_summary)
             log_entry = {
+                # NB: Agentic records in this seed do not include top-level timestamp;
+                # raw mirror will inject @timestamp for consistency with sample raw shape.
                 "meta": {
                     "raw_message": self.generate_string(100),
                 },
@@ -99,7 +87,7 @@ class AgenticGenerator(GenerateLog):
                 "tool_name": self.generate_string(10),
                 "input_summary": input_output["input"],
                 "output_summary": input_output["output"],
-                "status": self.select_enum(["success", "retry", "timeout", "failed"]),
+                "status": self.select_enum(self.statuses),
             }
 
             if log_entry["status"] in ["failed", "timeout"]:
@@ -109,7 +97,6 @@ class AgenticGenerator(GenerateLog):
             if self.input_params:
                 log_entry = self.generate_option_params(log_entry)
             logs.append(log_entry)
-
         return logs
 
     def generate_option_params(self, log: dict) -> dict:
@@ -117,51 +104,36 @@ class AgenticGenerator(GenerateLog):
             match param:
                 case "parse_timestamp":
                     log["meta"]["parse_timestamp"] = self.generate_timestamp()
-
                 case "parser_version":
                     log["meta"]["parser_version"] = self.select_enum(self.parser_versions)
-
                 case "parent_step_id":
                     log["parent_step_id"] = self.generate_unique_string()
-
                 case "plan_id":
                     log["plan_id"] = self.generate_unique_string()
-
                 case "duration_ms":
                     log["duration_ms"] = self.generate_float(0.0, 500.0)
-
                 case "cost":
                     log["cost"] = {
                         "tokens_in": self.generate_integer(0, 10000),
                         "tokens_out": self.generate_integer(0, 10000),
                         "est_cost_usd": self.generate_float(0.0, 10.0),
                     }
-
                 case "level":
                     log["level"] = self.select_enum(self.param_dict["levels"])
-
                 case "category":
-                    log["category"] = self.select_enum(self.param_dict["category"])
-
+                    log["category"] = self.select_enum(self.param_dict["categories"])
                 case "safety_flag":
                     log["safety_flag"] = self.select_enum(self.param_dict["safety_flags"])
-
                 case "outcome":
                     log["outcome"] = self.select_enum(self.param_dict["outcomes"])
-
                 case "error_code":
                     log["error_code"] = self.select_enum(self.error_codes)
-
                 case "ranked_tools":
                     n = self.generate_integer(1, len(self.list_of_tools))
-                    ranked_tools = []
-                    if n > 0:
-                        ranked_tools = self.random.sample(self.list_of_tools, n)
+                    ranked_tools = self.random.sample(self.list_of_tools, n) if n > 0 else []
                     log["ranked_tools"] = ranked_tools
-
                 case _:
-                    continue  # skip unknown params, already logged in verify_option_params
-
+                    continue
         return log
 
     def verify_input_params(self) -> list[str]:
@@ -180,10 +152,9 @@ class AgenticGenerator(GenerateLog):
         valid_logs = self.generate_log_entries()
         invalid_logs = self.generate_log_entries()
 
-        # remove fields from invalid_logs (so they become invalid)
+        # remove one random field from invalid to make them invalid
         for log in invalid_logs:
             field_to_remove = self.select_enum(self.fields)
             if field_to_remove in log:
                 del log[field_to_remove]
-
         return valid_logs, invalid_logs

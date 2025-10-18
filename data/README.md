@@ -2,129 +2,73 @@
 
 ## Overview
 
-This generator produces **synthetic Computer Vision (CV) log data** for profiling and validating model performance.
-
-Each run generates reproducible log entries describing each model phase, dataset, image count, metrics, latency, result, hardware configuration, and error messages for failed runs.
-
-All logs are **fully synthetic** and contain **no personally identifiable information (PII)**.
+This generator produces **synthetic API, LLM, Agentic, and CV log data** for profiling and validation.
+Each run is **reproducible** via `--seed`. All logs are **fully synthetic** and contain **no PII**.
 
 ---
 
 ## Quickstart
 
-To generate synthetic data locally:
-
-1. Ensure dependencies are installed (Python 3+, Makefile, required libraries).
-2. From the project root, run:
-   ```bash
-   make data.generate
-   make data.generate.raw
-   make test.roundtrip
-   ```
-3. Generated files will appear in:
-   ```
-   /data/synthetic/*.jsonl
-   /data/synthetic/raw/*.jsonl
-   ```
-
-Optional parameters (when using poetry directly):
+1. Ensure local deps (Python 3.12+, Poetry, Make).
+2. From repo root:
 
 ```bash
-poetry run python3 data/generator/main.py -d agentic
+make data.generate
+make data.generate.raw
+make test.roundtrip
+```
+
+3. Outputs:
+
+- `data/synthetic/*.jsonl` (normalized)
+- `data/synthetic/raw/*.jsonl` (raw mirrors)
+
+Optional direct usage:
+
+```bash
+poetry run python3 data/generator/main.py -d agentic -n log_agentic
 poetry run python3 data/generator/main.py -d agentic --raw-mirror
 poetry run pytest -q data/generator/test_roundtrip.py
 ```
 
-Use these arguments:
--d Domain of the log is required one of : api, cv, agentic, llm
--o Output directory
--c Number of samples
--s Random seed
--n File name
--args Optional parameters for agentic logs
---raw-mirror To Generate raw-line mirrors for round-trip tests
+**CLI arguments:**
+
+- `-d, --domain` one of: `api`, `cv`, `agentic`, `llm`
+- `-o, --output-dir` output directory (default: `data/synthetic/`)
+- `-c, --count` number of samples (default: 10)
+- `-s, --seed` PRNG seed (default: 42)
+- `-n, --name` base file name (default: `log`)
+- `-args, --arguments` optional domain parameters (space-separated, must be last)
+- `--raw-mirror` output raw mirrors instead of normalized JSON
 
 ---
 
 ## Output Files
 
-Each run produces **two output files per domain**:
+Each run produces **two files per domain**:
 
-- **Normalized JSONL file:**  
-  `data/synthetic/<name>_valid.jsonl`  
-  Structured, schema-compliant logs following the  
-  [Field Inventory Template](blueprint/field_inventory_template.md) and  
-  [Profiling Checklist](blueprint/profiling_checklist.md).
+- **Normalized JSONL:** `data/synthetic/<name>_valid.jsonl` and `<name>_invalid.jsonl`
+  - Schema-shaped, vocab-aware fields (see `data/blueprint/*`).
 
-- **Raw Mirror JSONL file:**  
-  `data/synthetic/raw/<name>_invalid.jsonl`  
-  Contains intentionally mismatched or incomplete entries for validation robustness testing.
-
-Each line in these JSONL files represents one synthetic event record.
+- **Raw Mirror JSONL:** `data/synthetic/raw/<name>_raw.jsonl` and `<name>_invalid_raw.jsonl`
+  - Each line is an object: {"@timestamp":"ISO-8601","@message":"compact JSON of the normalized record"}.
+  - Designed for exact round-trip: parse `@message` JSON back to the same structure used to produce it.
 
 ---
 
-## Guarantees and Safety
+## Guarantees & Safety
 
-This generator provides the following guarantees:
-
-- **No-PII Guarantee:** All data are synthetic. No user, customer, or real-world information is included.
-- **Deterministic Output:** Re-running with the same `--seed` produces identical results.
-- **Schema Compliance:** Each JSONL entry follows the canonical schema defined in the controlled vocabulary.
-- **Round-Trip Equality:** Each raw line can be parsed and normalized back into the same structured JSONL record.
-- **Multi-Domain Support:** Works consistently across CV, API, and Agentic generators.
-
----
-
-## Round-Trip Guarantee (CI Integration)
-
-Every generated record should parse back into an identical normalized JSON structure.  
-This **Round-Trip Guarantee** ensures consistent serialization and deserialization.
-
-A full CI test will validate this once the new parser (Ticket 1.8) is available.  
-Until then, CI runs include **determinism tests** verifying identical output for the same seed.
-
----
-
-## Example Usage
-
-**Using Python directly**
-
-```bash
-python3 generate_log_cv.py --count 100 --seed 42 --name log
-```
-
-Creates:
-
-```
-data/synthetic/log_valid.jsonl
-data/synthetic/log_invalid.jsonl
-```
-
-**Using Make commands**
-
-```bash
-make generate
-make generate.raw
-```
-
-Runs the generator and writes normalized and raw files to `/data/synthetic/`.
+- **No-PII Guarantee:** All content is synthetic; no user/customer data is present.
+- **Determinism:** Re-running with the same `--seed` and `--count` yields identical outputs.
+- **Shape Compatibility:** Raw mirrors follow the `@timestamp`/`@message` JSONL shape used across samples.
+- **Round-Trip Equality:** For this ticket, equality is validated by parsing `@message` as compact JSON (see tests).
 
 ---
 
 ## Contributing Notes
 
-- Validate new synthetic outputs against the schema using `make lint` (when available).
-- Commit only synthetic, non-sensitive data.
-- Document any new generator parameters or domains added.
+- Keep new synthetic outputs out of version control (ignored via `.gitignore`).
+- Document any new domain args in this README.
+- Extend generators and blueprints as schemas evolve.
 
 ---
-
-## To Be Updated
-
-- Extend the **Round-Trip Guarantee** documentation when the parser is finalized.
-- Add descriptions for other domain generators:
-  - [Agentic Generator](generator/agentic_generator.py)
-  - [API Generator](generator/api_generator.py)
-  - [CV Generator](generator/cv_generator.py)
-  - [Main Generator](generator/main.py)
