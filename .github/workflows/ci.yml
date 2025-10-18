@@ -1,10 +1,11 @@
+---
 name: CI
 
 on:
     push:
-        branches: [ main ]
+        branches: [main]
     pull_request:
-        branches: [ main ]
+        branches: [main]
 
 # Prevent redundant runs on the same branch/PR
 concurrency:
@@ -22,7 +23,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: [ "3.12" ]
+                python-version: ["3.12"]
 
         steps:
             - name: Checkout
@@ -37,10 +38,10 @@ jobs:
 
             - name: Install pipx & Poetry
               run: |
-                  python -m pip install --upgrade pip
-                  python -m pip install pipx
-                  pipx install poetry
-                  poetry --version
+                python -m pip install --upgrade pip
+                python -m pip install pipx
+                pipx install poetry
+                poetry --version
 
             - name: Configure Poetry to use in-project venv (for caching)
               run: poetry config virtualenvs.in-project true
@@ -52,7 +53,7 @@ jobs:
                   path: .venv
                   key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
                   restore-keys: |
-                      venv-${{ runner.os }}-${{ matrix.python-version }}-
+                    venv-${{ runner.os }}-${{ matrix.python-version }}-
 
             - name: Install dependencies (incl. dev)
               run: poetry install --with dev --no-interaction --no-ansi
@@ -72,18 +73,18 @@ jobs:
 
             - name: Unit tests + coverage (XML + badge)
               run: |
-                  mkdir -p docs
-                  poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
-                  poetry run python -m pip install --disable-pip-version-check -q coverage-badge
-                  poetry run python -m coverage_badge -o docs/coverage.svg -f
+                mkdir -p docs
+                poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
+                poetry run python -m pip install --disable-pip-version-check -q coverage-badge
+                poetry run python -m coverage_badge -o docs/coverage.svg -f
 
             - name: Upload coverage.xml and badge
               uses: actions/upload-artifact@v4
               with:
                   name: coverage-artifacts
                   path: |
-                      coverage.xml
-                      docs/coverage.svg
+                    coverage.xml
+                    docs/coverage.svg
 
             # --- Schema harness ---
 
@@ -133,7 +134,7 @@ jobs:
 
     export-requirements:
         runs-on: ubuntu-latest
-        needs: [ lint-and-test ]
+        needs: [lint-and-test]
         steps:
             - name: Checkout
               uses: actions/checkout@v4

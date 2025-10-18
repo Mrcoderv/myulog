@@ -50,7 +50,7 @@ setup: ## Install local tools (optional; CI installs its own)
 
 yamllint: ## Lint YAML with 4-space indentation
 	@pipx install yamllint >/dev/null 2>&1 || true
-	@yamllint -d "{extends: default, rules: {indentation: {indent: 4}}}" .
+	@yamllint .
 
 lint: ## Lint with ruff
 	@poetry run ruff check .

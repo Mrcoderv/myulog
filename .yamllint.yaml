@@ -1,5 +1,28 @@
+---
 extends: default
+
 rules:
+    # Require '---' at the top of YAML files
+    document-start:
+        present: true
+
+    # Easier CI output
+    comments-indentation: disable
+
+    # Avoid GitHub Actions false positives (on/off/yes/no)
+    truthy: disable
+
+    # Enforce 4-space indentation everywhere
     indentation:
         spaces: 4
+        indent-sequences: true
+
+    # No spaces inside bracket lists like [main]
+    brackets:
+        max-spaces-inside: 0
+        max-spaces-inside-empty: 0
+
+    # Be lenient on long lines in CI
+    line-length:
+        max: 120
         level: warning
