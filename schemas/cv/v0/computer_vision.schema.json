@@ -85,7 +85,18 @@
 
     "outcome": { "$ref": "../../_common.json#/$defs/outcome" },
 
-    "safety_flags": { "$ref": "../../_common.json#/$defs/safety_flag" },
+    "safety_flags": {
+      "description": "Preferred: array of safety flags; Legacy: single flag string",
+      "oneOf": [
+        { "$ref": "../../_common.json#/$defs/safety_flag" },
+        {
+          "type": "array",
+          "items": { "$ref": "../../_common.json#/$defs/safety_flag" },
+          "maxItems": 10,
+          "uniqueItems": true
+        }
+      ]
+    },
 
     "error": {
       "type": "object",
