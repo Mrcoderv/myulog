@@ -11,11 +11,12 @@ help: ## Show available commands
 	@echo "Common commands:"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make lint               - run ruff lint locally (poetry run)"
-	@echo "  make test               - run pytest locally (poetry run)"
-	@echo "  make test.schemas       - run JSON Schema test harness (writes JUnit XML)"
-	@echo "  make test.schemas.json  - run JSON Schema test harness (writes JSON)"
-	@echo "  make test.all           - run all checks: lint + unit tests + schema harness (CI parity)"
+	@echo "  make lint        - run ruff lint locally (poetry run)"
+	@echo "  make test        - run pytest locally (poetry run)"
+	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
+	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
+	@echo "  make test.determinism
+	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
 	@echo "  make rules.validate     - validate rules.json against rules.schema.json"
@@ -34,6 +35,9 @@ help: ## Show available commands
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
 	@echo "  make format-vocab       - auto-format the vocabulary JSON"
+  @echo "Synthetic Data:"
+	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
+	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
@@ -54,10 +58,16 @@ test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit 
 test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes JSON to tests/reports/)
 	@poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
 
+test.determinism: ## Run determinism tests for data generators
+	@poetry run pytest -q data/generator/test_determinism.py
+
+
 test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) lint
 	@$(MAKE) test
 	@$(MAKE) test.schemas
+	@$(MAKE) test.schemas.json
+	@$(MAKE) test.determinism
 
 demo.generate: ## Create tiny demo schema, examples and raw inputs for the harness
 	@poetry run python3 tests/harness/generate_demo.py
@@ -97,3 +107,25 @@ rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate
 	@$(MAKE) rules.test
 	@echo "✓ All rules checks passed"
+
+
+# --- Synthetic Data Generators ---
+.PHONY: data.generate data.generate.raw test.roundtrip
+
+data.generate: ## Generate synthetic JSONL (per domain)
+	@poetry run python3 data/generator/main.py -d agentic -n log_agentic
+	@poetry run python3 data/generator/main.py -d cv -n log_cv
+	@poetry run python3 data/generator/main.py -d api -n log_api
+	@poetry run python3 data/generator/main.py -d llm -n log_llm
+
+# @poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -s $(Seed) -n $(name) -args $(Arguments)
+
+data.generate.raw: ## Generate raw-line mirrors for round-trip tests
+	@poetry run python3 data/generator/main.py -d agentic -n agentic --raw-mirror
+	@poetry run python3 data/generator/main.py -d cv -n cv --raw-mirror
+	@poetry run python3 data/generator/main.py -d api -n api --raw-mirror
+	@poetry run python3 data/generator/main.py -d llm -n llm --raw-mirror
+
+# --- Round-trip test ---
+test.roundtrip:
+	@poetry run pytest -q data/generator/test_roundtrip.py

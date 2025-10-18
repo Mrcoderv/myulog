@@ -2,6 +2,7 @@
 Agentic schema validation using Draft 2020-12 + explicit file/HTTP aliasing,
 matching the robust approach used for the LLM schema.
 """
+
 import json
 import pathlib
 from urllib.parse import urljoin
@@ -35,25 +36,26 @@ def schema_validator():
         validator = schema_validator(AGENTIC_SCHEMA)
         validator.validate(instance)
     """
+
     def _get(wrapper_name: str) -> Validator:
-        repo_root   = pathlib.Path(__file__).parents[2]
+        repo_root = pathlib.Path(__file__).parents[2]
         schemas_dir = repo_root / "schemas"
-        vocab_dir   = repo_root / "vocab"
+        vocab_dir = repo_root / "vocab"
 
         wrapper_path = (schemas_dir / wrapper_name).resolve()
-        v0_path      = (schemas_dir / "agentic" / "v0" / "step.schema.json").resolve()
-        common_path  = (schemas_dir / "_common.json").resolve()
-        vocab_path   = (vocab_dir / "controlled_vocabulary.json").resolve()
+        v0_path = (schemas_dir / "agentic" / "v0" / "step.schema.json").resolve()
+        common_path = (schemas_dir / "_common.json").resolve()
+        vocab_path = (vocab_dir / "controlled_vocabulary.json").resolve()
 
         wrapper = _load(wrapper_path)
-        v0      = _load(v0_path)
-        common  = _load(common_path)
-        vocab   = _load(vocab_path)
+        v0 = _load(v0_path)
+        common = _load(common_path)
+        vocab = _load(vocab_path)
 
         reg = Registry()
 
         # 1) Register file:// URIs
-        for (uri, doc) in (
+        for uri, doc in (
             (wrapper_path.as_uri(), wrapper),
             (v0_path.as_uri(), v0),
             (common_path.as_uri(), common),

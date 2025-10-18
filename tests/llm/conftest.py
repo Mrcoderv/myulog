@@ -40,26 +40,27 @@ def schema_validator():
         validator = schema_validator(LLM_SCHEMA)
         validator.validate(instance)
     """
+
     def _get(wrapper_name: str) -> Validator:
-        repo_root   = pathlib.Path(__file__).parents[2]
+        repo_root = pathlib.Path(__file__).parents[2]
         schemas_dir = repo_root / "schemas"
-        vocab_dir   = repo_root / "vocab"
+        vocab_dir = repo_root / "vocab"
 
         # Schema files
         wrapper_path = (schemas_dir / wrapper_name).resolve()
-        v0_path      = (schemas_dir / "llm" / "v0" / "llm.schema.json").resolve()
-        common_path  = (schemas_dir / "_common.json").resolve()
-        vocab_path   = (vocab_dir / "controlled_vocabulary.json").resolve()
+        v0_path = (schemas_dir / "llm" / "v0" / "llm.schema.json").resolve()
+        common_path = (schemas_dir / "_common.json").resolve()
+        vocab_path = (vocab_dir / "controlled_vocabulary.json").resolve()
 
         wrapper = _load(wrapper_path)
-        v0      = _load(v0_path)
-        common  = _load(common_path)
-        vocab   = _load(vocab_path)
+        v0 = _load(v0_path)
+        common = _load(common_path)
+        vocab = _load(vocab_path)
 
         reg = Registry()
 
         # 1) Register the real file:// URIs
-        for (uri, doc) in (
+        for uri, doc in (
             (wrapper_path.as_uri(), wrapper),
             (v0_path.as_uri(), v0),
             (common_path.as_uri(), common),
@@ -87,7 +88,7 @@ def schema_validator():
             reg = _add_resource(reg, urljoin(base, "../vocab/controlled_vocabulary.json"), vocab)
 
         # 5) Convenience aliases from wrapper/v0 bases to _common and vocab
-#    (if ever referenced relatively)
+        #    (if ever referenced relatively)
         for base in (
             wrapper.get("$id"),
             wrapper_path.as_uri(),

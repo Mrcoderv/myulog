@@ -79,12 +79,18 @@ def main():
         (EXAMPLES / "demo" / "invalid1.json", '{ "msg": 123 }'),
         (RAW / "demo" / "valid_log.txt", json.dumps({"message": "hello from raw"})),
         (RAW / "demo" / "invalid_parse.txt", ""),
-        (SCHEMAS / "demo.schema.json", json.dumps({
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "title": "Demo schema (wrapper)",
-            "description": "Compatibility wrapper that references the current demo schema",
-            "$ref": "./demo/schema.json"
-        }, indent=2)),
+        (
+            SCHEMAS / "demo.schema.json",
+            json.dumps(
+                {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "Demo schema (wrapper)",
+                    "description": "Compatibility wrapper that references the current demo schema",
+                    "$ref": "./demo/schema.json",
+                },
+                indent=2,
+            ),
+        ),
     ]
 
     # Write all files

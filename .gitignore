@@ -64,6 +64,7 @@ tests/perf_artifacts/
 ._*
 Thumbs.db
 ehthumbs.db
+.ruff_cache/
 
 # Environment & Secrets
 .env
@@ -100,4 +101,9 @@ local_pipeline/in/*
 
 # Sample logs (not pushed to repo)
 sample_logs/
-data/
+
+# Synthetic artifacts produced locally
+data/synthetic/*.jsonl
+!data/synthetic/.gitkeep
+data/synthetic/raw/*.jsonl
+!data/synthetic/raw/.gitkeep

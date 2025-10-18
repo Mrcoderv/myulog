@@ -33,8 +33,9 @@ def _ensure_draft202012(contents: dict) -> dict:
 def _build_registry():
     # Load the FINAL alias (wrapper), versioned schema, common, and vocab.
     alias_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "cv.schema.json"))
-    v0_schema = _ensure_draft202012(_load_json(
-        SCHEMAS_DIR / "cv" / "v0" / "computer_vision.schema.json"))
+    v0_schema = _ensure_draft202012(
+        _load_json(SCHEMAS_DIR / "cv" / "v0" / "computer_vision.schema.json")
+    )
     common_schema = _ensure_draft202012(_load_json(SCHEMAS_DIR / "_common.json"))
 
     # NOTE: The vocab lives at repo root: /vocab/controlled_vocabulary.json

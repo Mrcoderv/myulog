@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 
 _MISSING = object()
 
+
 def _resolve_path(data: Dict[str, Any], path: str):
     cur: Any = data
     for part in path.split("."):
@@ -13,12 +14,14 @@ def _resolve_path(data: Dict[str, Any], path: str):
         cur = cur[part]
     return cur
 
+
 def _find_value_in_path(data: Dict[str, Any], paths: List[str]):
     for p in paths:
         v = _resolve_path(data, p)
         if v is not _MISSING:
             return v
     return _MISSING
+
 
 def _match_atomic(field_val: Any, op: str, value: Any) -> bool:
     """Test a single field value against an operator and comparison value; return True if match."""
@@ -48,21 +51,14 @@ def _match_atomic(field_val: Any, op: str, value: Any) -> bool:
     elif op == "contains":
         return isinstance(v, (list, str)) and value in v
     elif op == "starts_with":
-        return (
-            isinstance(v, str)
-            and isinstance(value, str)
-            and v.startswith(value)
-        )
+        return isinstance(v, str) and isinstance(value, str) and v.startswith(value)
     elif op == "ends_with":
-        return (
-            isinstance(v, str)
-            and isinstance(value, str)
-            and v.endswith(value)
-        )
+        return isinstance(v, str) and isinstance(value, str) and v.endswith(value)
     elif op == "regex":
         return isinstance(v, str) and re.search(value, v) is not None
 
     return False
+
 
 def _apply_compare(val: float, compare: Dict[str, float] | None) -> bool:
     """Apply numeric compare dict (gt/gte/lt/lte/eq) to a value."""
@@ -79,6 +75,7 @@ def _apply_compare(val: float, compare: Dict[str, float] | None) -> bool:
     if "eq" in compare:
         return val == compare["eq"]
     return False
+
 
 def _extract_value(text: str | Any, op: str, pattern: str | None):
     if not isinstance(text, str) or not pattern:
@@ -98,11 +95,10 @@ def _extract_value(text: str | Any, op: str, pattern: str | None):
         return None
     return None
 
-def _matches(
-    event: Dict[str, Any], cond: Dict[str, Any], aliases: Dict[str, List[str]]
-) -> bool:
-    """Evaluate condition against event data using logical operators and field matching; 
-       return True if condition satisfied."""
+
+def _matches(event: Dict[str, Any], cond: Dict[str, Any], aliases: Dict[str, List[str]]) -> bool:
+    """Evaluate condition against event data using logical operators and field matching;
+    return True if condition satisfied."""
     if "all" in cond:
         return all(_matches(event, c, aliases) for c in cond["all"])
     if "any" in cond:
@@ -122,9 +118,7 @@ def _matches(
 
             if op in {"extract_ms", "extract_number", "extract_percent"}:
                 extracted = _extract_value(val, op, cond.get("pattern"))
-                if extracted is not None and _apply_compare(
-                    extracted, cond.get("compare")
-                ):
+                if extracted is not None and _apply_compare(extracted, cond.get("compare")):
                     return True
             elif _match_atomic(val, op, cond.get("value")):
                 return True
@@ -142,11 +136,10 @@ def _matches(
     op = cond["op"]
     if op in {"extract_ms", "extract_number", "extract_percent"}:
         extracted = _extract_value(field_val, op, cond.get("pattern"))
-        return extracted is not None and _apply_compare(
-            extracted, cond.get("compare")
-        )
+        return extracted is not None and _apply_compare(extracted, cond.get("compare"))
 
     return _match_atomic(field_val, op, cond.get("value"))
+
 
 def evaluate(event: Dict[str, Any], rules_doc: Dict[str, Any]) -> Dict[str, Any]:
     aliases = rules_doc.get("aliases", {})
@@ -163,8 +156,10 @@ def evaluate(event: Dict[str, Any], rules_doc: Dict[str, Any]) -> Dict[str, Any]
             return action
     return dict(rules_doc.get("default_action", {}))
 
+
 def json_files(dirpath: pathlib.Path):
     return sorted(dirpath.glob("*.json"))
+
 
 def load_json(path: pathlib.Path):
     return json.loads(path.read_text(encoding="utf-8"))
