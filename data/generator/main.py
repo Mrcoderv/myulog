@@ -6,8 +6,7 @@ import pathlib
 from agentic_generator import AgenticGenerator
 from api_generator import GenerateAPILog
 from cv_generator import GenerateCVLog
-
-# from llm_generator import GenerateLLMLog
+from llm_generator import GenerateLLMLog
 
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
@@ -122,6 +121,33 @@ generator_classes = {
             "outcome",
             "error_code",
             "ranked_tools",
+        ],
+    },
+    "llm": {
+        "class": GenerateLLMLog,
+        "fields": [
+            "request_id",
+            "timestamp",
+            "model_name",
+            "prompt",
+            "response",
+            "latency_ms",
+            "status",
+            "error_code",
+        ],
+        "valid_params": [
+            "level",
+            "category",
+            "sub_category",
+            "component",
+            "module",
+            "safety_flag",
+            "version",
+            "stack",
+            "request_id",
+            "latency_ms",
+            "duration_ms",
+            # add more optional params your LLM generator supports
         ],
     },
 }
