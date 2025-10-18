@@ -13,6 +13,12 @@ ULog is an initiative to standardize and make actionable the telemetry generated
 - `local_pipeline/` – docker-compose demo with a placeholder `classifier` service
   - `in/` and `out/` are mounted as volumes at `/in` and `/out` inside the container
 
+
+## Privacy & Data-Handling (must read)
+We work **locally**, with **synthetic-only** data. Do not paste real logs or connect any cloud services here.  
+See **[docs/PRIVACY.md](./docs/PRIVACY.md)** for redaction rules, unsafe→safe examples, and the reviewer checklist.
+
+
 ## Quickstart (local)
 1. Copy env: `cp .env.example .env`
 2. Generate a sample input: `make generate`

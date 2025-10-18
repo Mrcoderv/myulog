@@ -19,8 +19,9 @@
 - **Examples provided?** ☐ yes (link paths)
 
 ## Safety & Privacy
-- **Data policy:** Synthetic-only; no real data. ☐ confirmed
-- **Docs updated:** ☐ VERSIONING ☐ CHANGE_PROCESS ☐ RELEASE_NOTES_TEMPLATE ☐ CONTRIBUTING
+- **Synthetic-only (no real data):** ☐ confirmed — see [docs/PRIVACY.md](../docs/PRIVACY.md)
+- **Raw examples sanitized:** ☐ IPs/emails/hosts/tokens redacted; prompts/plans **summarized**
+- **Docs touched (if needed):** ☐ PRIVACY ☐ VERSIONING ☐ CHANGE_PROCESS ☐ CONTRIBUTING
 
 ## Checklist
 - [ ] I applied the appropriate `semver:major|minor|patch` label.
