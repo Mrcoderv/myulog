@@ -1,182 +1,328 @@
 """Normalizer module for transforming extracted fields into schema-compliant format."""
 
-from typing import Any, Dict, Union
+from __future__ import annotations
+
+from typing import Any, Dict, List, Union
+
+from .vocab import canonicalize_flags, canonicalize_scalar
+
+# -------------------- Shared mappings (domain-agnostic helpers) --------------------
+
+LEVEL_ALIASES = {"warning": "warn", "fatal": "critical", "trace": "debug"}
+
+# LLM pipeline_stage -> vocab sub_category
+LLM_SUBCAT_MAP = {
+    "serve": "service",
+    "tokenizer": "tokenizer",
+    "quant": "quantization",
+    "load": "model_load",
+    "inference": "inference",
+    "rag_retrieve": "data_io",
+    "rag_embed": "embedding_service",
+    "rag_rerank": "reranker",
+    "safety_check": "safety",
+    "sampling": "inference",
+}
+
+# CV phase -> vocab sub_category
+CV_SUBCAT_MAP = {
+    "ingest": "data_io",
+    "preprocess": "preproc",
+    "inference": "inference",
+    "postprocess": "preproc",
+    "eval": "metrics",   # or "analytics" if you prefer
+    "serve": "service",
+    "track": "tracking",
+    "pose": "inference",
+}
+
+# Agentic step_kind -> suggested sub_category
+AGENTIC_SUBCAT_MAP = {
+    "plan_created": "planner",
+    "tool_selected": "tool_call",
+    "cache": "storage",
+    "guardrails": "safety",
+    "cost": "metrics",
+    "stream_start": "streaming",
+}
+
+# Core API parser event_type -> schema event_type
+COREAPI_EVENT_MAP = {
+    # keep
+    "http_request": "http_request",
+    "http_response": "http_response",
+    # build-ish
+    "deployment_artifact": "build",
+    "source_pull": "build",
+    "dependency_download": "build",
+    "dependency_install": "dependency_install",
+    "build_event": "build",
+    # errors
+    "service_failure": "exception",
+    "stacktrace": "exception",
+    "python_error": "exception",
+    "error": "exception",
+    # runtime
+    "server_running": "startup",
+}
+
+ALLOWED_SUBCATS = {
+    "analytics","auth","build","config","data","data_io","dependency","deployment",
+    "embedding_service","event","inference","infrastructure","job","kv_cache","metrics",
+    "model","model_drift","model_load","network","planner","preproc","quantization",
+    "rag_timeout","rate_limit","reranker","safety","scheduler","security","service",
+    "storage","streaming","system","third_party","tokenizer","tool_call","tracking",
+    "ui","user_input"
+}
 
 
 class Normalizer:
-    """Normalizes extracted fields to schema format with unit conversions."""
-    
+    """Normalizes extracted fields to schema format with unit conversions and vocabulary."""
+
     def normalize(self, raw_data: Dict[str, Any], domain: str) -> Dict[str, Any]:
-        """Applies normalization rules for domain.
-        
+        """
         Args:
             raw_data: Raw extracted data from parser
-            domain: Target domain (core_api, llm, agentic, cv)
-            
+            domain: Target domain ('core_api', 'llm', 'agentic', 'cv')
+
         Returns:
-            Normalized data conforming to domain schema
+            Normalized data conforming to the domain schema & controlled vocabulary.
         """
-        # Create a copy to avoid modifying the original
-        normalized = raw_data.copy()
-        
-        # Define fields that should be converted to milliseconds
-        duration_fields = {
-            'latency_ms', 'duration_ms', 'ttft_ms', 'latency', 'duration', 'ttft'
-        }
-        
-        # Define fields that should have numeric cleaning
+        # --- 0) Copy input to avoid mutating caller data
+        normalized = dict(raw_data)
+
+        # --- 1) Unit & numeric normalization (your existing logic)
+        duration_fields = {"latency_ms", "duration_ms", "ttft_ms", "latency", "duration", "ttft"}
         numeric_fields = {
-            'tokens', 'prompt_tokens', 'completion_tokens', 'total_tokens',
-            'http_status', 'status_code', 'count', 'size', 'bytes'
+            "tokens",
+            "prompt_tokens",
+            "completion_tokens",
+            "total_tokens",
+            "http_status",
+            "status_code",
+            "count",
+            "size",
+            "bytes",
         }
-        
-        # Apply conversions recursively
         normalized = self._normalize_dict(normalized, duration_fields, numeric_fields)
-        
+
+        # --- 2) Domain pre-canonical shaping (adds/massages fields before vocab checks)
+        self._precanonicalize(normalized, domain)
+
+        # --- 3) Vocabulary canonicalization for level/outcome/category/safety_flags
+        self._apply_vocabulary(normalized)
+
+        # --- 4) Domain post-fixups (e.g., CV single safety flag)
+        self._post_by_domain(normalized, domain)
+
         return normalized
-    
-    def _normalize_dict(
-        self, 
-        data: Dict[str, Any], 
-        duration_fields: set, 
-        numeric_fields: set
-    ) -> Dict[str, Any]:
-        """Recursively normalize a dictionary.
-        
-        Args:
-            data: Dictionary to normalize
-            duration_fields: Set of field names that should be converted to milliseconds
-            numeric_fields: Set of field names that should have numeric cleaning
-            
-        Returns:
-            Normalized dictionary
-        """
-        result = {}
-        
+
+    # ---------------------------- Your existing helpers ----------------------------
+
+    def _normalize_dict(self, data: Dict[str, Any], duration_fields: set, numeric_fields: set) -> Dict[str, Any]:
+        """Recursively normalize a dictionary."""
+        result: Dict[str, Any] = {}
+
         for key, value in data.items():
             if value is None:
                 result[key] = value
             elif isinstance(value, dict):
-                # Recursively normalize nested dictionaries
                 result[key] = self._normalize_dict(value, duration_fields, numeric_fields)
             elif isinstance(value, list):
-                # Normalize list items
                 result[key] = [
-                    self._normalize_dict(item, duration_fields, numeric_fields) 
-                    if isinstance(item, dict) else item
+                    self._normalize_dict(item, duration_fields, numeric_fields) if isinstance(item, dict) else item
                     for item in value
                 ]
             elif key in duration_fields and isinstance(value, str):
-                # Convert duration strings to milliseconds
                 try:
                     result[key] = self.convert_duration_to_ms(value)
                 except ValueError:
-                    # If conversion fails, keep original value
                     result[key] = value
             elif key in numeric_fields and isinstance(value, str):
-                # Clean numeric strings
                 try:
                     result[key] = self.clean_numeric(value)
                 except ValueError:
-                    # If cleaning fails, keep original value
                     result[key] = value
             else:
                 result[key] = value
-        
+
         return result
-    
+
+    def _apply_vocabulary(self, doc: Dict[str, Any]) -> None:
+        """
+        Canonicalize level/outcome/category/safety_flags to controlled vocabulary.
+        If any canonicalization fails, attach clear `unparsed_reason`.
+        """
+        # Normalize scalar fields
+        for f in ("level", "outcome", "category"):
+            if f in doc:
+                canon = canonicalize_scalar(f, str(doc[f]) if doc[f] is not None else None)
+                if canon is None and doc[f] is not None:
+                    doc.setdefault("unparsed_reason", f"invalid_{f}_value")
+                else:
+                    doc[f] = canon
+
+        # Normalize safety flags (string "a,b,c" or list -> canonical list)
+        if "safety_flags" in doc and doc["safety_flags"] is not None:
+            flags: Union[str, List[str]] = doc["safety_flags"]
+            if isinstance(flags, str):
+                parts = [p.strip() for p in flags.split(",") if p.strip()]
+            else:
+                parts = [str(p) for p in flags]
+
+            canon_list = canonicalize_flags(parts)
+            if canon_list is None:
+                doc.setdefault("unparsed_reason", "invalid_safety_flags")
+            else:
+                doc["safety_flags"] = canon_list
+
     def convert_units(self, value: Any, field_name: str) -> Any:
-        """Converts units (time, numbers, etc.).
-        
-        Args:
-            value: Value to convert
-            field_name: Name of the field being converted
-            
-        Returns:
-            Converted value
-        """
-        # TODO: Implement unit conversion logic
+        """Compatibility shim; not used directly (unit conversion handled in _normalize_dict)."""
         return value
-    
+
     def clean_numeric(self, value: str) -> Union[int, float]:
-        """Removes separators from numbers: '3,276,800' -> 3276800.
-        
-        Args:
-            value: Numeric string with separators
-            
-        Returns:
-            Cleaned numeric value
-            
-        Raises:
-            ValueError: If value cannot be converted to a number
-        """
+        """Removes separators from numbers: '3,276,800' -> 3276800."""
         if not isinstance(value, str):
-            # If already a number, return as-is
             return value
-        
-        # Remove common separators (commas, underscores)
-        cleaned = value.replace(',', '').replace('_', '')
-        
-        # Convert to appropriate numeric type
+        cleaned = value.replace(",", "").replace("_", "")
         try:
-            return float(cleaned) if '.' in cleaned else int(cleaned)
+            return float(cleaned) if "." in cleaned else int(cleaned)
         except ValueError as e:
             raise ValueError(f"Cannot convert '{value}' to numeric value: {e}")
-    
+
     def convert_duration_to_ms(self, value: str) -> float:
-        """Converts duration strings to milliseconds.
-        
-        Examples:
-            "75s" -> 75000.0
-            "2m" -> 120000.0
-            "45.2ms" -> 45.2
-            
-        Args:
-            value: Duration string with unit
-            
-        Returns:
-            Duration in milliseconds
-            
-        Raises:
-            ValueError: If value format is invalid or unit is not recognized
-        """
+        """Converts duration strings to milliseconds, e.g. '75s' -> 75000.0."""
         import re
-        
+
         if not isinstance(value, str):
-            # If already a number, assume it's in milliseconds
             return float(value)
-        
-        # Parse the numeric value and unit
-        match = re.match(r'^([\d.]+)\s*([a-zA-Z]+)$', value.strip())
+
+        match = re.match(r"^([\d.]+)\s*([a-zA-Z]+)$", value.strip())
         if not match:
             raise ValueError(f"Invalid duration format: '{value}'")
-        
+
         numeric_part, unit = match.groups()
         try:
             numeric_value = float(numeric_part)
         except ValueError as e:
             raise ValueError(f"Invalid numeric value in duration '{value}': {e}")
-        
-        # Convert to milliseconds based on unit
+
         unit_lower = unit.lower()
-        if unit_lower == 'ms':
+        if unit_lower == "ms":
             return numeric_value
-        elif unit_lower == 's':
+        if unit_lower == "s":
             return numeric_value * 1000
-        elif unit_lower == 'm' or unit_lower == 'min':
+        if unit_lower in {"m", "min"}:
             return numeric_value * 60000
-        elif unit_lower == 'h' or unit_lower == 'hr':
+        if unit_lower in {"h", "hr"}:
             return numeric_value * 3600000
-        else:
-            raise ValueError(f"Unrecognized time unit: '{unit}'")
-    
-    def join_stacktrace(self, lines: list[str]) -> str:
-        """Joins stacktrace lines with \\n.
-        
-        Args:
-            lines: List of stacktrace lines
-            
-        Returns:
-            Joined stacktrace string
-        """
-        return '\n'.join(lines)
+        raise ValueError(f"Unrecognized time unit: '{unit}'")
+
+    def join_stacktrace(self, lines: List[str]) -> str:
+        """Joins stacktrace lines with \\n."""
+        return "\n".join(lines)
+
+    # ---------------------------- New: domain shaping ----------------------------
+
+    def _precanonicalize(self, doc: Dict[str, Any], domain: str) -> None:
+        """Map synonyms and infer sensible defaults *before* strict vocab checks."""
+
+        # Level aliases (map to canonical names before canonicalize_scalar)
+        if "level" in doc and isinstance(doc["level"], str):
+            lvl = doc["level"].lower()
+            doc["level"] = LEVEL_ALIASES.get(lvl, lvl)
+
+        if domain == "core_api":
+            # map event_type to canonical set
+            et = doc.get("event_type")
+            if isinstance(et, str) and et in COREAPI_EVENT_MAP:
+                doc["event_type"] = COREAPI_EVENT_MAP[et]
+
+            # infer outcome if missing
+            if "outcome" not in doc:
+                lvl = str(doc.get("level") or "").lower()
+                if doc.get("event_type") == "exception" or lvl == "error":
+                    doc["outcome"] = "failure"
+                elif lvl == "warn":
+                    doc["outcome"] = "running"
+                else:
+                    doc["outcome"] = "success"
+
+            # uppercase HTTP method (schema enum is uppercase)
+            if "action" in doc and isinstance(doc["action"], str):
+                doc["action"] = doc["action"].upper()
+
+            # if parser used a coarse 'category' like 'build', keep it as sub_category when valid
+            coarse = doc.get("category")
+            if isinstance(coarse, str) and coarse in ALLOWED_SUBCATS:
+                doc.setdefault("sub_category", coarse)
+
+            # force domain category
+            doc["category"] = "core_api"
+
+        elif domain == "llm":
+            # map pipeline_stage -> sub_category
+            ps = doc.get("pipeline_stage")
+            if isinstance(ps, str) and "sub_category" not in doc:
+                sc = LLM_SUBCAT_MAP.get(ps)
+                if sc:
+                    doc["sub_category"] = sc
+
+            # infer outcome if missing
+            if "outcome" not in doc:
+                if doc.get("error"):
+                    doc["outcome"] = "failure"
+                elif doc.get("finish_reason") == "timeout":
+                    doc["outcome"] = "timeout"
+                else:
+                    doc["outcome"] = "success" if (doc.get("result") or doc.get("finish_reason")) else "running"
+
+            doc["category"] = "llm"
+
+        elif domain == "agentic":
+            # map status -> outcome
+            status = str(doc.get("status", "")).lower()
+            if "outcome" not in doc and status:
+                doc["outcome"] = {
+                    "failed": "failure",
+                    "timeout": "timeout",
+                    "retry": "running",  # or "pending" if you prefer that model
+                    "success": "success",
+                }.get(status)
+
+            # step_kind -> sub_category
+            sk = doc.get("step_kind")
+            if isinstance(sk, str) and "sub_category" not in doc:
+                sc = AGENTIC_SUBCAT_MAP.get(sk)
+                if sc:
+                    doc["sub_category"] = sc
+
+            doc["category"] = "agentic"
+
+        elif domain == "cv":
+            # phase -> sub_category
+            ph = doc.get("phase")
+            if isinstance(ph, str) and "sub_category" not in doc:
+                sc = CV_SUBCAT_MAP.get(ph)
+                if sc:
+                    doc["sub_category"] = sc
+
+            # infer outcome if missing
+            if "outcome" not in doc:
+                if doc.get("error"):
+                    doc["outcome"] = "failure"
+                else:
+                    lvl = str(doc.get("level") or "").lower()
+                    doc["outcome"] = "running" if lvl == "warn" else "success"
+
+            doc["category"] = "cv"
+
+    def _post_by_domain(self, doc: Dict[str, Any], domain: str) -> None:
+        """Final nips and tucks after vocab canonicalization."""
+        if domain == "cv":
+            # CV schema expects a SINGLE safety flag (string).
+            sf = doc.get("safety_flags")
+            if isinstance(sf, list):
+                chosen = next((f for f in sf if f and f != "none"), None) or ("none" if sf else None)
+                if chosen:
+                    doc["safety_flags"] = chosen
