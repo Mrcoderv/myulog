@@ -63,7 +63,7 @@ generator_classes = {
             "hardware",
             "result",
         ],
-        "valid_params": ["timestampcomponentsafety_flagcategorylevelok"],
+        "valid_params": ["timestamp", "component", "safety_flag", "category", "level", "ok"],
     },
     "api": {
         "class": GenerateAPILog,
@@ -155,3 +155,5 @@ def create_jsonl_file(file_path, data):
 
 create_jsonl_file(valid_log_path, valid_logs)
 create_jsonl_file(invalid_log_path, invalid_logs)
+print(f"✅ Valid logs written to: {valid_log_path}")
+print(f"✅ Invalid logs written to: {invalid_log_path}")

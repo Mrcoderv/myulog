@@ -109,8 +109,8 @@ rules.check: ## Run both rules validation and tests
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python3 data/generator/main.py -d agentic -n agentic
-# 	@poetry run python3 data/generator/main.py -d cv -n cv
-# 	@poetry run python3 data/generator/main.py -d api -n api
+	@poetry run python3 data/generator/main.py -d cv -n cv
+	@poetry run python3 data/generator/main.py -d api -n api
 # 	@poetry run python3 data/generator/main.py -d llm -n llm
 
 # 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
