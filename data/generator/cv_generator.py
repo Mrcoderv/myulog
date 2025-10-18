@@ -50,7 +50,7 @@ class GenerateCVLog(GenerateLog):
         ]
         self.models = ["ResNet50", "VGG16", "InceptionV3", "MobileNetV2", "EfficientNetB0"]
         self.datasets = ["ImageNet", "CIFAR-10", "COCO", "MNIST", "Pascal VOC"]
-        self.outcomes = self.load_from_vocab(["outcome"])[0]
+        self.outcomes = self.load_from_vocab(["outcomes"])[0]
         self.input_params = input_params if input_params else []
         self.param_dict = {}
 

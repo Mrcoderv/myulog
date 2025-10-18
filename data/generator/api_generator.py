@@ -10,9 +10,9 @@ class GenerateAPILog(GenerateLog):
         size: int,
         seed: int,
         input_params: List[str] | None,
-        valid_options: List[str] | None,
+        valid_params: List[str] | None,
     ) -> None:
-        super().__init__(fields, size, seed, valid_options)
+        super().__init__(fields, size, seed, valid_params)
         self.input_params = input_params if input_params else []
 
         self.outcomes = self.load_from_vocab(["outcomes"])[0]
@@ -51,16 +51,16 @@ class GenerateAPILog(GenerateLog):
         ]
         self.dict_params = {}
 
-    def select_status_code(self, result: str) -> int:
-        if result == "success":
+    def select_status_code(self, outcome: str) -> int:
+        if outcome == "success":
             return self.select_enum([200, 201, 202, 204])
-        elif result == "error":
+        elif outcome == "error":
             return self.select_enum([400, 401, 403, 404, 500, 502, 503])
-        elif result == "timeout":
+        elif outcome == "timeout":
             return 504
-        elif result == "rejected":
+        elif outcome == "rejected":
             return 429
-        elif result == "throttled":
+        elif outcome == "throttled":
             return 429
         else:
             return 500
@@ -80,7 +80,7 @@ class GenerateAPILog(GenerateLog):
                 log_entry["endpoint"] = self.select_enum(self.endpoints)
                 log_entry["action"] = self.select_enum(self.actions)
 
-            if log_entry["result"] in ["failure"]:
+            if log_entry["outcome"] in ["failure"]:
                 type_of_error = self.select_enum(self.errors)
                 choice_1 = {"type": type_of_error, "message": self.error_messages[type_of_error]}
                 choice_2 = {"type": type_of_error}
