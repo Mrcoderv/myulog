@@ -146,9 +146,12 @@ jobs:
 
             - name: Install Poetry
               run: pipx install poetry
-
+            
+            - name: Enable `poetry export`
+              run: pipx inject poetry poetry-plugin-export
+            
             - name: Export pinned requirements.txt
-              run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+              run: poetry export -f requirements.txt -o requirements.txt --without-hashes
 
             - name: Upload requirements.txt
               uses: actions/upload-artifact@v4
