@@ -1,4 +1,11 @@
-.PHONY: help setup lint test generate classify down test.schemas test.schemas.json test.all demo.generate demo.run
+# Use bash for nicer behavior
+SHELL := /bin/bash
+
+.PHONY: help setup lint test test.schemas test.schemas.json test.all \
+        demo.generate demo.run \
+        lint-vocab format-vocab \
+        rules.validate rules.test rules.check \
+        generate classify down
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -12,24 +19,28 @@ help: ## Show available commands
 	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
-	@echo "  make rules.validate - validate rules.json against rules.schema.json"
-	@echo "  make rules.test  - run unit tests for rules examples"
-	@echo "  make rules.check - validate rules and run tests"
+	@echo "  make rules.validate     - validate rules.json against rules.schema.json"
+	@echo "  make rules.test         - run unit tests for rules examples"
+	@echo "  make rules.check        - validate rules and run tests"
 	@echo ""
 	@echo "Demo:"
-	@echo "  make demo.generate - generate tiny demo schema/examples/raw inputs"
-	@echo "  make demo.run    - generate demo and run the harness against it"
+	@echo "  make demo.generate      - generate tiny demo schema/examples/raw inputs"
+	@echo "  make demo.run           - generate demo and run the harness against it"
 	@echo ""
 	@echo "Pipeline:"
-	@echo "  make generate    - create a sample log in local_pipeline/in"
-	@echo "  make classify    - run docker-compose pipeline (in -> out)"
-	@echo "  make down        - stop/cleanup docker-compose services"
-	@echo "Synthetic Data:"
+	@echo "  make generate           - create a sample log in local_pipeline/in"
+	@echo "  make classify           - run docker-compose pipeline (in -> out)"
+	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo ""
+	@echo "Vocabulary:"
+	@echo "  make lint-vocab         - lint the controlled vocabulary"
+	@echo "  make format-vocab       - auto-format the vocabulary JSON"
+  @echo "Synthetic Data:"
 	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
 	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make setup       - install local dev tools (ruff, pytest) (optional)"
+	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
@@ -79,7 +90,6 @@ down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
 
 # --- Vocabulary helpers ---
-.PHONY: lint-vocab format-vocab
 lint-vocab:
 	@poetry run python tests/vocab/lint_vocab.py
 
@@ -87,8 +97,6 @@ format-vocab:
 	@poetry run python tests/vocab/format_vocab.py
 
 # --- Rules validation and testing ---
-.PHONY: rules.validate rules.test rules.check
-
 rules.validate: ## Validate rules.json against rules.schema.json
 	@poetry run pytest -q tests/rules/test_rules_doc.py::test_rules_schema_validates tests/rules/test_rules_doc.py::test_rule_ids_unique
 

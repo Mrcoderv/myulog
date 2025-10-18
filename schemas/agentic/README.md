@@ -6,7 +6,7 @@ Each schema version includes a unique `$id` field for precise identification and
 
 ```json
 {
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step.schema.json"
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/agentic.schema.json"
 }
 ```
 
@@ -18,7 +18,7 @@ The `$id` serves as:
 ## Versioning
 
 **Current Version:** `v0` (baseline)  
-**Path:** `schemas/agentic/v0/step.schema.json`
+**Path:** `schemas/agentic/v0/agentic.schema.json`
 
 Future versions will be organized in separate directories (`v1/`, `v2/`, etc.). Breaking changes require a major version bump.
 
@@ -131,7 +131,8 @@ LLM inference: 3.5s, 12500 tokens in, 850 tokens out, cost=$0.142
     "est_cost_usd": 0.142
   },
   "level": "info",
-  "category": "llm"
+  "category": "agentic",
+  "sub_category": "llm"
 }
 ```
 
@@ -206,7 +207,8 @@ This example shows step-to-step traceability using `parent_step_id` and demonstr
   "status": "success",
   "duration_ms": 1200,
   "level": "info",
-  "category": "network"
+  "category": "core_api",
+  "sub_category": "network"
 }
 ```
 
@@ -333,6 +335,6 @@ Orchestrator    -> User         : stream_start
 
 ## Schema Validation
 
-All examples above validate against `schemas/agentic/v0/step.schema.json` and reference controlled vocabularies from `schemas/_common.json`.
+All examples above validate against `schemas/agentic/v0/agentic.schema.json` and reference controlled vocabularies from `schemas/_common.json`.
 
 See `/tests/examples/agentic/` for the complete test suite with >=14 valid and >=10 invalid examples.

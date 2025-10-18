@@ -91,11 +91,11 @@ Classifies the event’s domain or origin:
 
 ### `sub_categories`
 
-See the [`ulog-categories-v2.md`](./ulog-categories-v2.md) file for `sub_categories` descriptions with examples.
+See the [`drafts/ulog-categories-v1.md`](./drafts/ulog-categories-v1.md) file for `sub_categories` descriptions with examples.
 
 #### `Naming Rules for Error Codes`
 
-See the [`error_code_naming_rules.md`](./error_code_naming_rules.md) file for naming rules for error codes.
+See the [`error_code_naming_rules.md`](./error_code_naming_rules.md) file for naming rules for error codes. (If this file is not present yet, remove this sentence or add the file.)
 
 ---
 
@@ -195,7 +195,7 @@ These are copy-pasteable triplets to help contributors choose consistently (see 
 11) `Streaming halted due to client disconnect` → `{ "level":"warn","category":"llm","outcome":"failure" }`  
 12) `Embedding service returned empty vector` → `{ "level":"error","category":"llm","outcome":"failure" }`
 
-> Tip: when applicable, also set `sub_category` using the table in `ulog-categories-v2.md` (e.g., `model_load`, `tokenizer`, `data_io`, …).
+> Tip: when applicable, also set `sub_category` using the table in `drafts/ulog-categories-v1.md` (e.g., `model_load`, `tokenizer`, `data_io`, …).
 
 ---
 

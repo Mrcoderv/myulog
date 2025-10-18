@@ -10,7 +10,6 @@ ULog is an initiative to standardize and make actionable the telemetry generated
 - `data/` – sample or synthetic datasets
 - `docs/` – project documentation
 - `tests/` – unit tests (CI runs `pytest`)
-- `tools/` – helper scripts and CLIs
 - `local_pipeline/` – docker-compose demo with a placeholder `classifier` service
   - `in/` and `out/` are mounted as volumes at `/in` and `/out` inside the container
 
@@ -24,7 +23,6 @@ ULog is an initiative to standardize and make actionable the telemetry generated
 Validate schemas and examples locally:
 
 - Text summary: `make test.schemas`
-- JUnit:       `make test.schemas.junit`
 - JSON:        `make test.schemas.json`
 
 Wrappers only are collected (files matching `schemas/*.schema.json`).
