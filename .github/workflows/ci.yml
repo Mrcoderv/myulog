@@ -64,8 +64,9 @@ jobs:
 
             - name: YAML lint (4-space indentation on this workflow)
               run: |
-                  pipx install yamllint
-                  yamllint -d "{extends: default, rules: {indentation: {indent: 4}}}" .github/workflows/ci.yml
+                pipx install yamllint
+                yamllint .github/workflows/ci.yml
+
 
             # --- Tests + Coverage ---
 
