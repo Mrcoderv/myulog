@@ -3,11 +3,47 @@
   "$id": "https://github.com/OmdenaAI/ULog/schemas/_common.json",
   "title": "ULog Common Vocabulary",
   "$defs": {
-    "level":       { "$ref": "../vocab/controlled_vocabulary.json#/$defs/levels" },
-    "category":    { "$ref": "../vocab/controlled_vocabulary.json#/$defs/categories" },
-    "sub_category":{ "$ref": "../vocab/controlled_vocabulary.json#/$defs/sub_categories" },
-    "outcome":     { "$ref": "../vocab/controlled_vocabulary.json#/$defs/outcomes" },
-    "safety_flag": { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" },
-    "error_code":  { "$ref": "../vocab/controlled_vocabulary.json#/$defs/error_codes" }
+    "level": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/levels" }
+      ],
+      "description": "Normalized log severity for the event.",
+      "$comment": "Allowed values are defined in the shared vocabulary."
+    },
+    "category": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/categories" }
+      ],
+      "description": "High-level domain for the event (core_api, llm, agentic, cv).",
+      "$comment": "Domain routing/category."
+    },
+    "sub_category": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/sub_categories" }
+      ],
+      "description": "Fine-grained stage or component within the category.",
+      "$comment": "Domain-specific sub-stage (e.g., tokenizer, model_load, data_io)."
+    },
+    "outcome": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/outcomes" }
+      ],
+      "description": "Result of the operation or step.",
+      "$comment": "Typical values include success, failure, timeout, running."
+    },
+    "safety_flag": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/safety_flags" }
+      ],
+      "description": "Safety classification tag(s) associated with the event.",
+      "$comment": "In CV we often compress to a single flag; elsewhere it may be a list."
+    },
+    "error_code": {
+      "allOf": [
+        { "$ref": "../vocab/controlled_vocabulary.json#/$defs/error_codes" }
+      ],
+      "description": "Implementation-specific error identifier.",
+      "$comment": "Map to your platform's canonical error codes."
+    }
   }
 }

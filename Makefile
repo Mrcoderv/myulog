@@ -5,7 +5,8 @@ SHELL := /bin/bash
         demo.generate demo.run \
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
-        generate classify down
+        generate classify down \
+        coverage test.determinism
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -13,9 +14,10 @@ help: ## Show available commands
 	@echo "Testing:"
 	@echo "  make lint        - run ruff lint locally (poetry run)"
 	@echo "  make test        - run pytest locally (poetry run)"
+	@echo "  make coverage    - run tests with coverage and write docs/coverage.svg"
 	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
 	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
-	@echo "  make test.determinism
+	@echo "  make test.determinism - run determinism tests for data generators"
 	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
@@ -35,7 +37,7 @@ help: ## Show available commands
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
 	@echo "  make format-vocab       - auto-format the vocabulary JSON"
-  @echo "Synthetic Data:"
+	@echo "Synthetic Data:"
 	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
 	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
 	@echo ""
@@ -46,6 +48,10 @@ setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
 	@pip3 install ruff pytest || true
 
+yamllint: ## Lint YAML with 4-space indentation
+	@pipx install yamllint >/dev/null 2>&1 || true
+	@yamllint -d "{extends: default, rules: {indentation: {indent: 4}}}" .
+
 lint: ## Lint with ruff
 	@poetry run ruff check .
 
@@ -53,10 +59,10 @@ test: ## Run tests
 	@poetry run pytest -q
 
 test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit XML to tests/reports/)
-	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
+	@poetry run python tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
 
 test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes JSON to tests/reports/)
-	@poetry run python3 tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
+	@poetry run python tests/harness/run_harness.py --format json --output tests/reports/schema_results.json
 
 test.determinism: ## Run determinism tests for data generators
 	@poetry run pytest -q data/generator/test_determinism.py
@@ -69,12 +75,19 @@ test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) test.schemas.json
 	@$(MAKE) test.determinism
 
+coverage: ## Run tests with coverage and generate docs/coverage.svg
+	@mkdir -p docs
+	@poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
+	@poetry run python -m pip install --disable-pip-version-check -q coverage-badge
+	@poetry run python -m coverage_badge -o docs/coverage.svg -f
+	@echo "Coverage report: coverage.xml, badge: docs/coverage.svg"
+
 demo.generate: ## Create tiny demo schema, examples and raw inputs for the harness
-	@poetry run python3 tests/harness/generate_demo.py
+	@poetry run python tests/harness/generate_demo.py
 
 demo.run: ## Generate demo and run the harness against it (writes JUnit XML)
 	@$(MAKE) demo.generate
-	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
+	@poetry run python tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
 
 generate: ## Create a sample input file
 	@mkdir -p local_pipeline/in local_pipeline/out
@@ -113,18 +126,18 @@ rules.check: ## Run both rules validation and tests
 .PHONY: data.generate data.generate.raw test.roundtrip
 
 data.generate: ## Generate synthetic JSONL (per domain)
-	@poetry run python3 data/generator/main.py -d agentic -n log_agentic
-	@poetry run python3 data/generator/main.py -d cv -n log_cv
-	@poetry run python3 data/generator/main.py -d api -n log_api
-	@poetry run python3 data/generator/main.py -d llm -n log_llm
+	@poetry run python data/generator/main.py -d agentic -n log_agentic
+	@poetry run python data/generator/main.py -d cv -n log_cv
+	@poetry run python data/generator/main.py -d api -n log_api
+	@poetry run python data/generator/main.py -d llm -n log_llm
 
-# @poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -s $(Seed) -n $(name) -args $(Arguments)
+# @poetry run python data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -s $(Seed) -n $(name) -args $(Arguments)
 
 data.generate.raw: ## Generate raw-line mirrors for round-trip tests
-	@poetry run python3 data/generator/main.py -d agentic -n agentic --raw-mirror
-	@poetry run python3 data/generator/main.py -d cv -n cv --raw-mirror
-	@poetry run python3 data/generator/main.py -d api -n api --raw-mirror
-	@poetry run python3 data/generator/main.py -d llm -n llm --raw-mirror
+	@poetry run python data/generator/main.py -d agentic -n agentic --raw-mirror
+	@poetry run python data/generator/main.py -d cv -n cv --raw-mirror
+	@poetry run python data/generator/main.py -d api -n api --raw-mirror
+	@poetry run python data/generator/main.py -d llm -n llm --raw-mirror
 
 # --- Round-trip test ---
 test.roundtrip:

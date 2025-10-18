@@ -199,29 +199,24 @@
     }
   },
   "allOf": [
-    {
-      "if": {
-        "properties": {
-          "event_type": {
-            "enum": ["http_request", "http_response"]
-          }
+  {
+    "if": {
+      "properties": {
+        "event_type": {
+          "enum": ["http_request", "http_response"],
+          "$comment": "When event_type is HTTP, require endpoint and action."
         }
       },
-      "then": {
-        "required": ["endpoint", "action"]
-      }
+      "required": ["event_type"]
     },
-    {
-      "if": {
-        "properties": {
-          "outcome": {
-            "const": "failure"
-          }
-        }
-      },
-      "then": {
-        "required": ["error"]
-      }
-    }
-  ]
+    "then": { "required": ["endpoint", "action"] }
+  },
+  {
+    "if": {
+      "properties": { "outcome": { "const": "failure" } },
+      "required": ["outcome"]
+    },
+    "then": { "required": ["error"] }
+  }
+]
 }

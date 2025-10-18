@@ -190,12 +190,17 @@
     "status"
   ],
   "allOf": [
-    {
-      "if": {
-        "properties": { "status": { "enum": ["failed", "timeout"] } },
-        "required": ["status"]
+  {
+    "if": {
+      "properties": {
+        "status": {
+          "enum": ["failed", "timeout"],
+          "$comment": "Conditional guard: when status is failed or timeout, an error object must be present."
+        }
       },
-      "then": { "required": ["error"] }
-    }
-  ]
+      "required": ["status"]
+    },
+    "then": { "required": ["error"] }
+  }
+]
 }

@@ -1,0 +1,5 @@
+extends: default
+rules:
+    indentation:
+        indent: 4
+        level: warning
