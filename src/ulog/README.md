@@ -337,7 +337,7 @@ Parses logs from computer vision pipelines.
 
 ## Pattern Documentation
 
-For a complete list of supported patterns and their field mappings, see [docs/patterns.md](../../../docs/patterns.md).
+For a complete list of supported patterns and their field mappings, see [docs/patterns.md](../../docs/patterns.md).
 
 The pattern documentation includes:
 - Pattern IDs for each supported log format

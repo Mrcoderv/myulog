@@ -252,10 +252,26 @@ class Normalizer:
                     "success": "success",
                 }.get(status, "success" if lvl != "error" else "failure")
             elif domain == "cv":
-                if doc.get("error"):
-                    doc["outcome"] = "failure"
-                else:
-                    doc["outcome"] = "running" if lvl == "warn" else "success"
+                # Prefer explicit phase; if missing, infer from pre-normalization category labels
+                ph = doc.get("phase")
+                if not ph:
+                    hint = str(doc.get("category") or "").lower()
+                    hint_map = {
+                        "data_loading": "ingest",
+                        "preprocessing": "preprocess",
+                        "postprocessing": "postprocess",
+                        "inference": "inference",
+                        "evaluation": "eval",
+                        "serving": "serve",
+                        "tracking": "track",
+                        "pose_estimation": "pose",
+                    }
+                    ph = hint_map.get(hint)
+                if isinstance(ph, str) and "sub_category" not in doc:
+                    sc = CV_SUBCAT_MAP.get(ph)
+                    if sc:
+                        doc["sub_category"] = sc
+
 
         # Derive sub_category hints from domain-specific context
         if domain == "core_api":

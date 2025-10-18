@@ -119,8 +119,9 @@ def load_vocabulary() -> Dict[str, List[str]]:
     """
     # 1) packaged alongside the code (src/ulog/vocab/controlled_vocabulary.json)
     packaged = Path(__file__).with_suffix("").parent / "vocab" / "controlled_vocabulary.json"
-    # 2) repo-root style
-    repo_root = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) >= 3 else None
+   # locate repo root correctly (src/ulog/vocab.py -> parents[2] is repo root)
+    parents = Path(__file__).resolve().parents
+    repo_root = parents[2] if len(parents) >= 3 else None
     on_root = (repo_root / "vocab" / "controlled_vocabulary.json") if repo_root else None
 
     for candidate in (packaged, on_root):

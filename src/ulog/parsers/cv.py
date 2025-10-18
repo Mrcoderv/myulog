@@ -39,6 +39,7 @@ class DataLoadPattern(Pattern):
             
             # Set category
             fields["category"] = "data_loading"
+            fields["phase"] = "ingest"
             
             # Infer level if not explicitly set
             if not fields.get("level"):
@@ -118,6 +119,7 @@ class PreprocPattern(Pattern):
             
             # Set category
             fields["category"] = "preprocessing"
+            fields["phase"] = "preprocess"
             
             # Infer level if not explicitly set
             if not fields.get("level"):
@@ -197,6 +199,7 @@ class ModelPattern(Pattern):
             
             # Set category
             fields["category"] = "model"
+            fields["phase"] = "serve"
             
             # Infer level if not explicitly set
             if not fields.get("level"):
@@ -278,20 +281,25 @@ class CVComponentPattern(Pattern):
             fields = self.extract_fields(m)
             
             component = fields.get("component", "").lower()
-            
-            # Map component to category
+
             if component in ["infer", "inference"]:
                 fields["category"] = "inference"
+                fields["phase"] = "inference"
             elif component in ["post", "postproc", "postprocess"]:
                 fields["category"] = "postprocessing"
+                fields["phase"] = "postprocess"
             elif component in ["track", "tracking"]:
                 fields["category"] = "tracking"
+                fields["phase"] = "track"
             elif component in ["eval", "evaluation", "metrics"]:
                 fields["category"] = "evaluation"
+                fields["phase"] = "eval"
             elif component in ["hw", "hardware", "gpu", "cuda"]:
                 fields["category"] = "hardware"
+                # (no specific phase; leave unset)
             elif component in ["serve", "server", "grpc"]:
                 fields["category"] = "serving"
+                fields["phase"] = "serve"
             elif component in ["config", "configuration"]:
                 fields["category"] = "configuration"
             elif component in ["train", "training"]:
@@ -304,6 +312,7 @@ class CVComponentPattern(Pattern):
                 fields["category"] = "ocr"
             elif component in ["pose"]:
                 fields["category"] = "pose_estimation"
+                fields["phase"] = "pose"
             elif component in ["dbg", "debug"]:
                 fields["category"] = "debug"
             elif component in ["security", "privacy"]:
@@ -314,6 +323,7 @@ class CVComponentPattern(Pattern):
                 fields["category"] = "environment"
             else:
                 fields["category"] = "general"
+
             
             # Check if subcomponent is actually a level indicator
             subcomp = fields.get("subcomponent", "")
