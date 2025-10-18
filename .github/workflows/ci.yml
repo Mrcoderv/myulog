@@ -72,6 +72,9 @@ jobs:
           name: schema-test-results
           path: tests/reports/
 
+      - name: Validate rules.json against rules.schema.json
+        run: make rules.validate
+
       - name: Upload schema console log
         uses: actions/upload-artifact@v4
         if: always()

@@ -1,0 +1,8 @@
+{
+  "schema_id": "computer_vision",
+  "phase": "training",
+  "metrics": {
+    "loss": 5.8
+  },
+  "outcome": "success"
+}

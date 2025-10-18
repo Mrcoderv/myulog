@@ -1,0 +1,8 @@
+{
+  "schema_id": "computer_vision",
+  "phase": "inference",
+  "metrics": {
+    "mAP": 0.25
+  },
+  "outcome": "success"
+}
