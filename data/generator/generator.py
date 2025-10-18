@@ -17,7 +17,7 @@ class GenerateLog:
         self.seed = seed
         self.random = Random(self.seed)
         self.vocab_path = os.path.join(
-            pathlib.Path(__file__).parent.parent.parent, "vocab", "_common.json"
+            pathlib.Path(__file__).parent.parent.parent, "vocab", "controlled_vocabulary.json"
         )
         self.valid_params = valid_params if valid_params else []
         self.logger = logging.getLogger(__name__)

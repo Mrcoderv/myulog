@@ -17,8 +17,8 @@ To generate synthetic data locally:
 1. Ensure dependencies are installed (Python 3+, Makefile, required libraries).
 2. From the project root, run:
    ```bash
-   make generate
-   make generate.raw
+   make data.generate
+   make data.generate.raw
    ```
 3. Generated files will appear in:
    ```
@@ -26,13 +26,18 @@ To generate synthetic data locally:
    /data/synthetic/raw/*.jsonl
    ```
 
-Optional parameters (when using Python directly):
+Optional parameters (when using poetry directly):
 
 ```bash
-python3 generate_log_cv.py --count 100 --seed 42 --name log
+poetry run python3 data/generator/main.py -d agentic
 ```
-
-Use `--count` to set the number of samples and `--seed` for deterministic runs.
+Use these arguments:
+ -d Domain of the log is required one of : api, cv, agentic, llm
+ -o Output directory
+ -c Number of samples
+ -s Random seed
+ -n File name
+ -args Optional parameters for agentic logs
 
 ---
 

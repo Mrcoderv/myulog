@@ -7,6 +7,8 @@ from agentic_generator import AgenticGenerator
 from api_generator import GenerateAPILog
 from cv_generator import GenerateCVLog
 
+# from llm_generator import GenerateLLMLog
+
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
 
@@ -26,7 +28,7 @@ parser.add_argument(
     "--domain",
     type=str,
     required=True,
-    choices=["cv", "api", "agentic"],
+    choices=["cv", "api", "agentic", "llm"],
     help="Domain of the log",
 )
 parser.add_argument(

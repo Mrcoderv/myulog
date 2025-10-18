@@ -24,6 +24,8 @@ help: ## Show available commands
 	@echo "  make generate    - create a sample log in local_pipeline/in"
 	@echo "  make classify    - run docker-compose pipeline (in -> out)"
 	@echo "  make down        - stop/cleanup docker-compose services"
+	@echo "Synthetic Data:"
+	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make setup       - install local dev tools (ruff, pytest) (optional)"
@@ -64,7 +66,6 @@ demo.run: ## Generate demo and run the harness against it (writes JUnit XML)
 	@poetry run python3 tests/harness/run_harness.py --format junit --output tests/reports/demo_schema_results.xml
 
 generate: ## Create a sample input file
-# 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
 	@mkdir -p local_pipeline/in local_pipeline/out
 	@date > local_pipeline/in/example.log
 	@echo "hello, ulog" >> local_pipeline/in/example.log
@@ -98,3 +99,20 @@ rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate
 	@$(MAKE) rules.test
 	@echo "✓ All rules checks passed"
+
+
+
+
+# --- Synthetic Data Generators ---
+.PHONY: data.generate generate.raw 
+
+
+data.generate: ## Generate synthetic JSONL (per domain)
+	@poetry run python3 data/generator/main.py -d agentic -n agentic
+# 	@poetry run python3 data/generator/main.py -d cv -n cv
+# 	@poetry run python3 data/generator/main.py -d api -n api
+# 	@poetry run python3 data/generator/main.py -d llm -n llm
+
+# 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
+#  	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count)  -s $(Seed) -n $(name) -args $(Arguments)
+
