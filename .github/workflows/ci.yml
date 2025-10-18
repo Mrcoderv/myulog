@@ -93,3 +93,6 @@ jobs:
 
       - name: Lint _common.json refs vs vocabulary
         run: poetry run python tests/schemas/lint_common_refs.py
+
+      - name: Run round-trip test
+        run: make test.roundtrip

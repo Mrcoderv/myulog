@@ -19,6 +19,7 @@ To generate synthetic data locally:
    ```bash
    make data.generate
    make data.generate.raw
+   make test.roundtrip
    ```
 3. Generated files will appear in:
    ```
@@ -31,15 +32,17 @@ Optional parameters (when using poetry directly):
 ```bash
 poetry run python3 data/generator/main.py -d agentic
 poetry run python3 data/generator/main.py -d agentic --raw-mirror
+poetry run pytest -q data/generator/test_roundtrip.py
 ```
+
 Use these arguments:
- -d Domain of the log is required one of : api, cv, agentic, llm
- -o Output directory
- -c Number of samples
- -s Random seed
- -n File name
- -args Optional parameters for agentic logs
- --raw-mirror To Generate raw-line mirrors for round-trip tests
+-d Domain of the log is required one of : api, cv, agentic, llm
+-o Output directory
+-c Number of samples
+-s Random seed
+-n File name
+-args Optional parameters for agentic logs
+--raw-mirror To Generate raw-line mirrors for round-trip tests
 
 ---
 

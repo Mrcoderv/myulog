@@ -105,7 +105,7 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate generate.raw  test.roundtrip
+.PHONY: data.generate generate.raw 
 
 
 data.generate: ## Generate synthetic JSONL (per domain)
@@ -123,7 +123,8 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 	@poetry run python3 data/generator/main.py -d api -n api  --raw-mirror
 	@poetry run python3 data/generator/main.py -d llm -n llm --raw-mirror
 
-# =======
-# # Round-trip test
-# test.roundtrip:
-# 	@poetry run pytest -q tests/test_roundtrip.py
+# --- Round-trip test ---
+.PHONY: test.roundtrip
+
+test.roundtrip:
+	@poetry run pytest -q data/generator/test_roundtrip.py
