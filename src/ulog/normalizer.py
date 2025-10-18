@@ -8,9 +8,10 @@ from .vocab import canonicalize_flags, canonicalize_scalar
 
 # -------------------- Shared mappings (domain-agnostic helpers) --------------------
 
+# Map common non-canonical level names into the vocabulary values
 LEVEL_ALIASES = {"warning": "warn", "fatal": "critical", "trace": "debug"}
 
-# LLM pipeline_stage -> vocab sub_category
+# LLM pipeline_stage -> sub_category
 LLM_SUBCAT_MAP = {
     "serve": "service",
     "tokenizer": "tokenizer",
@@ -24,19 +25,19 @@ LLM_SUBCAT_MAP = {
     "sampling": "inference",
 }
 
-# CV phase -> vocab sub_category
+# CV phase -> sub_category
 CV_SUBCAT_MAP = {
     "ingest": "data_io",
     "preprocess": "preproc",
     "inference": "inference",
     "postprocess": "preproc",
-    "eval": "metrics",   # or "analytics" if you prefer
+    "eval": "metrics",
     "serve": "service",
     "track": "tracking",
     "pose": "inference",
 }
 
-# Agentic step_kind -> suggested sub_category
+# Agentic step_kind -> sub_category
 AGENTIC_SUBCAT_MAP = {
     "plan_created": "planner",
     "tool_selected": "tool_call",
@@ -46,33 +47,20 @@ AGENTIC_SUBCAT_MAP = {
     "stream_start": "streaming",
 }
 
-# Core API parser event_type -> schema event_type
+# Core/API parser event_type -> normalized event_type (orthogonal to category/sub_category)
 COREAPI_EVENT_MAP = {
-    # keep
     "http_request": "http_request",
     "http_response": "http_response",
-    # build-ish
     "deployment_artifact": "build",
     "source_pull": "build",
     "dependency_download": "build",
     "dependency_install": "dependency_install",
     "build_event": "build",
-    # errors
     "service_failure": "exception",
     "stacktrace": "exception",
     "python_error": "exception",
     "error": "exception",
-    # runtime
     "server_running": "startup",
-}
-
-ALLOWED_SUBCATS = {
-    "analytics","auth","build","config","data","data_io","dependency","deployment",
-    "embedding_service","event","inference","infrastructure","job","kv_cache","metrics",
-    "model","model_drift","model_load","network","planner","preproc","quantization",
-    "rag_timeout","rate_limit","reranker","safety","scheduler","security","service",
-    "storage","streaming","system","third_party","tokenizer","tool_call","tracking",
-    "ui","user_input"
 }
 
 
@@ -91,7 +79,7 @@ class Normalizer:
         # --- 0) Copy input to avoid mutating caller data
         normalized = dict(raw_data)
 
-        # --- 1) Unit & numeric normalization (your existing logic)
+        # --- 1) Unit & numeric normalization
         duration_fields = {"latency_ms", "duration_ms", "ttft_ms", "latency", "duration", "ttft"}
         numeric_fields = {
             "tokens",
@@ -106,10 +94,10 @@ class Normalizer:
         }
         normalized = self._normalize_dict(normalized, duration_fields, numeric_fields)
 
-        # --- 2) Domain pre-canonical shaping (adds/massages fields before vocab checks)
+        # --- 2) Domain-driven shaping before strict vocabulary checks
         self._precanonicalize(normalized, domain)
 
-        # --- 3) Vocabulary canonicalization for level/outcome/category/safety_flags
+        # --- 3) Vocabulary canonicalization for level/outcome/category/sub_category/safety_flags
         self._apply_vocabulary(normalized)
 
         # --- 4) Domain post-fixups (e.g., CV single safety flag)
@@ -117,7 +105,7 @@ class Normalizer:
 
         return normalized
 
-    # ---------------------------- Your existing helpers ----------------------------
+    # ---------------------------- Helpers ----------------------------
 
     def _normalize_dict(self, data: Dict[str, Any], duration_fields: set, numeric_fields: set) -> Dict[str, Any]:
         """Recursively normalize a dictionary."""
@@ -150,14 +138,15 @@ class Normalizer:
 
     def _apply_vocabulary(self, doc: Dict[str, Any]) -> None:
         """
-        Canonicalize level/outcome/category/safety_flags to controlled vocabulary.
+        Canonicalize level/outcome/category/sub_category/safety_flags to controlled vocabulary.
         If any canonicalization fails, attach clear `unparsed_reason`.
         """
         # Normalize scalar fields
-        for f in ("level", "outcome", "category"):
+        for f in ("level", "outcome", "category", "sub_category"):
             if f in doc:
                 canon = canonicalize_scalar(f, str(doc[f]) if doc[f] is not None else None)
-                if canon is None and doc[f] is not None:
+                if canon is None and doc.get(f) is not None:
+                    # keep original value but mark the issue
                     doc.setdefault("unparsed_reason", f"invalid_{f}_value")
                 else:
                     doc[f] = canon
@@ -175,10 +164,6 @@ class Normalizer:
                 doc.setdefault("unparsed_reason", "invalid_safety_flags")
             else:
                 doc["safety_flags"] = canon_list
-
-    def convert_units(self, value: Any, field_name: str) -> Any:
-        """Compatibility shim; not used directly (unit conversion handled in _normalize_dict)."""
-        return value
 
     def clean_numeric(self, value: str) -> Union[int, float]:
         """Removes separators from numbers: '3,276,800' -> 3276800."""
@@ -222,7 +207,7 @@ class Normalizer:
         """Joins stacktrace lines with \\n."""
         return "\n".join(lines)
 
-    # ---------------------------- New: domain shaping ----------------------------
+    # ---------------------------- Domain shaping ----------------------------
 
     def _precanonicalize(self, doc: Dict[str, Any], domain: str) -> None:
         """Map synonyms and infer sensible defaults *before* strict vocab checks."""
@@ -232,95 +217,87 @@ class Normalizer:
             lvl = doc["level"].lower()
             doc["level"] = LEVEL_ALIASES.get(lvl, lvl)
 
-        if domain == "core_api":
-            # map event_type to canonical set
-            et = doc.get("event_type")
-            if isinstance(et, str) and et in COREAPI_EVENT_MAP:
-                doc["event_type"] = COREAPI_EVENT_MAP[et]
+        # Always force `category` to the domain (per controlled vocabulary)
+        if domain in {"core_api", "llm", "agentic", "cv"}:
+            doc["category"] = domain
 
-            # infer outcome if missing
-            if "outcome" not in doc:
-                lvl = str(doc.get("level") or "").lower()
+        # Map event types (orthogonal)
+        et = doc.get("event_type")
+        if isinstance(et, str) and et in COREAPI_EVENT_MAP:
+            doc["event_type"] = COREAPI_EVENT_MAP[et]
+
+        # Infer outcome if missing, by domain
+        if "outcome" not in doc or doc.get("outcome") is None:
+            lvl = str(doc.get("level") or "").lower()
+            if domain == "core_api":
                 if doc.get("event_type") == "exception" or lvl == "error":
                     doc["outcome"] = "failure"
                 elif lvl == "warn":
                     doc["outcome"] = "running"
                 else:
                     doc["outcome"] = "success"
-
-            # uppercase HTTP method (schema enum is uppercase)
-            if "action" in doc and isinstance(doc["action"], str):
-                doc["action"] = doc["action"].upper()
-
-            # if parser used a coarse 'category' like 'build', keep it as sub_category when valid
-            coarse = doc.get("category")
-            if isinstance(coarse, str) and coarse in ALLOWED_SUBCATS:
-                doc.setdefault("sub_category", coarse)
-
-            # force domain category
-            doc["category"] = "core_api"
-
-        elif domain == "llm":
-            # map pipeline_stage -> sub_category
-            ps = doc.get("pipeline_stage")
-            if isinstance(ps, str) and "sub_category" not in doc:
-                sc = LLM_SUBCAT_MAP.get(ps)
-                if sc:
-                    doc["sub_category"] = sc
-
-            # infer outcome if missing
-            if "outcome" not in doc:
+            elif domain == "llm":
                 if doc.get("error"):
                     doc["outcome"] = "failure"
                 elif doc.get("finish_reason") == "timeout":
                     doc["outcome"] = "timeout"
                 else:
                     doc["outcome"] = "success" if (doc.get("result") or doc.get("finish_reason")) else "running"
-
-            doc["category"] = "llm"
-
-        elif domain == "agentic":
-            # map status -> outcome
-            status = str(doc.get("status", "")).lower()
-            if "outcome" not in doc and status:
+            elif domain == "agentic":
+                status = str(doc.get("status", "")).lower()
                 doc["outcome"] = {
                     "failed": "failure",
                     "timeout": "timeout",
-                    "retry": "running",  # or "pending" if you prefer that model
+                    "retry": "running",
                     "success": "success",
-                }.get(status)
+                }.get(status, "success" if lvl != "error" else "failure")
+            elif domain == "cv":
+                if doc.get("error"):
+                    doc["outcome"] = "failure"
+                else:
+                    doc["outcome"] = "running" if lvl == "warn" else "success"
 
-            # step_kind -> sub_category
+        # Derive sub_category hints from domain-specific context
+        if domain == "core_api":
+            # e.g. map "http_request" etc. into sensible sub-categories if caller didn't set one
+            if "sub_category" not in doc:
+                # keep a lightweight heuristic: http/build/service/error → sub_category
+                if doc.get("event_type") in {"http_request", "http_response"}:
+                    doc["sub_category"] = "network"
+                elif doc.get("event_type") in {"build", "dependency_install"}:
+                    doc["sub_category"] = "build"
+                elif doc.get("event_type") in {"startup"}:
+                    doc["sub_category"] = "service"
+
+            # uppercase HTTP method if present
+            if "action" in doc and isinstance(doc["action"], str):
+                doc["action"] = doc["action"].upper()
+
+        elif domain == "llm":
+            ps = doc.get("pipeline_stage")
+            if isinstance(ps, str) and "sub_category" not in doc:
+                sc = LLM_SUBCAT_MAP.get(ps)
+                if sc:
+                    doc["sub_category"] = sc
+
+        elif domain == "agentic":
             sk = doc.get("step_kind")
             if isinstance(sk, str) and "sub_category" not in doc:
                 sc = AGENTIC_SUBCAT_MAP.get(sk)
                 if sc:
                     doc["sub_category"] = sc
 
-            doc["category"] = "agentic"
-
         elif domain == "cv":
-            # phase -> sub_category
             ph = doc.get("phase")
             if isinstance(ph, str) and "sub_category" not in doc:
                 sc = CV_SUBCAT_MAP.get(ph)
                 if sc:
                     doc["sub_category"] = sc
 
-            # infer outcome if missing
-            if "outcome" not in doc:
-                if doc.get("error"):
-                    doc["outcome"] = "failure"
-                else:
-                    lvl = str(doc.get("level") or "").lower()
-                    doc["outcome"] = "running" if lvl == "warn" else "success"
-
-            doc["category"] = "cv"
-
     def _post_by_domain(self, doc: Dict[str, Any], domain: str) -> None:
-        """Final nips and tucks after vocab canonicalization."""
+        """Final tweaks after vocabulary canonicalization."""
         if domain == "cv":
-            # CV schema expects a SINGLE safety flag (string).
+            # If list of safety flags exists, compress to a single flag (CV wants one string)
             sf = doc.get("safety_flags")
             if isinstance(sf, list):
                 chosen = next((f for f in sf if f and f != "none"), None) or ("none" if sf else None)
