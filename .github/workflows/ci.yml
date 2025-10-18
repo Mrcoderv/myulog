@@ -114,7 +114,10 @@ jobs:
 
             - name: Suggest fix if vocabulary formatting fails
               if: ${{ steps.vocab_lint.outcome == 'failure' }}
-              run: echo "Run: make format-vocab && make lint-vocab"
+              shell: bash
+              run: |
+                echo "Run: make format-vocab && make lint-vocab"
+
 
             - name: Rules order lint
               run: poetry run pytest -q tests/rules/lint_rules_order.py
