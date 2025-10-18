@@ -30,6 +30,7 @@ Optional parameters (when using poetry directly):
 
 ```bash
 poetry run python3 data/generator/main.py -d agentic
+poetry run python3 data/generator/main.py -d agentic --raw-mirror
 ```
 Use these arguments:
  -d Domain of the log is required one of : api, cv, agentic, llm
@@ -38,6 +39,7 @@ Use these arguments:
  -s Random seed
  -n File name
  -args Optional parameters for agentic logs
+ --raw-mirror To Generate raw-line mirrors for round-trip tests
 
 ---
 

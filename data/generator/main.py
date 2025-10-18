@@ -10,18 +10,14 @@ from llm_generator import GenerateLLMLog
 
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
-
 parser = argparse.ArgumentParser(description="Example of reading command-line arguments")
 
 parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
-
 parser.add_argument("-c", "--count", type=int, default=10, help="Size or integer parameter")
 parser.add_argument("-n", "--name", type=str, default="log", help="File name")
-
 parser.add_argument(
     "-o", "--output-dir", type=str, default=DEFAULT_OUTPUT_DIR, help="Output directory"
 )
-
 parser.add_argument(
     "-d",
     "--domain",
@@ -40,6 +36,13 @@ parser.add_argument(
                     "--arguments , write parameter separated by space 
                     --arguments <value>  <value> ...
                     note : this argument should be the last one in the command line""",
+)
+
+parser.add_argument(
+    "--raw-mirror",
+    action="store_true",
+    help="Emit raw logs only (each record as @message JSON string) to /raw directory;"
+    " no normalized logs emitted.",
 )
 
 args = parser.parse_args()
@@ -147,16 +150,13 @@ generator_classes = {
             "request_id",
             "latency_ms",
             "duration_ms",
-            # add more optional params your LLM generator supports
         ],
     },
 }
 
-
 input_params = args.arguments.split(" ") if args.arguments else []
 
 domain = generator_classes[args.domain]
-
 
 generator = domain["class"](
     domain["fields"],
@@ -166,20 +166,40 @@ generator = domain["class"](
     valid_params=domain["valid_params"],
 )
 
-valid_logs, invalid_logs = generator.run()
+if args.raw_mirror:
+    raw_dir = output_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
 
-valid_log_path = os.path.join(output_dir, args.name + "_valid.jsonl")
-invalid_log_path = os.path.join(output_dir, args.name + "_invalid.jsonl")
+    valid_logs, invalid_logs = generator.run()
 
+    def write_raw_logs(logs, name):
+        raw_path = raw_dir / f"{name}_raw.jsonl"
+        with open(raw_path, "w") as f:
+            for log in logs:
+                # Convert log dict to JSON string, then wrap in @message
+                raw_message = json.dumps(log, separators=(",", ":"))
+                record = {"@message": raw_message}
+                f.write(json.dumps(record) + "\n")
+            return raw_path
 
-def create_jsonl_file(file_path, data):
-    with open(file_path, "w") as f:
-        for item in data:
-            json_line = json.dumps(item)
-            f.write(json_line + "\n")
+    valid_raw_path = write_raw_logs(valid_logs, args.name)
+    invalid_raw_path = write_raw_logs(invalid_logs, args.name + "_invalid")
 
+    print(f"✅ Valid raw logs written to: {valid_raw_path}")
+    print(f"✅ Invalid raw logs written to: {invalid_raw_path}")
+else:
+    valid_logs, invalid_logs = generator.run()
 
-create_jsonl_file(valid_log_path, valid_logs)
-create_jsonl_file(invalid_log_path, invalid_logs)
-print(f"✅ Valid logs written to: {valid_log_path}")
-print(f"✅ Invalid logs written to: {invalid_log_path}")
+    valid_log_path = output_dir / f"{args.name}_valid.jsonl"
+    invalid_log_path = output_dir / f"{args.name}_invalid.jsonl"
+
+    def create_jsonl_file(file_path, data):
+        with open(file_path, "w") as f:
+            for item in data:
+                json_line = json.dumps(item)
+                f.write(json_line + "\n")
+
+    create_jsonl_file(valid_log_path, valid_logs)
+    create_jsonl_file(invalid_log_path, invalid_logs)
+    print(f"✅ Valid logs written to: {valid_log_path}")
+    print(f"✅ Invalid logs written to: {invalid_log_path}")

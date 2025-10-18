@@ -7,6 +7,7 @@ from tests.rules.conftest import evaluate, load_json
 EXAMPLES_DIR = pathlib.Path(__file__).parent / "examples"
 RULES_JSON = pathlib.Path(__file__).parents[2] / "rules" / "rules.json"
 
+
 def find_test_cases():
     test_cases = []
     for input_file in EXAMPLES_DIR.rglob("input.json"):
@@ -15,6 +16,7 @@ def find_test_cases():
             test_id = str(input_file.relative_to(EXAMPLES_DIR).parent)
             test_cases.append((test_id, input_file, expected_file))
     return test_cases
+
 
 @pytest.mark.parametrize(
     "test_id,input_file,output_file",
@@ -33,11 +35,11 @@ def test_rules_examples(test_id, input_file, output_file):
     assert actual.get("outcome") == expected.get("outcome"), f"Outcome mismatch for {test_id}"
     assert actual.get("tags") == expected.get("tags"), f"Tags mismatch for {test_id}"
     if "sub_category" in expected:
-        assert actual.get("sub_category") == expected.get(
-            "sub_category"
-        ), f"Sub-category mismatch for {test_id}"
+        assert actual.get("sub_category") == expected.get("sub_category"), (
+            f"Sub-category mismatch for {test_id}"
+        )
 
     if expected_rule_id:
-        assert actual.get("provenance", {}).get(
-            "rule_id"
-        ) == expected_rule_id, f"Rule ID mismatch for {test_id}"
+        assert actual.get("provenance", {}).get("rule_id") == expected_rule_id, (
+            f"Rule ID mismatch for {test_id}"
+        )

@@ -26,6 +26,7 @@ help: ## Show available commands
 	@echo "  make down        - stop/cleanup docker-compose services"
 	@echo "Synthetic Data:"
 	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
+	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make setup       - install local dev tools (ruff, pytest) (optional)"
@@ -104,15 +105,25 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate generate.raw 
+.PHONY: data.generate generate.raw  test.roundtrip
 
 
 data.generate: ## Generate synthetic JSONL (per domain)
-	@poetry run python3 data/generator/main.py -d agentic -n agentic
-	@poetry run python3 data/generator/main.py -d cv -n cv
-	@poetry run python3 data/generator/main.py -d api -n api
-	@poetry run python3 data/generator/main.py -d llm -n llm
+	@poetry run python3 data/generator/main.py -d agentic -n log_agentic
+	@poetry run python3 data/generator/main.py -d cv -n log_cv
+	@poetry run python3 data/generator/main.py -d api -n log_api
+	@poetry run python3 data/generator/main.py -d llm -n log_llm
 
 # 	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count) -f $(Fields) -s $(Seed) -n $(name) -args $(Arguments)
 #  	@poetry run python3 data/generator/main.py -d $(Domain) -o $(Output_dir) -c $(Count)  -s $(Seed) -n $(name) -args $(Arguments)
 
+data.generate.raw: ## Generate raw-line mirrors for round-trip tests
+	@poetry run python3 data/generator/main.py -d agentic -n agentic --raw-mirror
+	@poetry run python3 data/generator/main.py -d cv -n cv --raw-mirror
+	@poetry run python3 data/generator/main.py -d api -n api  --raw-mirror
+	@poetry run python3 data/generator/main.py -d llm -n llm --raw-mirror
+
+# =======
+# # Round-trip test
+# test.roundtrip:
+# 	@poetry run pytest -q tests/test_roundtrip.py
