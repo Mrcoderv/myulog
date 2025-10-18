@@ -7,6 +7,204 @@ from ..patterns.base import FieldExtraction, Pattern
 from .base import BaseParser, ParseResult
 
 
+# -------------------------------------------------------------------
+# generic Uvicorn INFO/WARNING/ERROR lines (with INFO: prefix)
+# -------------------------------------------------------------------
+class UvicornInfoPattern(Pattern):
+    """Matches generic Uvicorn lifecycle/info lines like:
+    - INFO: Uvicorn running on http://10.0.0.1:8080 (Press CTRL+C to quit)
+    - INFO: Started server process [1]
+    - INFO: Waiting for application startup.
+    - INFO: Application startup complete.
+    - INFO: Detected file change in '/app/app/main.py'. Reloading...
+    - WARNING: Received signal SIGTERM.
+    """
+
+    pattern_id = "uvicorn_info"
+    confidence = 0.85
+
+    # NOTE: deliberately excludes ERROR so generic_error can own plain ERROR lines.
+    regex = re.compile(r'^(?P<level>INFO|WARNING|DEBUG):\s+(?P<message>.+)$')
+
+    field_extractions = [
+        FieldExtraction("level", "level", transform=lambda x: x.lower() if x else None),
+        FieldExtraction("message", "message"),
+    ]
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        m = self.regex.search(text)
+        if not m:
+            return None
+
+        fields = self.extract_fields(m)
+        msg = fields["message"]
+
+        # Default service/category
+        fields["service"] = "uvicorn"
+        fields["category"] = "service"
+        fields["event_type"] = "service_event"  # refined below when possible
+
+        # Fine-grained event typing + optional host/port
+        if "Uvicorn running on http://" in msg:
+            fields["event_type"] = "server_running"
+            host_port = re.search(r"http://(?P<host>[^:]+):(?P<port>\d+)", msg)
+            if host_port:
+                fields["host"] = host_port.group("host")
+                fields["port"] = int(host_port.group("port"))
+        elif "Started server process" in msg:
+            fields["event_type"] = "server_start"
+        elif "Finished server process" in msg:
+            fields["event_type"] = "server_stop"
+        elif "Waiting for application startup" in msg:
+            fields["event_type"] = "startup"
+        elif "Application startup complete" in msg:
+            fields["event_type"] = "startup"
+        elif "Waiting for application shutdown" in msg:
+            fields["event_type"] = "shutdown"
+        elif "Application shutdown complete" in msg:
+            fields["event_type"] = "shutdown"
+        elif "Detected file change in" in msg:
+            fields["event_type"] = "file_change"
+            p = re.search(r"Detected file change in '([^']+)'", msg)
+            if p:
+                fields["file"] = p.group(1)
+        elif "Received signal" in msg:
+            fields["event_type"] = "signal_received"
+            s = re.search(r"Received signal ([A-Z0-9_-]+)", msg)
+            if s:
+                fields["signal"] = s.group(1)
+
+        return fields
+
+
+# -------------------------------------------------------------------
+# health checks (AppRunner-style and generic)
+# -------------------------------------------------------------------
+class HealthCheckPattern(Pattern):
+    """Matches health check messages without [AppRunner] prefix too:
+    - Health check is successful. Routing traffic to application.
+    - Performing health check on protocol TCP [Port: 3063]
+    - Readiness/Liveness check passed/failed ...
+    """
+
+    pattern_id = "health_check"
+    confidence = 0.90
+
+    regex = re.compile(
+        r'^(?P<message>(?:Health|Readiness|Liveness) check.*|Performing health check.*)$',
+        re.IGNORECASE
+    )
+
+    field_extractions = [
+        FieldExtraction("message", "message"),
+    ]
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        m = self.regex.search(text)
+        if not m:
+            return None
+
+        fields = self.extract_fields(m)
+        msg_lower = fields["message"].lower()
+
+        fields["category"] = "service"
+        fields["event_type"] = "health_check"
+
+        # level/outcome inference
+        if "failed" in msg_lower or "unhealthy" in msg_lower:
+            fields["level"] = "error"
+            fields["outcome"] = "failure"
+        elif "successful" in msg_lower or "passed" in msg_lower or "routing traffic" in msg_lower:
+            fields["level"] = "info"
+            fields["outcome"] = "success"
+        else:
+            fields["level"] = "info"
+
+        # extract port if present
+        port = re.search(r"[Pp]ort[:\s]+(\d+)", fields["message"])
+        if port:
+            fields["port"] = int(port.group(1))
+
+        return fields
+
+
+# -------------------------------------------------------------------
+# CLI usage/help/errors (click/typer style)
+# -------------------------------------------------------------------
+class CLIUsagePattern(Pattern):
+    """Matches CLI usage/help/error lines like:
+    - Usage: app.main [OPTIONS]
+    - Try 'app.main --help' for help.
+    - Error: Invalid value for '--workers': 0 is not in the range x>=1.
+    """
+
+    pattern_id = "cli_usage"
+    confidence = 0.85
+
+    usage_re = re.compile(r'^Usage:\s+(?P<command>\S[^\s]*)', re.IGNORECASE)
+    try_re = re.compile(r"^Try\s+'(?P<command>[^']+)'\s+for help\.", re.IGNORECASE)
+    # IMPORTANT: case-sensitive on purpose; do NOT match all-caps 'ERROR:' which should be generic_error.
+    err_re = re.compile(r'^Error:\s+(?P<errmsg>.+)$')  # case-sensitive
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        # Never claim uppercase 'ERROR:' lines; they belong to generic_error.
+        if text.startswith("ERROR:"):
+            return None
+
+        m_usage = self.usage_re.search(text)
+        m_try = self.try_re.search(text)
+        m_err = self.err_re.search(text)
+
+        if not (m_usage or m_try or m_err):
+            return None
+
+        fields: Dict[str, Any] = {"category": "cli", "level": "info", "event_type": "usage"}
+
+        if m_usage:
+            fields["command"] = m_usage.group("command")
+            fields["message"] = text
+            return fields
+
+        if m_try:
+            fields["command"] = m_try.group("command")
+            fields["message"] = text
+            return fields
+
+        if m_err:
+            fields["level"] = "error"
+            fields["event_type"] = "error"
+            fields["message"] = m_err.group("errmsg")
+            return fields
+
+        return None
+
+
+# -------------------------------------------------------------------
+# stacktrace header to help multi-line join semantics
+# -------------------------------------------------------------------
+class TracebackHeaderPattern(Pattern):
+    """Matches 'Traceback (most recent call last):' header line."""
+
+    pattern_id = "stacktrace_header"
+    confidence = 0.80
+
+    regex = re.compile(r'^Traceback\s+\(most recent call last\):$')
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        if not self.regex.search(text):
+            return None
+        return {
+            "level": "error",
+            "category": "error",
+            "event_type": "stacktrace",
+            "message": text.strip(),
+            "error": {
+                "type": "stacktrace",
+                "message": text.strip(),
+            },
+        }
+
+
 class HTTPRequestPattern(Pattern):
     """Matches uvicorn HTTP request logs.
     
@@ -52,6 +250,7 @@ class HTTPRequestPattern(Pattern):
                 fields["level"] = "info"
             return fields
         return None
+
 
 class UvicornRunningSimplePattern(Pattern):
     """Matches 'Uvicorn running on http://host:port (...)' lines without the INFO prefix."""
@@ -309,6 +508,13 @@ class CoreAPIParser(BaseParser):
     def __init__(self):
         """Initialize parser with patterns."""
         self.patterns: List[Pattern] = [
+            # NEW high-signal patterns first
+            UvicornInfoPattern(),
+            HealthCheckPattern(),
+            CLIUsagePattern(),
+            TracebackHeaderPattern(),
+
+            # existing ones
             HTTPRequestPattern(),
             AppRunnerPattern(),
             BuildPattern(),

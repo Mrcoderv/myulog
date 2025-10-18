@@ -7,6 +7,71 @@ from ..patterns.base import FieldExtraction, Pattern
 from .base import BaseParser, ParseResult
 
 
+class LangChainAgentLogPattern(Pattern):
+    """Matches LangChain-ish agent logs like:
+    - > Entering new AgentExecutor chain...
+    - > Finished chain.
+    - Thought: ...
+    - Action: ...
+    - Action Input: ...
+    - Observation: ...
+    - Final Answer: ...
+    """
+
+    pattern_id = "langchain_agent_log"
+    confidence = 0.90
+
+    # We'll detect two families:
+    gt_re = re.compile(r'^\>\s+(?P<message>.+)$')
+    step_re = re.compile(
+        r'^(?P<kind>Action Input|Action|Observation|Thought|Final Answer):\s*(?P<payload>.*)$'
+    )
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        # ">" lines
+        m = self.gt_re.search(text)
+        if m:
+            msg = m.group("message")
+            out: Dict[str, Any] = {
+                "category": "workflow",
+                "level": "info",
+                "message": msg,
+            }
+            # map to step kinds
+            if "Entering new" in msg:
+                out["step_kind"] = "chain_start"
+                # try to extract chain name
+                name = re.search(r'Entering new\s+([A-Za-z0-9_]+)\s+chain', msg)
+                if name:
+                    out["chain_name"] = name.group(1)
+            elif "Finished" in msg and "chain" in msg:
+                out["step_kind"] = "chain_end"
+            else:
+                out["step_kind"] = "step"
+            return out
+
+        # "Action:", "Observation:" etc
+        s = self.step_re.search(text)
+        if s:
+            kind = s.group("kind")
+            payload = s.group("payload")
+            step_map = {
+                "Thought": "reasoning",
+                "Action": "tool_selection",
+                "Action Input": "tool_input",
+                "Observation": "tool_output",
+                "Final Answer": "final_answer",
+            }
+            return {
+                "category": "workflow",
+                "level": "info",
+                "step_kind": step_map.get(kind, "step"),
+                "message": payload,
+            }
+
+        return None
+
+
 class SessionStartPattern(Pattern):
     """Matches [Agent] session_start with key=value format.
     
@@ -405,6 +470,10 @@ class AgenticParser(BaseParser):
     def __init__(self):
         """Initialize parser with patterns."""
         self.patterns: List[Pattern] = [
+            # NEW
+            LangChainAgentLogPattern(),
+
+            # existing
             SessionStartPattern(),
             StateTransitionPattern(),
             ToolCallPattern(),
