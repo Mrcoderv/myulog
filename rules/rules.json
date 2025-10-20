@@ -787,12 +787,10 @@
             "value": "failed"
           },
           {
-            "not": [
-              {
-                "field": "error",
-                "op": "exists"
-              }
-            ]
+            "not": {
+              "field": "error",
+              "op": "exists"
+            }
           }
         ]
       },
@@ -1171,24 +1169,22 @@
       "name": "Missing trace identifier",
       "description": "Flag events without trace ID for observability",
       "when": {
-        "not": [
-          {
-            "any": [
-              {
-                "field": "context.trace_id",
-                "op": "exists"
-              },
-              {
-                "field": "traceId",
-                "op": "exists"
-              },
-              {
-                "field": "trace_id",
-                "op": "exists"
-              }
-            ]
-          }
-        ]
+        "not": {
+          "any": [
+            {
+              "field": "context.trace_id",
+              "op": "exists"
+            },
+            {
+              "field": "traceId",
+              "op": "exists"
+            },
+            {
+              "field": "trace_id",
+              "op": "exists"
+            }
+          ]
+        }
       },
       "then": {
         "level": "info",
