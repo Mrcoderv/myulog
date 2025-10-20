@@ -7,5 +7,9 @@
     "dependency"
   ],
   "sub_category": "dependency",
-  "_rule_id": "agentic-tool-dependency-error"
+  "_rule_id": "agentic-tool-dependency-error",
+  "provenance": {
+    "rule_id": "agentic-tool-dependency-error",
+    "rule_index": 24
+  }
 }

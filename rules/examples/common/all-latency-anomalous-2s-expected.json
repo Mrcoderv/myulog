@@ -1,6 +1,11 @@
 {
-  "level": "info",
+  "level": "warn",
   "category": "core_api",
+  "sub_category": "network",
   "outcome": "success",
-  "tags": []
+  "tags": ["global", "latency"],
+  "provenance": {
+    "rule_id": "all-latency-anomalous",
+    "rule_index": 32
+  }
 }

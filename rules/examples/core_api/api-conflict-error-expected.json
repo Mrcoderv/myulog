@@ -1,6 +1,14 @@
 {
-  "level": "info",
+  "level": "warn",
   "category": "core_api",
-  "outcome": "success",
-  "tags": []
+  "sub_category": "data",
+  "outcome": "failure",
+  "tags": [
+    "core_api",
+    "conflict"
+  ],
+  "provenance": {
+    "rule_id": "api-conflict-error",
+    "rule_index": 6
+  }
 }

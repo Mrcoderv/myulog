@@ -7,5 +7,9 @@
     "auth"
   ],
   "sub_category": "auth",
-  "_rule_id": "api-unauthorized"
+  "_rule_id": "api-unauthorized",
+  "provenance": {
+    "rule_id": "api-unauthorized",
+    "rule_index": 5
+  }
 }

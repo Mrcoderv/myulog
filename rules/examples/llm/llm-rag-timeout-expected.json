@@ -7,5 +7,9 @@
     "rag"
   ],
   "sub_category": "rag_timeout",
-  "_rule_id": "llm-rag-timeout"
+  "_rule_id": "llm-rag-timeout",
+  "provenance": {
+    "rule_id": "llm-rag-timeout",
+    "rule_index": 18
+  }
 }

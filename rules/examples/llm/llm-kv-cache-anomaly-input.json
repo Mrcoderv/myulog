@@ -1,0 +1,6 @@
+{
+  "schema_id": "llm",
+  "stage": "inference",
+  "kv_cache_usage_percent": 95,
+  "output_tokens": 512
+}

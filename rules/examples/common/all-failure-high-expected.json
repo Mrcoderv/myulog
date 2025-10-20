@@ -1,6 +1,14 @@
 {
-  "level": "info",
+  "level": "error",
   "category": "core_api",
-  "outcome": "success",
-  "tags": []
+  "sub_category": "service",
+  "outcome": "failure",
+  "tags": [
+    "global",
+    "failure"
+  ],
+  "provenance": {
+    "rule_id": "all-failure-high",
+    "rule_index": 31
+  }
 }
