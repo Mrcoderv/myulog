@@ -11,9 +11,11 @@ Tests all 6 subtasks:
 
 Run with: pytest tests/rules/test_rules.py -v
 """
-import pytest
+
 import json
 from pathlib import Path
+
+import pytest
 
 # Paths
 WORKSPACE = Path(__file__).parent.parent.parent
@@ -293,16 +295,21 @@ class TestWorkedExamples:
     def test_examples_have_provenance_id(self):
         for param in get_example_pairs():
             expected_file = param.values[1]
-            with open(expected_file) as f: expected_data = json.load(f)
-            if not expected_data: continue
+            with open(expected_file) as f:
+                expected_data = json.load(f)
+            if not expected_data:
+                continue
             assert "provenance" in expected_data, f"{expected_file.name} missing provenance"
             assert "rule_id" in expected_data["provenance"], f"{expected_file.name} missing rule_id"
 
     @pytest.mark.parametrize("input_path, expected_path", get_example_pairs())
     def test_classifier_matches_examples_robustly(self, input_path, expected_path):
-        with open(input_path) as f: input_data = json.load(f)
-        with open(expected_path) as f: expected_output_from_file = json.load(f)
-        with open(RULES_PATH) as f: rules_data = json.load(f)
+        with open(input_path) as f:
+            input_data = json.load(f)
+        with open(expected_path) as f:
+            expected_output_from_file = json.load(f)
+        with open(RULES_PATH) as f:
+            rules_data = json.load(f)
 
         actual_output = run_classifier(input_data, rules_data, expected_output_from_file)
 
