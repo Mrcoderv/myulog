@@ -1,0 +1,129 @@
+# Multi-stage Dockerfile for reproducible ULog artifact builds (PEP 621 / PEP 517)
+#
+# Produces three artifacts:
+#   - Python wheel (standard package)
+#   - CLI bundle (portable directory with wrapper script)
+#   - Lambda ZIP (AWS Lambda deployment package)
+#
+# Usage:
+#   docker build --target wheel-builder --output type=local,dest=dist/ -f Dockerfile.build .
+#   docker build --target cli-builder --output type=local,dest=dist/ -f Dockerfile.build .
+#   docker build --target lambda-builder --output type=local,dest=dist/ -f Dockerfile.build .
+
+# ==============================================================================
+# Stage 1: Base builder (PEP 621 / PEP 517 standard)
+# ==============================================================================
+FROM python:3.12.7-slim-bookworm@sha256:60d9996b6a8a3689d36db740b49f4327be3be09a21122bd02fb8895abb38b50d AS base
+
+ARG SOURCE_DATE_EPOCH
+ARG PYTHONHASHSEED=0
+
+# Reproducibility environment variables
+ENV SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}
+ENV PYTHONHASHSEED=${PYTHONHASHSEED}
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
+
+# Install build tool
+RUN pip install --no-cache-dir build
+
+WORKDIR /build
+
+# Copy project metadata and README (needed by poetry-core build backend)
+COPY pyproject.toml poetry.lock* README.md ./
+
+# Copy source code and runtime data
+COPY src ./src
+COPY schemas ./schemas
+COPY vocab ./vocab
+COPY rules ./rules
+
+# ==============================================================================
+# Stage 2: Wheel builder
+# ==============================================================================
+FROM base AS wheel-builder
+
+# Use python -m build instead of poetry build (supports PEP 621)
+RUN python -m build --wheel --outdir /tmp/dist/
+
+# Export to root for docker build --output
+RUN cp /tmp/dist/*.whl /
+
+# ==============================================================================
+# Stage 3: CLI bundle builder (simple portable package)
+# ==============================================================================
+FROM base AS cli-builder
+
+# Get version for naming (parse from pyproject.toml PEP 621 format)
+RUN VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2) && echo "VERSION=${VERSION}" > /tmp/version.env
+
+# Create bundle directory structure
+RUN . /tmp/version.env && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/python
+
+# Install package with dependencies into bundle
+RUN . /tmp/version.env && \
+    pip install --target /tmp/bundle/ulog-cli-${VERSION}/lib/python .
+
+# Create wrapper script that sets PYTHONPATH and calls ulog
+RUN . /tmp/version.env && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/bin && \
+    cat > /tmp/bundle/ulog-cli-${VERSION}/bin/ulog <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="${SCRIPT_DIR}/../lib/python:${PYTHONPATH:-}"
+exec python3 -m ulog.cli "$@"
+EOF
+
+RUN . /tmp/version.env && \
+    chmod +x /tmp/bundle/ulog-cli-${VERSION}/bin/ulog
+
+# Create tarball with deterministic timestamps and export to root
+RUN . /tmp/version.env && \
+    tar --sort=name \
+        --mtime="@${SOURCE_DATE_EPOCH:-0}" \
+        --owner=0 --group=0 --numeric-owner \
+        -czf /ulog-cli-${VERSION}.tar.gz \
+        -C /tmp/bundle \
+        ulog-cli-${VERSION}
+
+# ==============================================================================
+# Stage 4: Lambda package builder
+# ==============================================================================
+FROM base AS lambda-builder
+
+# Install zip utility (not in slim image)
+RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
+
+# Install runtime dependencies directly (PEP 621 reads only [project.dependencies])
+RUN mkdir -p /lambda/python && \
+    pip install --target /lambda/python .
+
+# Copy Lambda handler
+COPY scripts/lambda_handler.py /lambda/
+
+# Copy runtime data directories
+COPY schemas /lambda/schemas
+COPY vocab /lambda/vocab
+COPY rules /lambda/rules
+
+# Create ZIP with proper permissions and deterministic ordering, export to root
+RUN cd /lambda && \
+    find . -type f -exec chmod 644 {} \; && \
+    find . -type d -exec chmod 755 {} \; && \
+    find . -print | sort | \
+    TZ=UTC zip -q -X -@ /classifier_lambda.zip && \
+    chmod 644 /classifier_lambda.zip
+
+# Verify size (Lambda has 50MB uncompressed limit)
+RUN echo "Lambda ZIP size:" && \
+    ls -lh /classifier_lambda.zip && \
+    UNCOMPRESSED_SIZE=$(unzip -l /classifier_lambda.zip | tail -1 | awk '{print $1}') && \
+    echo "Uncompressed size: ${UNCOMPRESSED_SIZE} bytes" && \
+    if [ "${UNCOMPRESSED_SIZE}" -gt 52428800 ]; then \
+        echo "ERROR: Lambda ZIP exceeds 50MB uncompressed limit"; \
+        exit 1; \
+    fi
