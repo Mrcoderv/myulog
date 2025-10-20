@@ -1,6 +1,14 @@
 {
-  "level": "info",
-  "category": "core_api",
-  "outcome": "success",
-  "tags": []
+  "level": "error",
+  "category": "cv",
+  "sub_category": "metrics",
+  "outcome": "running",
+  "tags": [
+    "cv",
+    "map"
+  ],
+  "provenance": {
+    "rule_id": "cv-inference-map-low",
+    "rule_index": 27
+  }
 }

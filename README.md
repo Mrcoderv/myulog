@@ -8,7 +8,7 @@ ULog is an initiative to standardize and make actionable the telemetry generated
   - Entry points (wrappers): `schemas/<domain>.schema.json` (stable refs)
   - Versioned files: `schemas/<domain>/vN/<domain>.schema.json`
   - Shared enums: `schemas/_common.json` → `vocab/controlled_vocabulary.json`
-- `rules/` – rule definitions (JSON)
+- `rules/` – rule definitions (JSON) - See the [Rules Engine README](./rules/README.md) for details on ordering and how to add new rules.
 - `data/` – sample or synthetic datasets
 - `docs/` – project documentation
 - `tests/` – unit tests (CI runs `pytest`)

@@ -1,6 +1,14 @@
 {
   "level": "info",
   "category": "core_api",
+  "sub_category": "tracking",
   "outcome": "success",
-  "tags": []
+  "tags": [
+    "global",
+    "missing_trace"
+  ],
+  "provenance": {
+    "rule_id": "missing-trace-identifier",
+    "rule_index": 33
+  }
 }

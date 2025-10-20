@@ -1,8 +1,0 @@
-{
-  "schema_id": "llm",
-  "pipeline_stage": "tokenizer",
-  "outcome": "failure",
-  "meta": {
-    "raw_message": "Tokenizer initialization failed: incompatible vocab file"
-  }
-}

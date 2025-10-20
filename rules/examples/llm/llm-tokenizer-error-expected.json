@@ -7,5 +7,8 @@
     "tokenizer"
   ],
   "sub_category": "tokenizer",
-  "_rule_id": "llm-tokenizer-error"
+  "provenance": {
+    "rule_id": "llm-tokenizer-error",
+    "rule_index": 17
+  }
 }

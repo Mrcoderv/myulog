@@ -25,6 +25,93 @@
   },
   "rules": [
     {
+      "rule_id": "api-startup-guard",
+      "version": "1.0.0",
+      "name": "Filter startup events (noise guard)",
+      "description": "Suppress startup event logging as non-interaction noise",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "event_type",
+            "op": "eq",
+            "value": "startup"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "system",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "startup",
+          "guard"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-build-guard",
+      "version": "1.0.0",
+      "name": "Filter build events (noise guard)",
+      "description": "Suppress build event logging as non-interaction noise",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "event_type",
+            "op": "eq",
+            "value": "build"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "build",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "build",
+          "guard"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-health-check-guard",
+      "version": "1.0.0",
+      "name": "Filter health check events (noise guard)",
+      "description": "Suppress health check logging as non-interaction noise",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "event_type",
+            "op": "eq",
+            "value": "health_check"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "health",
+          "guard"
+        ]
+      }
+    },
+    {
       "rule_id": "api-5xx-critical",
       "version": "1.0.0",
       "name": "Critical 5xx server errors",
@@ -54,6 +141,39 @@
         "tags": [
           "core_api",
           "5xx"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-4xx-client-error",
+      "version": "1.0.0",
+      "name": "Client 4xx errors",
+      "description": "Flag client errors (400-499) as warnings",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@errorCode",
+            "op": "gte",
+            "value": 400
+          },
+          {
+            "field": "@errorCode",
+            "op": "lt",
+            "value": 500
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "user_input",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "4xx"
         ]
       }
     },
@@ -91,6 +211,128 @@
       }
     },
     {
+      "rule_id": "api-conflict-error",
+      "version": "1.0.0",
+      "name": "Resource conflict or version mismatch",
+      "description": "Flag 409 conflicts as data consistency warnings",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@errorCode",
+            "op": "eq",
+            "value": 409
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "data",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "conflict"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-high-latency",
+      "version": "1.0.0",
+      "name": "High latency response (>2s)",
+      "description": "Flag responses slower than 2000ms",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@latency",
+            "op": "gte",
+            "value": 2000
+          },
+          {
+            "field": "@status",
+            "op": "eq",
+            "value": "success"
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "latency"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-timeout-failure",
+      "version": "1.0.0",
+      "name": "Request timeout error",
+      "description": "Flag timeout failures with high latency thresholds",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@status",
+            "op": "eq",
+            "value": "timeout"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "core_api",
+        "sub_category": "network",
+        "outcome": "timeout",
+        "tags": [
+          "core_api",
+          "timeout"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-security-violation",
+      "version": "1.0.0",
+      "name": "Security or PII detected",
+      "description": "Flag events with security or PII safety flags",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "safety_flags",
+            "op": "contains",
+            "value": "flag_security"
+          },
+          {
+            "field": "safety_flags",
+            "op": "contains",
+            "value": "flag_pii"
+          }
+        ]
+      },
+      "then": {
+        "level": "critical",
+        "category": "core_api",
+        "sub_category": "security",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "security"
+        ]
+      }
+    },
+    {
       "rule_id": "core-api-error-rate-high",
       "version": "1.0.0",
       "name": "High error rate detected",
@@ -118,6 +360,209 @@
         "tags": [
           "core_api",
           "error_rate"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-quant-error",
+      "version": "1.0.0",
+      "name": "Model quantization errors",
+      "description": "Flag quantization failures during model loading",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "pipeline_stage",
+            "op": "eq",
+            "value": "quant"
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "quantization",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "quant"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-model-load-failure",
+      "version": "1.0.0",
+      "name": "Model loading errors",
+      "description": "Flag failures during model load stage",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "pipeline_stage",
+            "op": "eq",
+            "value": "load"
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          }
+        ]
+      },
+      "then": {
+        "level": "critical",
+        "category": "llm",
+        "sub_category": "model_load",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "model_load"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-safety-flag-critical",
+      "version": "1.0.0",
+      "name": "LLM safety violations",
+      "description": "Flag events with safety or policy violations",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "safety_flags",
+            "op": "contains",
+            "value": "flag_security"
+          },
+          {
+            "field": "safety_flags",
+            "op": "contains",
+            "value": "policy_violation"
+          },
+          {
+            "field": "safety_flags",
+            "op": "contains",
+            "value": "flag_hate_speech"
+          }
+        ]
+      },
+      "then": {
+        "level": "critical",
+        "category": "llm",
+        "sub_category": "safety",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "safety"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-token-budget-exceeded",
+      "version": "1.0.0",
+      "name": "Token budget exceeded",
+      "description": "Flag events where token usage exceeds budget thresholds",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "usage.prompt_tokens",
+            "op": "gt",
+            "value": 8000
+          },
+          {
+            "field": "usage.completion_tokens",
+            "op": "gt",
+            "value": 4000
+          },
+          {
+            "field": "usage.total_tokens",
+            "op": "gt",
+            "value": 10000
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "llm",
+        "sub_category": "rate_limit",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "token_budget"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-rate-limited",
+      "version": "1.0.0",
+      "name": "Provider rate limiting (429)",
+      "description": "Flag rate limiting responses from LLM provider",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@errorCode",
+            "op": "eq",
+            "value": 429
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "rate_limit",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "rate_limited"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-kv-cache-anomaly",
+      "version": "1.0.0",
+      "name": "KV cache pressure or issues",
+      "description": "Flag KV cache anomalies or high memory pressure",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "error.message",
+            "op": "regex",
+            "value": "(?i)(kv.?cache|memory.?pressure|cache.?miss)"
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "llm",
+        "sub_category": "kv_cache",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "kv_cache"
         ]
       }
     },
@@ -202,6 +647,167 @@
       }
     },
     {
+      "rule_id": "agentic-planner-long-running",
+      "version": "1.0.0",
+      "name": "Planner long-running (>60s)",
+      "description": "Flag planner steps that exceed 60 seconds",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "plan"
+          },
+          {
+            "field": "duration_ms",
+            "op": "gte",
+            "value": 60000
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "agentic",
+        "sub_category": "planner",
+        "outcome": "running",
+        "tags": [
+          "agentic",
+          "planner"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-guardrail-triggered",
+      "version": "1.0.0",
+      "name": "Safety guardrails triggered",
+      "description": "Flag events with guardrails activated",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "guardrails_triggered",
+            "op": "exists"
+          }
+        ]
+      },
+      "then": {
+        "level": "critical",
+        "category": "agentic",
+        "sub_category": "security",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "guardrail"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-tool-failure",
+      "version": "1.0.0",
+      "name": "Tool execution failure",
+      "description": "Flag failed tool calls without specific categorization",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "tool_call"
+          },
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "agentic",
+        "sub_category": "tool_call",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "tool_failure"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-cost-anomaly",
+      "version": "1.0.0",
+      "name": "Cost tracking anomaly",
+      "description": "Flag unusual cost patterns in agentic workflows",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "cost_tracking",
+            "op": "exists"
+          },
+          {
+            "field": "cost_tracking.total_cost_usd",
+            "op": "gt",
+            "value": 100
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "agentic",
+        "sub_category": "service",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "cost"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-missing-error-context",
+      "version": "1.0.0",
+      "name": "Failed step without error context",
+      "description": "Flag failures that lack error details for debugging",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          },
+          {
+            "not": [
+              {
+                "field": "error",
+                "op": "exists"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "agentic",
+        "sub_category": "tracking",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "missing_context"
+        ]
+      }
+    },
+    {
       "rule_id": "agentic-tool-dependency-error",
       "version": "1.0.0",
       "name": "Tool execution failures with dependency errors",
@@ -240,6 +846,49 @@
       }
     },
     {
+      "rule_id": "agentic-search-slow",
+      "version": "1.0.0",
+      "name": "Slow web search tool execution",
+      "description": "Flags agentic search tools running longer than 3 seconds",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "step_kind",
+            "op": "in",
+            "value": ["step", "tool_call"]
+          },
+          {
+            "field": "tool_name",
+            "op": "regex",
+            "value": "(?i)search"
+          },
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "success"
+          },
+          {
+            "field": "duration_ms",
+            "op": "gte",
+            "value": 3000
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "agentic",
+        "sub_category": "tool_call",
+        "outcome": "success",
+        "tags": [
+          "agentic",
+          "slow",
+          "search"
+        ]
+      }
+    },{
       "rule_id": "agentic-tool-slow",
       "version": "1.0.0",
       "name": "Long-running tool executions",
@@ -277,6 +926,86 @@
         "tags": [
           "agentic",
           "slow"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-training-loss-spike",
+      "version": "1.0.0",
+      "name": "Training loss spike (>5.0)",
+      "description": "Flag significant increases in training loss",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "phase",
+            "op": "eq",
+            "value": "training"
+          },
+          {
+            "field": "metrics.loss",
+            "op": "gt",
+            "value": 5.0
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "cv",
+        "sub_category": "model",
+        "outcome": "failure",
+        "tags": [
+          "cv",
+          "loss_spike"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-inference-map-low",
+      "version": "1.0.0",
+      "name": "Inference/Eval mAP below threshold (<0.3)",
+      "description": "Flag inference or evaluation runs with low mean average precision",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "phase",
+            "op": "in",
+            "value": ["inference", "eval", "evaluation"]
+          },
+          {
+            "any": [
+              {
+                "field": "metrics.map",
+                "op": "lt",
+                "value": 0.3
+              },
+              {
+                "field": "metrics.mAP_50_95",
+                "op": "lt",
+                "value": 0.3
+              },
+              {
+                "field": "metrics.extra.map_50_95",
+                "op": "lt",
+                "value": 0.3
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "cv",
+        "sub_category": "metrics",
+        "outcome": "running",
+        "tags": [
+          "cv",
+          "map"
         ]
       }
     },
@@ -380,6 +1109,96 @@
           "slow_batch"
         ]
       }
+    },
+    {
+      "rule_id": "all-failure-high",
+      "version": "1.0.0",
+      "name": "Universal failure detection",
+      "description": "Catch failures across all domains (global fallback)",
+      "when": {
+        "any": [
+          {
+            "field": "@status",
+            "op": "eq",
+            "value": "failure"
+          },
+          {
+            "field": "@errorCode",
+            "op": "gte",
+            "value": 500
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "failure",
+        "tags": [
+          "global",
+          "failure"
+        ]
+      }
+    },
+    {
+      "rule_id": "all-latency-anomalous",
+      "version": "1.0.0",
+      "name": "Latency anomaly (>2s) across domains",
+      "description": "Flag high latency in any domain as warning",
+      "when": {
+        "all": [
+          {
+            "field": "@latency",
+            "op": "gte",
+            "value": 2000
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "network",  
+        "outcome": "success",
+        "tags": [
+          "global",
+          "latency"
+        ]
+      }
+    },
+    {
+      "rule_id": "missing-trace-identifier",
+      "version": "1.0.0",
+      "name": "Missing trace identifier",
+      "description": "Flag events without trace ID for observability",
+      "when": {
+        "not": [
+          {
+            "any": [
+              {
+                "field": "context.trace_id",
+                "op": "exists"
+              },
+              {
+                "field": "traceId",
+                "op": "exists"
+              },
+              {
+                "field": "trace_id",
+                "op": "exists"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "tracking",
+        "outcome": "success",
+        "tags": [
+          "global",
+          "missing_trace"
+        ]
+      }
     }
-  ]
-}
+  ]}

@@ -1,14 +1,14 @@
 {
   "level": "warn",
   "category": "llm",
+  "sub_category": "kv_cache",
   "outcome": "failure",
-  "sub_category": "rate_limit",
   "tags": [
     "llm",
-    "token_budget"
+    "kv_cache"
   ],
   "provenance": {
-    "rule_id": "llm-token-budget-exceeded",
-    "rule_index": 14
+    "rule_id": "llm-kv-cache-anomaly",
+    "rule_index": 16
   }
 }
