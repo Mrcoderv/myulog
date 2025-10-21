@@ -99,3 +99,63 @@ The classifier provides detailed error information:
 - ULog Normalizer (existing)
 - ULog Router (existing)
 - ULog Provenance (existing)
+
+----------------------------------------------------------------------------
+# Classifier Implementation: Subtasks 2 & 3
+The classifier implements a complete pipeline: `raw|json → parse → validate(schema) → classify(first-match) → annotate`
+
+These subtasks add two critical components:
+- **Schema Validator**: Validates normalized logs against domain-specific JSON schemas with helpful error envelopes
+- **Rule Evaluator**: Applies classification rules in priority order with first-match-wins semantics and provenance tracking
+
+## Subtask 2: Schema Validation
+
+### Implementation
+
+**File**: `src/ulog/classifier/validator.py`
+
+The schema validator validates normalized log records against domain-specific JSON schemas using the `jsonschema` library with Draft 2020-12 specification.
+
+### Features
+
+✅ **Multi-Domain Support**: Validates against 4 domain schemas (core_api, llm, agentic, cv)  
+✅ **Schema Reference Resolution**: Handles `$ref` references using proper registry resolution  
+✅ **Automatic Domain Inference**: Infers domain from record fields (category, pipeline_stage, step_kind, etc.)  
+✅ **Helpful Error Envelopes**: Provides structured error information with contextual hints  
+✅ **Optional Validation**: Can be enabled/disabled for performance optimization 
+
+### Error Envelope Structure
+
+When validation fails, the validator returns a detailed error envelope:
+
+```python
+{
+    "validation_error": True,
+    "domain": "core_api",
+    "field_path": "timestamp",                    # Dot-separated path to failing field
+    "error_message": "'timestamp' is a required property",
+    "validator": "required",                      # Type of validation that failed
+    "failed_value": {...},                        # The actual value that failed
+    "constraint": ["timestamp", "level", ...],    # Schema constraint violated
+    "hint": "Missing required field(s): ..."      # Contextual help
+}
+```
+
+## Subtask 3: Rule Evaluation
+
+### Implementation
+
+**File**: `src/ulog/classifier/rule_evaluator.py`
+
+The rule evaluator applies classification rules from `rules/rules.json` in priority order with **first-match-wins** semantics.
+
+### Features
+
+✅ **First-Match-Wins**: Stops evaluation at the first matching rule (priority order)  
+✅ **Comprehensive Operators**: Supports comparison, string, extraction, and logical operators  
+✅ **Field Aliases**: Cross-schema field aliases for reusable rules (e.g., `@status` → `outcome`, `status`, `result`)  
+✅ **Nested Field Paths**: Supports dot-notation paths (e.g., `meta.parse.pattern_id`)  
+✅ **Domain Filtering**: Rules can target specific domains via `applies_to` field  
+✅ **Provenance Tracking**: Adds complete metadata about which rule matched  
+✅ **Default Action**: Fallback action when no rules match  
+
