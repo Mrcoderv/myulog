@@ -41,19 +41,33 @@ rm -rf "${PROJECT_ROOT}/dist"
 mkdir -p "${PROJECT_ROOT}/dist"
 echo ""
 
+MAX_STEPS=4
+CURRENT_STEP=0
+
+# Helper function to show progress
+step() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    echo "${CURRENT_STEP}/${MAX_STEPS} $*"
+}
+
 # Build wheel
-echo "1/3 Building Python wheel..."
+step "Building Python wheel..."
 "${SCRIPT_DIR}/build_wheel.sh"
 echo ""
 
 # Build CLI bundle
-echo "2/3 Building CLI bundle..."
+step "Building CLI bundle..."
 "${SCRIPT_DIR}/build_cli_bundle.sh"
 echo ""
 
 # Build Lambda ZIP
-echo "3/3 Building Lambda ZIP..."
+step "Building Lambda ZIP..."
 "${SCRIPT_DIR}/build_lambda.sh"
+echo ""
+
+# Generate checksums
+step "Generating checksums..."
+"${SCRIPT_DIR}/generate_checksums.sh"
 echo ""
 
 # Summary
@@ -66,3 +80,8 @@ ls -lh "${PROJECT_ROOT}/dist"
 echo ""
 echo "Total size: $(du -sh "${PROJECT_ROOT}/dist" | cut -f1)"
 echo ""
+echo "Next steps:"
+echo "  - Verify checksums: ./scripts/verify_checksums.sh"
+echo "  - Test wheel: pip install dist/*.whl"
+echo "  - Test CLI: tar -xzf dist/ulog-cli-*.tar.gz && ./ulog-cli-*/bin/ulog --help"
+echo "  - Test Lambda: unzip -l dist/classifier_lambda.zip"
