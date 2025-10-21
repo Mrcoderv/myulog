@@ -60,8 +60,8 @@ jobs:
 
             # --- Lint ---
 
-            - name: Ruff lint
-              run: poetry run ruff check .
+            - name: Ruff lint (and fix)
+              run: poetry run ruff check . --fix
 
             - name: YAML lint (4-space indentation on this workflow)
               run: |
