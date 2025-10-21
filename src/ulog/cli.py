@@ -1,3 +1,4 @@
+
 """Command-line interface for ULog Normalizer."""
 
 from __future__ import annotations
