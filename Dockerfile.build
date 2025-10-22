@@ -90,39 +90,32 @@ RUN . /tmp/version.env && \
         -C /tmp/bundle \
         ulog-cli-${VERSION}
 
-# ==============================================================================
-# Stage 4: Lambda package builder (direct function, not layer)
-# ==============================================================================
+# ======================================================================
+# Stage 4: Lambda package builder (function ZIP: deps at ZIP root)
+# ======================================================================
 FROM base AS lambda-builder
-
+    
 # Install zip utility (not in slim image)
 RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
 
-# Install runtime dependencies at root level for direct function deployment
-# (For Lambda layers, use python/ subdirectory; for direct functions, use root)
+# Install runtime dependencies into the ZIP root (function package, not a layer)
 RUN mkdir -p /lambda && \
-    pip install --target /lambda .
+pip install --no-cache-dir --target /lambda .
 
-# Copy Lambda handler module to root
-# NOTE (Ticket 2.2): Replace lambda_handler/ with lambda_adapter/ when ticket
-# 2.2 lands. Handler path will change from lambda_handler.handler to
-# lambda_adapter.handler (same module.handler pattern prevents drift).
-COPY lambda_handler/ /lambda/lambda_handler/
-
-# Copy runtime data directories to root
+# Copy Lambda handler module and runtime data
+COPY lambda_handler/handler.py /lambda/handler.py
 COPY schemas /lambda/schemas
 COPY vocab /lambda/vocab
 COPY rules /lambda/rules
 
-# Create ZIP with proper permissions and deterministic ordering, export to root
+# Create ZIP with deterministic ordering and permissions; export to root
 RUN cd /lambda && \
-    find . -type f -exec chmod 644 {} \; && \
-    find . -type d -exec chmod 755 {} \; && \
-    find . -print | sort | \
-    TZ=UTC zip -q -X -@ /classifier_lambda.zip && \
-    chmod 644 /classifier_lambda.zip
+    find . -type f -exec chmod 0644 {} \; && \
+    find . -type d -exec chmod 0755 {} \; && \
+    find . -print | sort | TZ=UTC zip -q -X -@ /classifier_lambda.zip && \
+    chmod 0644 /classifier_lambda.zip
 
-# Verify size (Lambda has 50MB uncompressed limit)
+# Verify uncompressed size (Lambda limit: 50MB)
 RUN echo "Lambda ZIP size:" && \
     ls -lh /classifier_lambda.zip && \
     UNCOMPRESSED_SIZE=$(unzip -l /classifier_lambda.zip | tail -1 | awk '{print $1}') && \

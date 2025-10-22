@@ -6,21 +6,21 @@ ULog produces three distribution artifacts plus checksums. All builds are **repr
 
 ```bash
 # Build all artifacts
-make build          # or ./scripts/build.sh
+make build    # or ./scripts/build.sh
 
-# Generate checksums (if needed separately)
-make package        # or ./scripts/generate_checksums.sh
+# Alias for 'make build' (produces dist/* + SHA256SUMS)
+make package  # alias to 'make build'
 
-# Clean build artifacts
+# Verify reproducibility (two clean builds → identical checksums)
+make build.verify
+
+# Clean local artifacts
 make clean
-
-# Verify reproducibility
-make build.verify   # or ./scripts/verify_reproducible_build.sh
 ```
 
-**Output:** `dist/ulog-0.1.0-py3-none-any.whl`, `ulog-cli-0.1.0.tar.gz`, `classifier_lambda.zip`, `SHA256SUMS`
+**Output:** `dist/ulog-0.1.0-py3-none-any.whl`, `dist/ulog-cli-0.1.0.tar.gz`, `dist/classifier_lambda.zip`, `dist/SHA256SUMS`
 
-**Note:** `make build` automatically generates checksums. Use `make package` only if you need to regenerate them separately.
+**Note:** `make build` (and its alias `make package`) automatically generates checksums as the final step.
 
 **Verify checksums:**
 ```bash
@@ -77,20 +77,18 @@ AWS Lambda deployment package (direct function, not layer) with Python 3.12 runt
 **Structure:** All dependencies at root level (not in `python/` subdirectory)
 ```
 classifier_lambda.zip
+├── handler.py               # Lambda handler at root (temporary)
 ├── ulog/                    # Main package
 ├── jsonschema/              # Dependencies at root
 ├── click/
-├── lambda_handler/          # Handler module (temporary)
-│   ├── __init__.py
-│   └── handler.py
 ├── schemas/                 # Runtime data
 ├── vocab/
 └── rules/
 ```
 
-**Handler:** `lambda_handler.handler`
+**Handler:** `handler.handler`
 
-> **Note:** Ticket 2.2 will replace the temporary `lambda_handler/` module with `lambda_adapter/` containing the full classifier implementation.
+> **Note:** Ticket 2.2 will replace the temporary `handler.py` with `lambda_adapter/` module containing the full classifier implementation.
 
 **Event format:**
 ```json
@@ -109,7 +107,7 @@ aws lambda create-function \
   --function-name ulog-classifier \
   --runtime python3.12 \
   --role arn:aws:iam::ACCOUNT:role/lambda-role \
-  --handler lambda_handler.handler \
+  --handler handler.handler \
   --zip-file fileb://dist/classifier_lambda.zip
 
 # Update existing function
@@ -226,9 +224,9 @@ All scripts are in `scripts/`, executable, use Docker for reproducibility, and s
 
 ### Make Targets
 - `make build` - Build all distribution artifacts (wheel, CLI, Lambda ZIP, checksums)
-- `make package` - Generate checksums for built artifacts
-- `make clean` - Remove all build artifacts from `dist/`
 - `make build.verify` - Verify build reproducibility
+- `make package` - Alias for 'make build' (produces dist/* + SHA256SUMS)
+- `make clean` - Remove `./dist` (no Docker pruning)
 - `make help` - Show all available targets
 
 ### Requirements

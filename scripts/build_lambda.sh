@@ -30,4 +30,8 @@ ls -lh "${PROJECT_ROOT}/dist"/classifier_lambda.zip
 # Show uncompressed size
 echo ""
 echo "Lambda ZIP contents:"
-unzip -l "${PROJECT_ROOT}/dist/classifier_lambda.zip" | tail -5
+if command -v unzip >/dev/null 2>&1; then
+    unzip -l "${PROJECT_ROOT}/dist/classifier_lambda.zip" | tail -5
+else
+    echo "(skipped) 'unzip' not found on this runner"
+fi

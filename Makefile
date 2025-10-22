@@ -37,9 +37,9 @@ help: ## Show available commands
 	@echo ""
 	@echo "Build & Packaging:"
 	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
-	@echo "  make package            - generate checksums for built artifacts"
-	@echo "  make clean              - remove all build artifacts from dist/"
 	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
+	@echo "  make package            - alias for 'make build' (produces dist/* + SHA256SUMS)"
+	@echo "  make clean              - remove ./dist (no Docker pruning)"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -112,15 +112,13 @@ down: ## Stop services and remove containers
 build: ## Build all distribution artifacts
 	@./scripts/build.sh
 
-package: ## Generate checksums for built artifacts
-	@./scripts/generate_checksums.sh
-
-clean: ## Remove build artifacts
-	@rm -rf dist/
-	@echo "✓ Cleaned dist/"
-
 build.verify: ## Verify build reproducibility
 	@./scripts/verify_reproducible_build.sh
+
+package: build ## Alias build and package all artifacts into dist
+
+clean: ## Remove local build artifacts (safe)
+	@rm -rf dist/
 
 # --- Vocabulary helpers ---
 lint-vocab:
