@@ -6,3 +6,23 @@ services:
         volumes:
             - ./in:/in
             - ./out:/out
+
+    classifier-http:
+        build:
+            context: ./classifier
+            dockerfile: Dockerfile.http
+        env_file: ../.env
+        ports:
+            - "8080:8080"
+        volumes:
+            - ./in:/in
+            - ./out:/out
+        environment:
+            - PORT=8080
+            - LOG_LEVEL=${LOG_LEVEL:-INFO}
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+            start_period: 5s
