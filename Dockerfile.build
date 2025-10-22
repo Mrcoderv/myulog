@@ -91,21 +91,25 @@ RUN . /tmp/version.env && \
         ulog-cli-${VERSION}
 
 # ==============================================================================
-# Stage 4: Lambda package builder
+# Stage 4: Lambda package builder (direct function, not layer)
 # ==============================================================================
 FROM base AS lambda-builder
 
 # Install zip utility (not in slim image)
 RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
 
-# Install runtime dependencies directly (PEP 621 reads only [project.dependencies])
-RUN mkdir -p /lambda/python && \
-    pip install --target /lambda/python .
+# Install runtime dependencies at root level for direct function deployment
+# (For Lambda layers, use python/ subdirectory; for direct functions, use root)
+RUN mkdir -p /lambda && \
+    pip install --target /lambda .
 
-# Copy Lambda handler
-COPY scripts/lambda_handler.py /lambda/
+# Copy Lambda handler module to root
+# NOTE (Ticket 2.2): Replace lambda_handler/ with lambda_adapter/ when ticket
+# 2.2 lands. Handler path will change from lambda_handler.handler to
+# lambda_adapter.handler (same module.handler pattern prevents drift).
+COPY lambda_handler/ /lambda/lambda_handler/
 
-# Copy runtime data directories
+# Copy runtime data directories to root
 COPY schemas /lambda/schemas
 COPY vocab /lambda/vocab
 COPY rules /lambda/rules

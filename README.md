@@ -83,6 +83,8 @@ No secrets required.
 - `make generate` – create a sample input file for the local pipeline  
 - `make classify` / `make down` – run/stop the Docker Compose (v2) pipeline
 - `make build` - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+- `make package` - Generate checksums for built artifacts
+- `make clean` - Remove all build artifacts from `dist/`
 - `make build.verify`  - verify build reproducibility (builds twice, compares checksums)"
 
 ### Rule evaluation (first-match-wins)

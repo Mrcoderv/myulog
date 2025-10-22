@@ -8,11 +8,19 @@ ULog produces three distribution artifacts plus checksums. All builds are **repr
 # Build all artifacts
 make build          # or ./scripts/build.sh
 
+# Generate checksums (if needed separately)
+make package        # or ./scripts/generate_checksums.sh
+
+# Clean build artifacts
+make clean
+
 # Verify reproducibility
 make build.verify   # or ./scripts/verify_reproducible_build.sh
 ```
 
 **Output:** `dist/ulog-0.1.0-py3-none-any.whl`, `ulog-cli-0.1.0.tar.gz`, `classifier_lambda.zip`, `SHA256SUMS`
+
+**Note:** `make build` automatically generates checksums. Use `make package` only if you need to regenerate them separately.
 
 **Verify checksums:**
 ```bash
@@ -64,9 +72,25 @@ export PATH="$PWD/ulog-cli-0.1.0/bin:$PATH"
 
 ### 3. Lambda ZIP (`classifier_lambda.zip`) - ~1.5MB
 
-AWS Lambda deployment package with Python 3.12 runtime.
+AWS Lambda deployment package (direct function, not layer) with Python 3.12 runtime.
+
+**Structure:** All dependencies at root level (not in `python/` subdirectory)
+```
+classifier_lambda.zip
+├── ulog/                    # Main package
+├── jsonschema/              # Dependencies at root
+├── click/
+├── lambda_handler/          # Handler module (temporary)
+│   ├── __init__.py
+│   └── handler.py
+├── schemas/                 # Runtime data
+├── vocab/
+└── rules/
+```
 
 **Handler:** `lambda_handler.handler`
+
+> **Note:** Ticket 2.2 will replace the temporary `lambda_handler/` module with `lambda_adapter/` containing the full classifier implementation.
 
 **Event format:**
 ```json
@@ -88,10 +112,12 @@ aws lambda create-function \
   --handler lambda_handler.handler \
   --zip-file fileb://dist/classifier_lambda.zip
 
-# Update existing
+# Update existing function
 aws lambda update-function-code \
   --function-name ulog-classifier \
   --zip-file fileb://dist/classifier_lambda.zip
+
+# Note: Update --handler to lambda_adapter.handler when ticket 2.2 lands
 ```
 
 **Use cases:** Serverless log processing, event-driven architectures, scalable deployments
@@ -199,7 +225,9 @@ echo '{"@timestamp":"2024-01-01T00:00:00Z","@message":"test"}' | ./ulog-cli-0.1.
 All scripts are in `scripts/`, executable, use Docker for reproducibility, and support macOS/Linux.
 
 ### Make Targets
-- `make build` - Build all distribution artifacts
+- `make build` - Build all distribution artifacts (wheel, CLI, Lambda ZIP, checksums)
+- `make package` - Generate checksums for built artifacts
+- `make clean` - Remove all build artifacts from `dist/`
 - `make build.verify` - Verify build reproducibility
 - `make help` - Show all available targets
 

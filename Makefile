@@ -6,7 +6,7 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
-        build build.verify \
+        build build.verify package clean \
         coverage test.determinism
 
 help: ## Show available commands
@@ -37,6 +37,8 @@ help: ## Show available commands
 	@echo ""
 	@echo "Build & Packaging:"
 	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make package            - generate checksums for built artifacts"
+	@echo "  make clean              - remove all build artifacts from dist/"
 	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
 	@echo ""
 	@echo "Vocabulary:"
@@ -109,6 +111,13 @@ down: ## Stop services and remove containers
 # --- Build & Packaging ---
 build: ## Build all distribution artifacts
 	@./scripts/build.sh
+
+package: ## Generate checksums for built artifacts
+	@./scripts/generate_checksums.sh
+
+clean: ## Remove build artifacts
+	@rm -rf dist/
+	@echo "✓ Cleaned dist/"
 
 build.verify: ## Verify build reproducibility
 	@./scripts/verify_reproducible_build.sh
