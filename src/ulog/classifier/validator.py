@@ -1,40 +1,38 @@
 def _load_schemas(self):
-    """Load all domain schemas and build a local registry that resolves $refs."""
+    """Load all domain schemas and shared defs into the registry and build validators."""
+    from referencing import Registry, Resource
+    from referencing.jsonschema import DRAFT202012
 
-    # 1) Collect every *.schema.json as resources
     registry_resources = []
+
+    # 1) Load ALL .schema.json files (versioned + top-level wrappers)
     for schema_file in self._schema_dir.rglob("*.schema.json"):
         with open(schema_file, "r", encoding="utf-8") as f:
             schema_content = json.load(f)
+        schema_id = schema_content.get("$id")
+        if schema_id:
+            registry_resources.append((schema_id, Resource.from_contents(schema_content, default_specification=DRAFT202012)))
 
-        # If the schema declares an $id, register it under that URL
-        if "$id" in schema_content:
-            res = Resource.from_contents(schema_content, default_specification=DRAFT202012)
-            registry_resources.append((schema_content["$id"], res))
+    # 2) ALSO load shared/common vocab (not *.schema.json), e.g. _common.json
+    common_path = self._schema_dir / "_common.json"
+    if common_path.exists():
+        with open(common_path, "r", encoding="utf-8") as f:
+            common_schema = json.load(f)
+        common_id = common_schema.get("$id")
+        if common_id:
+            registry_resources.append((common_id, Resource.from_contents(common_schema, default_specification=DRAFT202012)))
 
-        # Also register by absolute file URL so relative refs can resolve via file paths if needed
-        file_url = schema_file.resolve().as_uri()
-        res2 = Resource.from_contents(schema_content, default_specification=DRAFT202012)
-        registry_resources.append((file_url, res2))
+    # (Optional) If you have other shared files, add them here the same way.
 
-    # 2) Important: manually map the URL that relative refs point to
-    # Example: ../../_common.json relative to $id "https://github.com/OmdenaAI/ULog/schemas/llm/v0/llm.schema.json"
-    # becomes: "https://github.com/OmdenaAI/ULog/schemas/_common.json"
-    common_file = (self._schema_dir / "_common.json").resolve()
-    with open(common_file, "r", encoding="utf-8") as f:
-        common_schema = json.load(f)
-
-    common_url = "https://github.com/OmdenaAI/ULog/schemas/_common.json"
-    registry_resources.append((common_url, Resource.from_contents(common_schema, default_specification=DRAFT202012)))
+    # 3) Build a registry with everything
     registry = Registry().with_resources(registry_resources)
 
-    # 3) Load top-level domain “wrapper” schemas (core_api.schema.json, llm.schema.json, etc.)
+    # 4) Cache and prepare per-domain validators
     domains = ["core_api", "llm", "agentic", "cv"]
     for domain in domains:
         schema_path = self._schema_dir / f"{domain}.schema.json"
-        if not schema_path.exists():
-            continue
-        with open(schema_path, "r", encoding="utf-8") as f:
-            schema = json.load(f)
-        self._schema_cache[domain] = schema
-        self._validators[domain] = Draft202012Validator(schema, registry=registry)
+        if schema_path.exists():
+            with open(schema_path, "r", encoding="utf-8") as f:
+                schema = json.load(f)
+            self._schema_cache[domain] = schema
+            self._validators[domain] = Draft202012Validator(schema, registry=registry)
