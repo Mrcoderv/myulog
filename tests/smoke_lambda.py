@@ -1,4 +1,5 @@
-from src.ulog.classifier.handler import lambda_handler
+
+from ulog.classifier.handler import lambda_handler
 
 def test_health_smoke():
     event = {
