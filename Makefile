@@ -6,6 +6,7 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
+        build build.verify \
         coverage test.determinism
 
 help: ## Show available commands
@@ -33,6 +34,10 @@ help: ## Show available commands
 	@echo "  make generate           - create a sample log in local_pipeline/in"
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo ""
+	@echo "Build & Packaging:"
+	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -100,6 +105,13 @@ classify: ## Run local pipeline (docker compose)
 
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
+
+# --- Build & Packaging ---
+build: ## Build all distribution artifacts
+	@./scripts/build.sh
+
+build.verify: ## Verify build reproducibility
+	@./scripts/verify_reproducible_build.sh
 
 # --- Vocabulary helpers ---
 lint-vocab:
