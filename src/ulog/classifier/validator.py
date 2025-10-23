@@ -1,33 +1,28 @@
 def _load_schemas(self):
-    """Load all domain schemas and shared defs into the registry and build validators."""
-    from referencing import Registry, Resource
-    from referencing.jsonschema import DRAFT202012
-
+    """Load all domain schemas from the schemas directory and build a registry."""
     registry_resources = []
 
-    # 1) Load ALL .schema.json files (versioned + top-level wrappers)
-    for schema_file in self._schema_dir.rglob("*.schema.json"):
-        with open(schema_file, "r", encoding="utf-8") as f:
-            schema_content = json.load(f)
-        schema_id = schema_content.get("$id")
-        if schema_id:
-            registry_resources.append((schema_id, Resource.from_contents(schema_content, default_specification=DRAFT202012)))
+    # Load every JSON under /schemas that has a $id (includes _common.json and versioned files)
+    for schema_file in self._schema_dir.rglob("*.json"):
+        try:
+            with open(schema_file, "r", encoding="utf-8") as f:
+                schema_content = json.load(f)
+        except Exception:
+            continue
 
-    # 2) ALSO load shared/common vocab (not *.schema.json), e.g. _common.json
-    common_path = self._schema_dir / "_common.json"
-    if common_path.exists():
-        with open(common_path, "r", encoding="utf-8") as f:
-            common_schema = json.load(f)
-        common_id = common_schema.get("$id")
-        if common_id:
-            registry_resources.append((common_id, Resource.from_contents(common_schema, default_specification=DRAFT202012)))
+        if isinstance(schema_content, dict) and "$id" in schema_content:
+            res = Resource.from_contents(schema_content, default_specification=DRAFT202012)
+            schema_id = schema_content["$id"]
+            registry_resources.append((schema_id, res))
 
-    # (Optional) If you have other shared files, add them here the same way.
+            # Also register a file:// alias to help with any file-based refs
+            file_url = "file://" + schema_file.resolve().as_posix()
+            registry_resources.append((file_url, res))
 
-    # 3) Build a registry with everything
     registry = Registry().with_resources(registry_resources)
+    self._registry = registry  # keep a handle if you want to introspect
 
-    # 4) Cache and prepare per-domain validators
+    # Load the domain wrapper schemas (core_api.schema.json, llm.schema.json, etc.)
     domains = ["core_api", "llm", "agentic", "cv"]
     for domain in domains:
         schema_path = self._schema_dir / f"{domain}.schema.json"
@@ -36,3 +31,4 @@ def _load_schemas(self):
                 schema = json.load(f)
             self._schema_cache[domain] = schema
             self._validators[domain] = Draft202012Validator(schema, registry=registry)
+     
