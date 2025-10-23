@@ -6,6 +6,7 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
+        http.up http.down http.logs http.test http.smoke \
         coverage test.determinism
 
 help: ## Show available commands
@@ -33,6 +34,13 @@ help: ## Show available commands
 	@echo "  make generate           - create a sample log in local_pipeline/in"
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo ""
+	@echo "HTTP Service:"
+	@echo "  make http.up            - start HTTP classifier service"
+	@echo "  make http.down          - stop HTTP classifier service"
+	@echo "  make http.logs          - view HTTP service logs"
+	@echo "  make http.test          - run smoke tests against HTTP service"
+	@echo "  make http.smoke         - start service and run smoke tests"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -100,6 +108,27 @@ classify: ## Run local pipeline (docker compose)
 
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
+
+# --- HTTP Service ---
+http.up: ## Start HTTP classifier service
+	@cd local_pipeline && docker compose up -d classifier-http
+	@echo "HTTP service starting at http://localhost:8080"
+	@echo "Check health: curl http://localhost:8080/health"
+
+http.down: ## Stop HTTP classifier service
+	@cd local_pipeline && docker compose down classifier-http
+
+http.logs: ## View HTTP service logs
+	@cd local_pipeline && docker compose logs -f classifier-http
+
+http.test: ## Run smoke tests against HTTP service
+	@./scripts/smoke_http.sh
+
+http.smoke: ## Start service and run smoke tests
+	@$(MAKE) http.up
+	@echo "Waiting for service to be healthy..."
+	@sleep 3
+	@$(MAKE) http.test
 
 # --- Vocabulary helpers ---
 lint-vocab:
