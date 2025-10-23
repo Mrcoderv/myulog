@@ -22,10 +22,21 @@ See **[docs/PRIVACY.md](./docs/PRIVACY.md)** for redaction rules, unsafe→safe 
 
 
 ## Quickstart (local)
+
+### Batch Processing
 1. Copy env: `cp .env.example .env`
 2. Generate a sample input: `make generate`
 3. Run the pipeline: `make classify`
 4. Check outputs in `local_pipeline/out/`
+
+### HTTP Service
+1. Start the service: `make http.up`
+2. Check health: `curl http://localhost:8080/health`
+3. Run smoke tests: `make http.test`
+4. Stop the service: `make http.down`
+5. See `local_pipeline/README.md` for endpoint documentation
+
+Or run everything at once: `make http.smoke`
 
 ## Schema harness
 Validate schemas and examples locally:
