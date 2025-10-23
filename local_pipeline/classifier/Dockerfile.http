@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# Install curl for healthcheck
+# curl install for healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
@@ -12,7 +12,6 @@ RUN pip install --no-cache-dir flask==3.0.0 jsonschema==4.20.0
 
 COPY http_app.py /app/http_app.py
 
-# Environment
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
