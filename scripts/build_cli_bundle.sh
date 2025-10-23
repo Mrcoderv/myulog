@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build CLI bundle (zipapp) using Docker multi-stage build
+# Build CLI bundle using Docker multi-stage build
 # Output: dist/ulog-cli-<version>.tar.gz
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

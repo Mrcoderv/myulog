@@ -4,7 +4,7 @@ AWS Lambda handler for ULog classifier.
 TEMPORARY: This module validates the Lambda package structure and dependencies.
 It will be replaced by lambda_adapter/handler.py in ticket 2.2 (Classifier service).
 
-Handler path: lambda_handler.handler (will become: lambda_adapter.handler in ticket 2.2)
+Handler path: handler.handler (will become: lambda_adapter.handler in ticket 2.2)
 
 Event structure:
 {

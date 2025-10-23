@@ -82,8 +82,8 @@ No secrets required.
 - `make data.generate` / `make data.generate.raw` – synthetic dataset + raw mirror  
 - `make generate` – create a sample input file for the local pipeline  
 - `make classify` / `make down` – run/stop the Docker Compose (v2) pipeline
-- `make build` - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
-- `make build.verify`  - verify build reproducibility (builds twice, compares checksums)"
+- `make build` - build all distribution artifacts (wheel, CLI, Lambda ZIP)
+- `make build.verify`  - verify build reproducibility (builds twice, compares checksums)
 - `make clean` - remove local dist/ directory
 
 ### Rule evaluation (first-match-wins)
