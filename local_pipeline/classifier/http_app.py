@@ -10,6 +10,7 @@ Endpoints:
 - POST /classify       - Full pipeline: parse → validate → classify → annotate
 """
 
+import json
 import os
 from typing import Any, Dict
 
@@ -31,7 +32,9 @@ def health() -> tuple[Dict[str, Any], int]:
         200: Service is healthy
     """
     return (
-        jsonify({"status": "healthy", "service": "ulog-classifier-http", "version": "0.1.0"}),
+        jsonify(
+            {"status": "healthy", "service": "ulog-classifier-http", "version": "0.1.0"}
+        ),
         200,
     )
 
@@ -78,7 +81,9 @@ def parse() -> tuple[Dict[str, Any], int]:
                         "@message": line,
                         "@timestamp": "2025-10-21T00:00:00Z",
                     },
-                    "meta": {"parse": {"pattern_id": "placeholder_pattern", "success": True}},
+                    "meta": {
+                        "parse": {"pattern_id": "placeholder_pattern", "success": True}
+                    },
                 }
             )
 
@@ -110,17 +115,14 @@ def classify() -> tuple[Dict[str, Any], int]:
         content_type = request.content_type or "application/json"
 
         if "ndjson" in content_type or "jsonl" in content_type:
-            # JSONL format
-            lines = request.data.decode("utf-8").strip().split("\n")
-            events = [eval(line) if line.strip() else None for line in lines]
-            events = [e for e in events if e is not None]
+            raw = request.data.decode("utf-8").strip()
+            events = [json.loads(line) for line in raw.splitlines() if line.strip()]
         else:
-            # JSON array
-            data = request.get_json()
+            data = request.get_json(silent=True)
             if isinstance(data, list):
                 events = data
             else:
-                events = [data]
+                events = [data] if data is not None else []
 
         if not events:
             return jsonify({"error": "No events provided"}), 400
