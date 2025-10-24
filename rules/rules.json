@@ -532,7 +532,26 @@
           "rate_limited"
         ]
       }
-    },
+{
+"rule_id": "llm-ttft-anomalous",
+"version": "1.0.0",
+"name": "High TTFT (time-to-first-token) anomaly",
+"description": "Flag slow first-token latency indicating provider/back-end slowness",
+"applies_to": ["llm"],
+"when": {
+"all": [
+{ "field": "ttft_ms", "op": "gte", "value": 1500 },
+{ "field": "@status", "op": "eq", "value": "success" }
+]
+},
+"then": {
+"level": "warn",
+"category": "llm",
+"sub_category": "metrics",
+"outcome": "success",
+"tags": ["llm", "latency", "ttft"]
+}
+},
     {
       "rule_id": "llm-kv-cache-anomaly",
       "version": "1.0.0",
