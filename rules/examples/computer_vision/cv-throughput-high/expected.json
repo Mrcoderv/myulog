@@ -7,7 +7,6 @@
     "throughput"
   ],
   "sub_category": "metrics",
-  "_rule_id": "cv-throughput-high",
   "provenance": {
     "rule_id": "cv-throughput-high",
     "rule_index": 29

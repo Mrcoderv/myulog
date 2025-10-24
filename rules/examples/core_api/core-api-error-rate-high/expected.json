@@ -7,7 +7,6 @@
     "error_rate"
   ],
   "sub_category": "metrics",
-  "_rule_id": "core-api-error-rate-high",
   "provenance": {
     "rule_id": "core-api-error-rate-high",
     "rule_index": 10
