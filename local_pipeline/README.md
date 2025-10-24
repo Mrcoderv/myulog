@@ -5,12 +5,15 @@ Docker Compose setup for running the ULog classifier locally with HTTP service.
 ## Services
 
 ### `classifier`
+
 Batch processing service that reads from `/in` and writes to `/out`.
 
 ### `classifier-http`
+
 HTTP REST API for interactive parsing and classification.
 
 **Endpoints:**
+
 - `GET /health` - Health check (used by Docker healthcheck)
 - `POST /parse` - Parse raw log lines to normalized JSON (debug)
 - `POST /classify` - Full pipeline: parse → validate → classify → annotate
@@ -21,38 +24,28 @@ HTTP REST API for interactive parsing and classification.
 
 ### 1. Setup Environment
 
-```bash
-# Copy example env file (if not already done)
-cp ../.env.example ../.env
-
-# Edit .env to customize (optional)
-# Key variables: LOG_LEVEL, PORT
-```
+Ensure `../.env` exists with PORT/LOG_LEVEL.
 
 ### 2. Start Services
 
 ```bash
 # Start HTTP service
-docker-compose up -d classifier-http
+docker compose up -d classifier-http
 
 # Verify service is healthy
-docker-compose ps
-```
-
-**Expected output:**
-```
-NAME                          STATUS              PORTS
-local_pipeline-classifier-http-1   Up 5 seconds (healthy)   0.0.0.0:8080->8080/tcp
+docker compose ps
 ```
 
 **Test health endpoint:**
+
 ```bash
 curl http://localhost:8080/health
 ```
 
 **View logs:**
+
 ```bash
-docker-compose logs -f classifier-http
+docker compose logs -f classifier-http
 ```
 
 ### 3. Run Smoke Tests from root project folder
@@ -62,6 +55,7 @@ docker-compose logs -f classifier-http
 ```
 
 **Expected output:**
+
 ```
 ==========================================
 ULog HTTP Classifier Smoke Test
@@ -87,6 +81,7 @@ All smoke tests passed!
 ```
 
 **Results saved to `./out/`:**
+
 - `health_*.json` - Health check response
 - `parse_result_*.json` - Parse endpoint results
 - `classify_result_*.json` - Classify endpoint results (JSONL)
@@ -97,11 +92,13 @@ All smoke tests passed!
 #### Health Check
 
 **Command:**
+
 ```bash
 curl http://localhost:8080/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -117,6 +114,7 @@ curl http://localhost:8080/health
 #### Parse Endpoint
 
 **Command:**
+
 ```bash
 echo "INFO ingestion completed successfully for batch_20251007.csv" | \
   curl -X POST -H "Content-Type: text/plain" \
@@ -125,6 +123,7 @@ echo "INFO ingestion completed successfully for batch_20251007.csv" | \
 ```
 
 **Response snippet:**
+
 ```json
 {
   "count": 1,
@@ -155,6 +154,7 @@ For full response examples, see `./out/parse_result_*.json` after running the sm
 #### Classify Endpoint (JSONL)
 
 **Command:**
+
 ```bash
 cat > sample.jsonl <<EOF
 {"raw": "INFO ingestion completed successfully"}
@@ -168,6 +168,7 @@ curl -X POST \
 ```
 
 **Response snippet:**
+
 ```json
 {
   "count": 2,
@@ -209,6 +210,7 @@ For full response examples, see `./out/classify_result_*.json` after running the
 #### Classify Endpoint (JSON Array)
 
 **Command:**
+
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
@@ -221,7 +223,7 @@ curl -X POST \
 ### 5. Stop Services
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## Environment Variables
@@ -230,8 +232,6 @@ docker-compose down
 |----------|---------|-------------|
 | `PORT` | `8080` | HTTP service port |
 | `LOG_LEVEL` | `INFO` | Logging verbosity (DEBUG, INFO, WARN, ERROR) |
-| `IN_DIR` | `/in` | Input directory mount |
-| `OUT_DIR` | `/out` | Output directory mount |
 
 ## Directory Structure
 
@@ -251,6 +251,7 @@ local_pipeline/
 ## Output Files
 
 The smoke test script creates timestamped files in `./out/`:
+
 - `health_YYYYMMDD_HHMMSS.json` - Health check response
 - `parse_result_YYYYMMDD_HHMMSS.json` - Parse endpoint results
 - `classify_result_YYYYMMDD_HHMMSS.json` - Classify endpoint results
@@ -260,46 +261,51 @@ The smoke test script creates timestamped files in `./out/`:
 ## Healthcheck
 
 The HTTP service includes a Docker healthcheck that:
-- Polls `GET /health` every 10 seconds
+
+- Polls `GET /health` every 60 seconds
 - Times out after 3 seconds
 - Retries 3 times before marking unhealthy
-- Waits 5 seconds before first check
+- Waits 10 seconds before first check
 
 Check service health:
+
 ```bash
-docker-compose ps
+docker compose ps
 # Look for "healthy" status
 ```
 
 ## Troubleshooting
 
 **Service won't start:**
+
 ```bash
 # Check logs
-docker-compose logs classifier-http
+docker compose logs classifier-http
 
 # Rebuild image
-docker-compose build classifier-http
-docker-compose up -d classifier-http
+docker compose build classifier-http
+docker compose up -d classifier-http
 ```
 
 **Port already in use:**
+
 ```bash
 # Change port in .env
 echo "PORT=8081" >> ../.env
 
 # Restart
-docker-compose down
-docker-compose up -d classifier-http
+docker compose down
+docker compose up -d classifier-http
 ```
 
 **Healthcheck failing:**
+
 ```bash
 # Check if service is responding
 curl -v http://localhost:8080/health
 
 # Check container logs
-docker-compose logs classifier-http
+docker compose logs classifier-http
 ```
 
 ## Development Notes
