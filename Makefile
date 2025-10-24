@@ -6,7 +6,9 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
-        coverage test.determinism
+        coverage test.determinism \
+		
+		
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -43,6 +45,8 @@ help: ## Show available commands
 	@echo ""
 	@echo "Setup:"
 	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
+	@echo "  make data.generate.baseline - Generate baseline data 50 record for each domain"
+	@echo "  make data.generate.validate.baseline - Validate baseline data"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
@@ -123,7 +127,8 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate data.generate.raw test.roundtrip
+.PHONY: data.generate data.generate.raw test.roundtrip\
+ 		data.generate.baseline data.generate.validate.baseline\
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python data/generator/main.py -d agentic -n log_agentic
@@ -142,3 +147,9 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 # --- Round-trip test ---
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
+
+# --- Baseline generation and validation ---
+data.generate.baseline:
+	@poetry run python data/generate_baseline.py
+data.generate.validate.baseline:
+	@poetry run python data/validate_baseline.py
