@@ -46,6 +46,7 @@ class TestRulesStructure:
     def test_unique_rule_ids(self):
         """Subtask 6b: All rule_ids must be unique."""
         from collections import Counter
+
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
@@ -74,10 +75,7 @@ class TestDomainCoverage:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
-        count = sum(
-            1 for r in rules_data["rules"]
-            if "core_api" in r.get("applies_to", [])
-        )
+        count = sum(1 for r in rules_data["rules"] if "core_api" in r.get("applies_to", []))
 
         assert count >= 8, f"Expected ≥8 core_api rules, got {count}"
 
@@ -86,10 +84,7 @@ class TestDomainCoverage:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
-        count = sum(
-            1 for r in rules_data["rules"]
-            if "llm" in r.get("applies_to", [])
-        )
+        count = sum(1 for r in rules_data["rules"] if "llm" in r.get("applies_to", []))
 
         assert count >= 6, f"Expected ≥6 llm rules, got {count}"
 
@@ -98,10 +93,7 @@ class TestDomainCoverage:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
-        count = sum(
-            1 for r in rules_data["rules"]
-            if "agentic" in r.get("applies_to", [])
-        )
+        count = sum(1 for r in rules_data["rules"] if "agentic" in r.get("applies_to", []))
 
         assert count >= 6, f"Expected ≥6 agentic rules, got {count}"
 
@@ -110,10 +102,7 @@ class TestDomainCoverage:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
-        count = sum(
-            1 for r in rules_data["rules"]
-            if "computer_vision" in r.get("applies_to", [])
-        )
+        count = sum(1 for r in rules_data["rules"] if "computer_vision" in r.get("applies_to", []))
 
         assert count >= 5, f"Expected ≥5 computer_vision rules, got {count}"
 
@@ -122,10 +111,7 @@ class TestDomainCoverage:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
 
-        global_rules = [
-            r for r in rules_data["rules"]
-            if not r.get("applies_to", [])
-        ]
+        global_rules = [r for r in rules_data["rules"] if not r.get("applies_to", [])]
 
         assert len(global_rules) >= 3, f"Expected ≥3 global rules, got {len(global_rules)}"
 
@@ -145,9 +131,7 @@ class TestVocabularyCompliance:
         for i, rule in enumerate(rules_data["rules"]):
             level = rule.get("then", {}).get("level")
             if level:
-                assert level in valid_levels, (
-                    f"Rule [{i}] {rule.get('rule_id')}: invalid level '{level}'"
-                )
+                assert level in valid_levels, f"Rule [{i}] {rule.get('rule_id')}: invalid level '{level}'"
 
     def test_vocabulary_compliance_categories(self):
         """Subtask 6c: All 'category' values must be from vocabulary."""
@@ -161,9 +145,7 @@ class TestVocabularyCompliance:
         for i, rule in enumerate(rules_data["rules"]):
             category = rule.get("then", {}).get("category")
             if category:
-                assert category in valid_categories, (
-                    f"Rule [{i}] {rule.get('rule_id')}: invalid category '{category}'"
-                )
+                assert category in valid_categories, f"Rule [{i}] {rule.get('rule_id')}: invalid category '{category}'"
 
     def test_vocabulary_compliance_subcategories(self):
         """Subtask 6c: All 'sub_category' values must be from vocabulary."""
@@ -177,9 +159,7 @@ class TestVocabularyCompliance:
         for i, rule in enumerate(rules_data["rules"]):
             subcat = rule.get("then", {}).get("sub_category")
             if subcat:
-                assert subcat in valid_subcats, (
-                    f"Rule [{i}] {rule.get('rule_id')}: invalid sub_category '{subcat}'"
-                )
+                assert subcat in valid_subcats, f"Rule [{i}] {rule.get('rule_id')}: invalid sub_category '{subcat}'"
 
     def test_vocabulary_compliance_outcomes(self):
         """Subtask 6c: All 'outcome' values must be from vocabulary."""
@@ -193,9 +173,7 @@ class TestVocabularyCompliance:
         for i, rule in enumerate(rules_data["rules"]):
             outcome = rule.get("then", {}).get("outcome")
             if outcome:
-                assert outcome in valid_outcomes, (
-                    f"Rule [{i}] {rule.get('rule_id')}: invalid outcome '{outcome}'"
-                )
+                assert outcome in valid_outcomes, f"Rule [{i}] {rule.get('rule_id')}: invalid outcome '{outcome}'"
 
 
 # class TestWorkedExamples:
@@ -238,6 +216,7 @@ class TestVocabularyCompliance:
 #                 f"{expected_file.relative_to(WORKSPACE)} missing provenance"
 #             )
 
+
 #             assert "rule_id" in expected_data["provenance"], (
 #                 f"{expected_file.relative_to(WORKSPACE)} provenance missing rule_id"
 #             )
@@ -268,7 +247,7 @@ def run_classifier(input_data, rules_data, expected_output):
                 classified_data.update(rule.get("then", {}))
                 classified_data["provenance"] = {
                     "rule_id": expected_rule_id,
-                    "rule_index": i # The real index
+                    "rule_index": i,  # The real index
                 }
                 return classified_data
 
@@ -277,18 +256,21 @@ def run_classifier(input_data, rules_data, expected_output):
     classified_data.update(rules_data.get("default_action", {}))
     return classified_data
 
+
 # --- END CRITICAL SECTION ---
 def get_example_pairs():
     """Helper to find all input/expected example pairs for parametrization."""
     pairs = []
-    for input_file in EXAMPLES_PATH.rglob("*-input.json"):
-        expected_file = input_file.parent / input_file.name.replace("-input.json", "-expected.json")
+    for input_file in EXAMPLES_PATH.rglob("input.json"):
+        expected_file = input_file.parent / "expected.json"
         if expected_file.exists():
             pairs.append(pytest.param(input_file, expected_file, id=input_file.stem.replace("-input", "")))
     return pairs
 
+
 class TestWorkedExamples:
     """Final, robust tests for worked examples."""
+
     def test_worked_examples_exist(self):
         assert len(get_example_pairs()) >= 24
 
@@ -329,7 +311,6 @@ class TestWorkedExamples:
         assert actual_output == final_expected_object, f"Mismatch for example: {input_path.stem}"
 
 
-
 class TestGuardsAndDocumentation:
     """Tests for guard rules and documentation."""
 
@@ -340,7 +321,8 @@ class TestGuardsAndDocumentation:
 
         guard_keywords = ["guard", "startup", "build", "health"]
         guard_rules = [
-            r.get("rule_id") for r in rules_data["rules"]
+            r.get("rule_id")
+            for r in rules_data["rules"]
             if any(kw in r.get("rule_id", "").lower() for kw in guard_keywords)
         ]
 
@@ -355,9 +337,7 @@ class TestGuardsAndDocumentation:
         with open(README_PATH) as f:
             content = f.read().lower()
 
-        assert "first-match" in content or "first match" in content, (
-            "README must document first-match-wins ordering"
-        )
+        assert "first-match" in content or "first match" in content, "README must document first-match-wins ordering"
 
     def test_readme_documents_conflict_resolution(self):
         """Subtask 6e: README must document conflict resolution."""

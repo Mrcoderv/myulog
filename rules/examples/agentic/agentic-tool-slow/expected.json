@@ -7,7 +7,6 @@
     "slow"
   ],
   "sub_category": "tool_call",
-  "_rule_id": "agentic-tool-slow",
   "provenance": {
     "rule_id": "agentic-tool-slow",
     "rule_index": 25

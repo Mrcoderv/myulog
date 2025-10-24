@@ -114,8 +114,8 @@ rules.validate: ## Validate rules.json against rules.schema.json
 
 rules.test: ## Run unit tests for rules examples
 	@echo "Testing rules against examples..."
-	# Legacy location (may be empty) – do not fail if no cases are collected
-	@poetry run pytest -q tests/rules/test_rules_examples.py || true
+	# Legacy location (may be empty)
+	@poetry run pytest -q tests/rules/test_rules_examples.py
 	# New acceptance tests for Ticket 2.1 (structure + rules/examples)
 	@poetry run pytest -q tests/rules/test_rules.py
 

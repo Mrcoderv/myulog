@@ -193,25 +193,44 @@ This enables:
 
 ## Worked Examples
 
-See `examples/` for complete input/output pairs:
+See `examples/` for complete input/output pairs organized by domain and rule:
 
 ```
 examples/
 ├── core_api/
-│   ├── api-5xx-critical-input.json
-│   ├── api-5xx-critical-expected.json
+│   ├── api-5xx-critical/
+│   │   ├── input.json
+│   │   └── expected.json
+│   ├── api-unauthorized/
+│   │   ├── input.json
+│   │   └── expected.json
 │   └── ...
 ├── llm/
-│   ├── llm-safety-flag-critical-input.json
-│   ├── llm-safety-flag-critical-expected.json
+│   ├── llm-safety-flag-critical/
+│   │   ├── input.json
+│   │   └── expected.json
+│   ├── llm-token-budget-exceeded/
+│   │   ├── input.json
+│   │   └── expected.json
 │   └── ...
 ├── agentic/
+│   ├── agentic-tool-failure/
+│   │   ├── input.json
+│   │   └── expected.json
 │   └── ...
-└── computer_vision/
+├── computer_vision/
+│   ├── cv-training-loss-spike/
+│   │   ├── input.json
+│   │   └── expected.json
+│   └── ...
+└── common/
+    ├── all-failure-high/
+    │   ├── input.json
+    │   └── expected.json
     └── ...
 ```
 
-Each pair shows:
+Each example pair shows:
 - **input.json**: Normalized event (schema-valid, no rules applied)
 - **expected.json**: Same event + rule classifications (`level`, `category`, `sub_category`, `outcome`, `tags`, `provenance`)
 

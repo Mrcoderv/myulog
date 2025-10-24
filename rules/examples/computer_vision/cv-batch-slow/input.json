@@ -1,0 +1,12 @@
+{
+  "schema_id": "computer_vision",
+  "phase": "inference",
+  "trace_id": "test-trace-123",
+  "metrics": {
+    "fps": 15
+  },
+  "batch_size": 32,
+  "meta": {
+    "raw_message": "Batch processing completed in 70 s"
+  }
+}
