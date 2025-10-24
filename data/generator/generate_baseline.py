@@ -16,7 +16,6 @@ Requirements:
 
 import argparse
 import json
-import os
 import pathlib
 import subprocess
 import sys
@@ -189,7 +188,7 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
-    print(f"\n✅ Baseline dataset generated successfully!")
+    print("\n✅ Baseline dataset generated successfully!")
     print(f"   Raw logs: {RAW_DIR}")
     print(f"   Parsed logs: {BASELINE_DIR}")
     print(f"   Labels: {labels_file}")

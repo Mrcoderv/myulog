@@ -10,10 +10,10 @@ Usage:
     poetry run python data/generator/validate_baseline.py
 """
 
+from collections import Counter
 import json
 import pathlib
 import sys
-from collections import Counter
 from typing import Any
 
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
