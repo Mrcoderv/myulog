@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "metrics",
+  "outcome": "success",
+  "tags": ["llm", "latency", "ttft"],
+  "provenance": {
+    "rule_id": "llm-ttft-anomalous",
+    "rule_index": 16
+  }
+}
