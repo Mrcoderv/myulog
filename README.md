@@ -61,6 +61,7 @@ No secrets required.
 | Variable            | Default                  | What it controls                                                                                   |
 |---------------------|--------------------------|-----------------------------------------------------------------------------------------------------|
 | `LOG_LEVEL`         | `INFO`                   | Local verbosity for CLI/services (`DEBUG`, `INFO`, `WARN`, `ERROR`).                               |
+| `PORT`              | `8080`                   | Local HTTP Service PORT.                               |
 | `IN_DIR`            | `/in`                    | Input mount for the local Docker Compose pipeline.                                                  |
 | `OUT_DIR`           | `/out`                   | Output mount for the local Docker Compose pipeline.                                                 |
 | `CLASSIFIER_IMAGE`  | `ulog-classifier:local`  | Image tag used by the `classifier` service in `local_pipeline/docker-compose.yml`.                  |
