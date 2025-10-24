@@ -107,4 +107,3 @@ data/synthetic/*.jsonl
 !data/synthetic/.gitkeep
 data/synthetic/raw/*.jsonl
 !data/synthetic/raw/.gitkeep
-!data/synthetic/baseline_labels.jsonl
