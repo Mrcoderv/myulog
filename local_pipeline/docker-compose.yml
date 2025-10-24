@@ -13,16 +13,13 @@ services:
             dockerfile: Dockerfile.http
         env_file: ../.env
         ports:
-            - "8080:8080"
+            - "${PORT:-8080}:8080"
         volumes:
             - ./in:/in
             - ./out:/out
-        environment:
-            - PORT=8080
-            - LOG_LEVEL=${LOG_LEVEL:-INFO}
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-            interval: 10s
+            test: ["CMD", "curl", "-f", "http://localhost:${PORT:-8080}/health"]
+            interval: 60s
             timeout: 3s
             retries: 3
-            start_period: 5s
+            start_period: 10s
