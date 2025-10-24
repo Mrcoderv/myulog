@@ -11,12 +11,12 @@ The golden set provides a stable, curated collection of raw log events and their
 ```
 tests/determinism/
 ├── README.md                           
-├── inputs/                             # Raw input logs
-│   └── golden_raw_events.jsonl         # 134 curated raw events across all domains
-├── outputs/                            # Expected outputs
-│   ├── golden_parsed_outputs.jsonl     # Parsed & normalized output (131 events)
-│   └── golden_classified_outputs.jsonl # Classified output (after classifier implementation)
-└── metadata.json                       # Metadata about the golden set
+├── verify_golden_set.py                # golden set verification script
+├── inputs/                             # raw input logs
+│   └── golden_raw_events.jsonl         # raw events across all domains
+└── outputs/                            # expected outputs
+    ├── golden_parsed_outputs.jsonl     # parsed & normalized output
+    └── golden_classified_outputs.jsonl # classified output (after classifier implementation)
 ```
 
 ## Golden Set Composition
@@ -33,6 +33,7 @@ The golden set contains **134 raw events** distributed across domains:
 ### Selection Criteria
 
 Events were selected to provide:
+
 - **Domain coverage**: All four domains (agentic, core_api, cv, llm)
 - **Pattern diversity**: Multiple pattern types per domain
 - **Edge cases**: Parse failures, multi-line logs, special characters
@@ -45,6 +46,7 @@ Events were selected to provide:
 Raw JSONL events with `@timestamp` and `@message` fields. This is the input to the full pipeline.
 
 **Format:**
+
 ```json
 {"@timestamp": "2025-10-09T09:15:00.101Z", "@message": "[Agent] session_start id=agnt-6f21f ..."}
 ```
@@ -54,24 +56,17 @@ Raw JSONL events with `@timestamp` and `@message` fields. This is the input to t
 Parsed and normalized output from `ulog parse`. Contains 131 events (5 parse failures expected).
 
 **Format:**
+
 ```json
 {"step_kind": "session_start", "message": "...", "category": "agentic", "level": "info", ...}
 ```
 
 **Key fields preserved:**
+
 - `meta.parse.pattern_id`: Pattern that matched
 - `meta.parse.parser_name`: Parser used
 - `meta.parse.ok`: Parse success/failure
 - `unparsed_reason`: Reason for parse failure (if applicable)
-
-### outputs/golden_classified_outputs.jsonl
-
-Classified output with rule annotations. **To be generated after classifier implementation (Ticket 2.2).**
-
-**Expected format:**
-```json
-{"step_kind": "session_start", ..., "provenance": {"parser_rule_id": "...", "classifier_rule_id": "..."}}
-```
 
 ## Usage
 
@@ -80,15 +75,31 @@ Classified output with rule annotations. **To be generated after classifier impl
 ```bash
 # Parse raw inputs (already done)
 poetry run python -m ulog.cli parse < tests/determinism/inputs/golden_raw_events.jsonl > tests/determinism/outputs/golden_parsed_outputs.jsonl
-
-# Classify parsed outputs (after classifier implementation)
-# poetry run python -m ulog.classifier classify < tests/determinism/outputs/golden_parsed_outputs.jsonl > tests/determinism/outputs/golden_classified_outputs.jsonl
 ```
+
+### Verifying Golden Set Integrity
+
+```bash
+# Verify the golden set structure and content
+python tests/determinism/verify_golden_set.py
+
+# Or with poetry
+poetry run python tests/determinism/verify_golden_set.py
+```
+
+The verification script checks:
+
+- Required files exist (inputs, outputs, README)
+- Valid JSON structure in all JSONL files
+- Required fields present (`@timestamp`, `@message`, `meta.parse`, `pattern_id`)
+- Parse success/failure counts
+- Domain distribution
+- Parse success rate (warns if <80%)
 
 ### Running Determinism Tests
 
 ```bash
-# Run determinism test suite
+# Run determinism test suite (after Subtask 2 implementation)
 make test.determinism
 
 # Or directly with pytest
