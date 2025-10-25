@@ -78,7 +78,7 @@ async def health_check():
     return {"status": "ok", "service": "ClassifierLog"}
 
 
-@app.post("/parse", response_model=List[ClassifierLog])
+@app.post("/parse")
 async def parse_raw_logs(logs: List[StrictRawLogRecord]):
     """
     Debug endpoint to process raw logs.
@@ -86,13 +86,17 @@ async def parse_raw_logs(logs: List[StrictRawLogRecord]):
     """
     raw_data = [log.model_dump(by_alias=True, exclude_none=True) for log in logs]
     
-    return _process_records(raw_data, input_format="raw")
+    # return _process_records(raw_data, input_format="raw")
+    return JSONResponse(content=_process_records(raw_data, input_format="raw"))
 
 
-@app.post("/classify", response_model=List[ClassifierLog])
+
+
+@app.post("/classify")
 async def classify_logs(logs: List[FlexibleLogRecord]):
     """
     Endpoint to classify both raw and normalized input logs.
     """
     json_data = [log.model_dump(exclude_none=True) for log in logs]    
-    return _process_records(json_data, input_format="json")
+    # return _process_records(json_data, input_format="json")
+    return JSONResponse(content=_process_records(json_data, input_format="json"))
