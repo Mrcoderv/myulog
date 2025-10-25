@@ -33,7 +33,7 @@ Within each category, more specific conditions come before general ones.
 
 ### Example Ordering
 
-```json
+\```json
 [
   {
     "rule_id": "api-5xx-critical",
@@ -48,7 +48,7 @@ Within each category, more specific conditions come before general ones.
     "when": {"field": "outcome", "op": "eq", "value": "failure"}
   }
 ]
-```
+\```
 
 In this example:
 - HTTP 503 matches `api-5xx-critical` (stops evaluation)
@@ -61,15 +61,12 @@ When multiple rules could match an event:
 
 1. **Specific domain rules override global rules**
    - `llm-safety-flag-critical` beats `all-failure-high` for LLM safety violations
-
 2. **Higher severity beats lower severity** (when specificity is equal)
    - `api-5xx-critical` (critical) comes before `api-4xx-client-error` (warn)
-
 3. **Status codes are ordered numerically**
    - 5xx rules before 4xx rules before 2xx rules
-
 4. **Guard rules (startup/build/health) come first** to filter noise
-   - System lifecycle events are de-escalated to `debug` level before interaction rules
+   - System lifecycle events are de-escalated to `info` before interaction rules
 
 ## Rule Structure
 
@@ -84,7 +81,7 @@ Each rule has:
 
 Example:
 
-```json
+\```json
 {
   "rule_id": "llm-safety-flag-critical",
   "version": "1.0.0",
@@ -104,13 +101,13 @@ Example:
     "tags": ["llm", "safety", "policy_violation"]
   }
 }
-```
+\```
 
 ## Aliases
 
 Aliases enable cross-schema field mapping for common patterns:
 
-```json
+\```json
 {
   "aliases": {
     "@status": ["outcome", "status", "result"],
@@ -118,7 +115,7 @@ Aliases enable cross-schema field mapping for common patterns:
     "@errorCode": ["http_status", "error.code", "response.status"]
   }
 }
-```
+\```
 
 Use aliases in conditions to write rules that work across multiple schemas without duplicating logic.
 
@@ -126,163 +123,57 @@ Use aliases in conditions to write rules that work across multiple schemas witho
 
 ### Core API (core_api)
 
-**Event Types**: `http_request`, `http_response`, `startup`, `build`, `health_check`, `exception`
-
+**Event Types**: `http_request`, `http_response`, `startup`, `build`, `health_check`, `exception`  
 **Key Fields**: `http_status`, `endpoint`, `latency_ms`, `error.code`
-
-**Example Rules**:
-- HTTP 5xx → `critical`
-- HTTP 4xx → `warn`
-- Latency >2s → `warn`
-- Startup/build → `debug` (guard rules)
 
 ### LLM Pipeline (llm)
 
-**Stages**: `serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`
-
+**Stages**: `serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`  
 **Key Fields**: `usage.prompt_tokens`, `usage.completion_tokens`, `safety_flags`, `finish_reason`, `ttft_ms`, `kv_cache_usage_percent`
-
-**Example Rules**:
-- Safety violations → `critical`
-- Rate limited → `info`
-- Token budget exceeded → `info`
-- KV cache >90% → `warn`
 
 ### Agentic Workflows (agentic)
 
-**Step Kinds**: `plan`, `tool_call`, `inference`, `observation`, `final_answer`
-
+**Step Kinds**: `plan`, `tool_call`, `inference`, `observation`, `final_answer`  
 **Key Fields**: `step_kind`, `tool_name`, `status`, `duration_ms`, `guardrails_triggered`
-
-**Example Rules**:
-- Guardrails triggered → `critical`
-- Tool failures → `error`
-- Long-running planners → `info`
-- Missing error context → `warn`
 
 ### Computer Vision (cv)
 
-**Phases**: `ingest`, `preprocess`, `inference`, `postprocess`, `eval`, `serve`, `track`, `pose`
-
+**Phases**: `ingest`, `preprocess`, `inference`, `postprocess`, `eval`, `serve`, `track`, `pose`  
 **Key Fields**: `metrics.fps`, `metrics.map`, `metrics.map50_95`, `metrics.loss`, `hardware.accelerator`
 
-**Example Rules**:
-- Loss spike >5.0 → `warn`
-- mAP <0.3 → `error`
-- Low FPS → `warn`
-- CUDA OOM → `critical`
+## Provenance
 
-## Provenance Tracking
+All rules inject provenance metadata (at minimum `rule_id`; engines may add `rule_index`, `evaluated_at`):
 
-All rules automatically inject provenance metadata:
-
-```json
+\```json
 {
   "provenance": {
     "rule_id": "llm-safety-flag-critical",
-    "rule_index": 13,
-    "evaluated_at": "2025-10-20T14:23:45.123Z"
+    "rule_index": 13
   }
 }
-```
-
-This enables:
-- **Determinism verification**: Same input → same rule → same output
-- **Rule debugging**: Identify which rule fired
-- **Audit trails**: Track classification decisions
+\```
 
 ## Worked Examples
 
-See `examples/` for complete input/output pairs organized by domain and rule:
-
-```
-examples/
-├── core_api/
-│   ├── api-5xx-critical/
-│   │   ├── input.json
-│   │   └── expected.json
-│   ├── api-unauthorized/
-│   │   ├── input.json
-│   │   └── expected.json
-│   └── ...
-├── llm/
-│   ├── llm-safety-flag-critical/
-│   │   ├── input.json
-│   │   └── expected.json
-│   ├── llm-token-budget-exceeded/
-│   │   ├── input.json
-│   │   └── expected.json
-│   └── ...
-├── agentic/
-│   ├── agentic-tool-failure/
-│   │   ├── input.json
-│   │   └── expected.json
-│   └── ...
-├── computer_vision/
-│   ├── cv-training-loss-spike/
-│   │   ├── input.json
-│   │   └── expected.json
-│   └── ...
-└── common/
-    ├── all-failure-high/
-    │   ├── input.json
-    │   └── expected.json
-    └── ...
-```
-
-Each example pair shows:
-- **input.json**: Normalized event (schema-valid, no rules applied)
-- **expected.json**: Same event + rule classifications (`level`, `category`, `sub_category`, `outcome`, `tags`, `provenance`)
+See `examples/` for `input.json` → `expected.json` pairs organized by domain/rule. QA can diff outputs to verify determinism and provenance.
 
 ## Validation
 
-Validate rules locally:
+Local checks:
 
-```bash
-# JSON syntax + schema validation
-make rules.validate
-
-# Run acceptance tests (18 tests covering all requirements)
-source .venv/bin/activate
-python -m pytest tests/rules/test_rules.py -v
-```
-
-Tests verify:
-- ≥25 rules total
-- Domain coverage (core_api ≥8, llm ≥6, agentic ≥6, cv ≥5)
-- Unique rule_ids
-- Vocabulary compliance (all labels from `vocab/controlled_vocabulary.json`)
-- ≥24 example pairs with provenance
-- Guard rules exist
-- README documents first-match-wins
+\```bash
+make rules.validate     # JSON & schema validation
+pytest -q tests/rules/test_rules.py   # acceptance tests
+\```
 
 ## Vocabulary Compliance
 
-All classification values **must** be from `vocab/controlled_vocabulary.json`:
-
-- **levels**: `debug`, `info`, `warn`, `error`, `critical`
-- **categories**: `core_api`, `llm`, `agentic`, `cv`
-- **outcomes**: `success`, `failure`, `timeout`, `cancelled`, `running`, `pending`
-- **sub_categories**: 40+ domain-specific options (see vocabulary)
-
-Invalid values will fail validation.
+All classification values **must** be from `vocab/controlled_vocabulary.json` (levels, categories, outcomes, sub_categories). Invalid values fail validation.
 
 ## Adding New Rules
 
-1. **Determine specificity**: Is this domain-specific or global?
-2. **Check existing rules**: Avoid duplicates or conflicts
-3. **Insert at correct position**: More specific rules come first
-4. **Add worked examples**: Create input/expected pairs in `examples/`
-5. **Validate**: Run `make rules.validate` and `pytest tests/rules/test_rules.py`
-6. **Update rule_index**: If you insert a rule, update provenance in all subsequent examples
-
-## Privacy & Redaction
-
-Rules must **never** include:
-- Raw prompts, completions, or agent plans
-- Stack traces or error details with PII
-- Provider identifiers (API keys, tenant IDs, hostnames)
-
-Use redacted summaries: `<TOKEN>`, `<EMAIL>`, `<HOST>`, `<HASH>`
-
-See `rule_language.md` for full privacy policy.
+1. Check existing rules/ordering; avoid conflicts.
+2. Insert more specific rules earlier.
+3. Add worked examples in `examples/<domain>/<rule-id>/`.
+4. Validate & run tests.

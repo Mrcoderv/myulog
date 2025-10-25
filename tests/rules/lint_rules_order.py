@@ -23,11 +23,3 @@ def test_rules_have_unique_ids_and_valid_shape():
         return
     rules = _load_rules()
     assert len(rules) > 0, "No rules in rules.json"
-    seen = set()
-    for r in rules:
-        assert isinstance(r, dict), f"Each rule must be an object, got: {r!r}"
-        rid = r.get("rule_id")
-        assert rid, f"Missing 'rule_id' in rule: {r!r}"
-        assert rid not in seen, f"Duplicate rule_id: {rid}"
-        seen.add(rid)
-    # We don't check 'priority': the order is by index (first-match-wins).

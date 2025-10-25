@@ -1,12 +1,9 @@
 {
   "level": "warn",
   "category": "core_api",
-  "outcome": "failure",
-  "tags": [
-    "core_api",
-    "error_rate"
-  ],
   "sub_category": "metrics",
+  "outcome": "failure",
+  "tags": ["core_api", "error_rate"],
   "provenance": {
     "rule_id": "core-api-error-rate-high",
     "rule_index": 10

@@ -3,10 +3,7 @@
   "category": "core_api",
   "sub_category": "user_input",
   "outcome": "failure",
-  "tags": [
-    "core_api",
-    "4xx"
-  ],
+  "tags": ["core_api", "4xx"],
   "provenance": {
     "rule_id": "api-4xx-client-error",
     "rule_index": 4

@@ -1,3 +1,10 @@
+"""
+Compatibility tests to assert rules fire on the curated examples.
+
+This version discovers examples under rules/examples/** and expects
+expected.json to include provenance.rule_id (no legacy _rule_id).
+"""
+
 import pathlib
 
 import pytest
@@ -23,19 +30,15 @@ def find_test_cases():
     return test_cases
 
 
-@pytest.mark.parametrize(
-    "test_id,input_file,output_file",
-    find_test_cases(),
-    ids=lambda x: x if isinstance(x, str) else str(x),
-)
+@pytest.mark.parametrize("test_id,input_file,output_file", find_test_cases())
 def test_rules_examples(test_id, input_file, output_file):
     rules_doc = load_json(RULES_JSON)
     event = load_json(input_file)
     expected = load_json(output_file)
     actual = evaluate(event, rules_doc)
 
-    # Extract expected rule_id from provenance if it exists
-    expected_rule_id = expected.get("provenance", {}).get("rule_id")
+    # Expected rule_id is inside provenance in the new layout
+    expected_rule_id = (expected.get("provenance") or {}).get("rule_id")
 
     assert actual.get("level") == expected.get("level"), f"Level mismatch for {test_id}"
     assert actual.get("category") == expected.get("category"), f"Category mismatch for {test_id}"

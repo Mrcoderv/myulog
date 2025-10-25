@@ -1,5 +1,5 @@
 {
-  "rules_version": "v1.0.0",
+  "rules_version": "v0.9.0",
   "aliases": {
     "@status": [
       "outcome",
@@ -114,8 +114,8 @@
     {
       "rule_id": "api-5xx-critical",
       "version": "1.0.0",
-      "name": "Critical 5xx server errors",
-      "description": "Classify 5xx HTTP errors as critical service failures",
+      "name": "Server 5xx errors",
+      "description": "Flag 5xx as service failure",
       "applies_to": [
         "core_api"
       ],
@@ -125,11 +125,6 @@
             "field": "@errorCode",
             "op": "gte",
             "value": 500
-          },
-          {
-            "field": "@errorCode",
-            "op": "lt",
-            "value": 600
           }
         ]
       },
@@ -364,309 +359,6 @@
       }
     },
     {
-      "rule_id": "llm-quant-error",
-      "version": "1.0.0",
-      "name": "Model quantization errors",
-      "description": "Flag quantization failures during model loading",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "pipeline_stage",
-            "op": "eq",
-            "value": "quant"
-          },
-          {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "quantization",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "quant"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-model-load-failure",
-      "version": "1.0.0",
-      "name": "Model loading errors",
-      "description": "Flag failures during model load stage",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "pipeline_stage",
-            "op": "eq",
-            "value": "load"
-          },
-          {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          }
-        ]
-      },
-      "then": {
-        "level": "critical",
-        "category": "llm",
-        "sub_category": "model_load",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "model_load"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-safety-flag-critical",
-      "version": "1.0.0",
-      "name": "LLM safety violations",
-      "description": "Flag events with safety or policy violations",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "any": [
-          {
-            "field": "safety_flags",
-            "op": "contains",
-            "value": "flag_security"
-          },
-          {
-            "field": "safety_flags",
-            "op": "contains",
-            "value": "policy_violation"
-          },
-          {
-            "field": "safety_flags",
-            "op": "contains",
-            "value": "flag_hate_speech"
-          }
-        ]
-      },
-      "then": {
-        "level": "critical",
-        "category": "llm",
-        "sub_category": "safety",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "safety"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-token-budget-exceeded",
-      "version": "1.0.0",
-      "name": "Token budget exceeded",
-      "description": "Flag events where token usage exceeds budget thresholds",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "any": [
-          {
-            "field": "usage.prompt_tokens",
-            "op": "gt",
-            "value": 8000
-          },
-          {
-            "field": "usage.completion_tokens",
-            "op": "gt",
-            "value": 4000
-          },
-          {
-            "field": "usage.total_tokens",
-            "op": "gt",
-            "value": 10000
-          }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "llm",
-        "sub_category": "rate_limit",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "token_budget"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-rate-limited",
-      "version": "1.0.0",
-      "name": "Provider rate limiting (429)",
-      "description": "Flag rate limiting responses from LLM provider",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "@errorCode",
-            "op": "eq",
-            "value": 429
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "rate_limit",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "rate_limited"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-ttft-anomalous",
-      "version": "1.0.0",
-"name": "High TTFT (time-to-first-token) anomaly",
-"description": "Flag slow first-token latency indicating provider/back-end slowness",
-"applies_to": ["llm"],
-"when": {
-"all": [
-{ "field": "ttft_ms", "op": "gte", "value": 1500 },
-{ "field": "@status", "op": "eq", "value": "success" }
-]
-},
-"then": {
-"level": "warn",
-"category": "llm",
-"sub_category": "metrics",
-"outcome": "success",
-"tags": ["llm", "latency", "ttft"]
-}
-},
-    {
-      "rule_id": "llm-kv-cache-anomaly",
-      "version": "1.0.0",
-      "name": "KV cache pressure or issues",
-      "description": "Flag KV cache anomalies or high memory pressure",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "error.message",
-            "op": "regex",
-            "value": "(?i)(kv.?cache|memory.?pressure|cache.?miss)"
-          },
-          {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "llm",
-        "sub_category": "kv_cache",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "kv_cache"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-tokenizer-error",
-      "version": "1.0.0",
-      "name": "Tokenizer initialization errors",
-      "description": "Flag tokenizer errors during model loading",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "pipeline_stage",
-            "op": "eq",
-            "value": "tokenizer"
-          },
-          {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          },
-          {
-            "field": "meta.raw_message",
-            "op": "regex",
-            "value": "(?i)(tokenizer|merges|vocab).*(error|fail|incompatible)"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "tokenizer",
-        "outcome": "failure",
-        "tags": [
-          "llm",
-          "tokenizer"
-        ]
-      }
-    },
-    {
-      "rule_id": "llm-rag-timeout",
-      "version": "1.0.0",
-      "name": "RAG timeout detection",
-      "description": "Detect RAG stage timeouts with high latency",
-      "applies_to": [
-        "llm"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "pipeline_stage",
-            "op": "in",
-            "value": [
-              "rag_retrieve",
-              "rag_embed",
-              "rag_rerank"
-            ]
-          },
-          {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          },
-          {
-            "field": "@latency",
-            "op": "gte",
-            "value": 1000
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "llm",
-        "sub_category": "rag_timeout",
-        "outcome": "timeout",
-        "tags": [
-          "llm",
-          "rag"
-        ]
-      }
-    },
-    {
       "rule_id": "agentic-planner-long-running",
       "version": "1.0.0",
       "name": "Planner long-running (>60s)",
@@ -826,44 +518,6 @@
       }
     },
     {
-      "rule_id": "agentic-tool-dependency-error",
-      "version": "1.0.0",
-      "name": "Tool execution failures with dependency errors",
-      "description": "Flag tool failures caused by missing dependencies",
-      "applies_to": [
-        "agentic"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "step_kind",
-            "op": "eq",
-            "value": "step"
-          },
-          {
-            "field": "status",
-            "op": "eq",
-            "value": "failed"
-          },
-          {
-            "field": "error.message",
-            "op": "regex",
-            "value": "(?i)(modulenotfound|importerror|no module named)"
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "agentic",
-        "sub_category": "dependency",
-        "outcome": "failure",
-        "tags": [
-          "agentic",
-          "dependency"
-        ]
-      }
-    },
-    {
       "rule_id": "agentic-search-slow",
       "version": "1.0.0",
       "name": "Slow web search tool execution",
@@ -876,7 +530,10 @@
           {
             "field": "step_kind",
             "op": "in",
-            "value": ["step", "tool_call"]
+            "value": [
+              "step",
+              "tool_call"
+            ]
           },
           {
             "field": "tool_name",
@@ -906,11 +563,12 @@
           "search"
         ]
       }
-    },{
+    },
+    {
       "rule_id": "agentic-tool-slow",
       "version": "1.0.0",
       "name": "Long-running tool executions",
-      "description": "Flag tools running longer than expected",
+      "description": "Flags general tool runs >=6.5 seconds",
       "applies_to": [
         "agentic"
       ],
@@ -918,21 +576,21 @@
         "all": [
           {
             "field": "step_kind",
-            "op": "eq",
-            "value": "step"
+            "op": "in",
+            "value": [
+              "step",
+              "tool_call"
+            ]
           },
           {
             "field": "status",
-            "op": "in",
-            "value": [
-              "success",
-              "retry"
-            ]
+            "op": "eq",
+            "value": "success"
           },
           {
             "field": "duration_ms",
             "op": "gte",
-            "value": 5000
+            "value": 6500
           }
         ]
       },
@@ -948,10 +606,212 @@
       }
     },
     {
+      "rule_id": "cv-batch-slow",
+      "version": "1.0.0",
+      "name": "Slow inference batch",
+      "description": "Warn when batch processing is slow",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "phase",
+            "op": "eq",
+            "value": "inference"
+          },
+          {
+            "field": "batch_size",
+            "op": "gte",
+            "value": 32
+          },
+          {
+            "any": [
+              {
+                "field": "metrics.fps",
+                "op": "lte",
+                "value": 20
+              },
+              {
+                "field": "meta.raw_message",
+                "op": "contains",
+                "value": "completed in 70 s"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "cv",
+        "sub_category": "inference",
+        "outcome": "success",
+        "tags": [
+          "cv",
+          "slow_batch"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-token-budget-exceeded",
+      "version": "1.0.0",
+      "name": "Token budget exceeded",
+      "description": "Warn when token budget is exceeded",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "usage.total_tokens",
+            "op": "gte",
+            "value": 10000
+          },
+          {
+            "field": "usage.prompt_tokens",
+            "op": "gte",
+            "value": 9000
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "llm",
+        "sub_category": "rate_limit",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "token_budget"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-gpu-oom",
+      "version": "1.0.0",
+      "name": "GPU OOM during CV run",
+      "description": "Flag CUDA out of memory errors in CV workloads",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          },
+          {
+            "any": [
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "CUDA out of memory"
+              },
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "out of memory"
+              },
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "OOM"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "cv",
+        "sub_category": "inference",
+        "outcome": "failure",
+        "tags": [
+          "cv",
+          "oom"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-tool-dependency-error",
+      "version": "1.0.0",
+      "name": "Tool dependency missing/import error",
+      "description": "Flags ModuleNotFoundError/ImportError during agent tool runs",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          },
+          {
+            "any": [
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ModuleNotFoundError"
+              },
+              {
+                "field": "error.message",
+                "op": "regex",
+                "value": "(?i)No module named"
+              },
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ImportError"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "agentic",
+        "sub_category": "dependency",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "dependency"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-throughput-high",
+      "version": "1.0.0",
+      "name": "High throughput reported",
+      "description": "Detects 'Processed N images in Xs'",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "meta.raw_message",
+            "op": "regex",
+            "value": "(?i)Processed\\s+[0-9,]+\\s+images\\s+in\\s+[0-9]+\\s*s"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "cv",
+        "sub_category": "metrics",
+        "outcome": "success",
+        "tags": [
+          "cv",
+          "throughput"
+        ]
+      }
+    },
+    {
       "rule_id": "cv-training-loss-spike",
       "version": "1.0.0",
-      "name": "Training loss spike (>5.0)",
-      "description": "Flag significant increases in training loss",
+      "name": "Training loss spike",
+      "description": "Warn when training loss is abnormally high",
       "applies_to": [
         "computer_vision"
       ],
@@ -964,7 +824,7 @@
           },
           {
             "field": "metrics.loss",
-            "op": "gt",
+            "op": "gte",
             "value": 5.0
           }
         ]
@@ -983,34 +843,38 @@
     {
       "rule_id": "cv-inference-map-low",
       "version": "1.0.0",
-      "name": "Inference/Eval mAP below threshold (<0.3)",
-      "description": "Flag inference or evaluation runs with low mean average precision",
+      "name": "Low mAP (inference/evaluation)",
+      "description": "Flags poor detection quality across phases",
       "applies_to": [
         "computer_vision"
       ],
       "when": {
-        "all": [
+        "any": [
           {
-            "field": "phase",
-            "op": "in",
-            "value": ["inference", "eval", "evaluation"]
-          },
-          {
-            "any": [
+            "all": [
               {
-                "field": "metrics.map",
+                "field": "phase",
+                "op": "eq",
+                "value": "inference"
+              },
+              {
+                "field": "metrics.mAP",
                 "op": "lt",
                 "value": 0.3
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "field": "phase",
+                "op": "eq",
+                "value": "evaluation"
               },
               {
                 "field": "metrics.mAP_50_95",
                 "op": "lt",
-                "value": 0.3
-              },
-              {
-                "field": "metrics.extra.map_50_95",
-                "op": "lt",
-                "value": 0.3
+                "value": 0.2
               }
             ]
           }
@@ -1028,103 +892,205 @@
       }
     },
     {
-      "rule_id": "cv-cuda-oom",
+      "rule_id": "llm-safety-flag-critical",
       "version": "1.0.0",
-      "name": "CUDA out of memory errors",
-      "description": "Critical GPU memory allocation failures",
+      "name": "Safety policy violation",
+      "description": "Escalate critical safety violations",
       "applies_to": [
-        "computer_vision"
+        "llm"
       ],
       "when": {
         "all": [
           {
-            "field": "outcome",
-            "op": "eq",
-            "value": "failure"
-          },
-          {
-            "field": "meta.raw_message",
+            "field": "safety_flags",
             "op": "contains",
-            "value": "CUDA out of memory"
+            "value": "policy_violation"
           }
         ]
       },
       "then": {
         "level": "critical",
-        "category": "cv",
-        "sub_category": "infrastructure",
+        "category": "llm",
+        "sub_category": "safety",
         "outcome": "failure",
         "tags": [
-          "cv",
-          "cuda",
-          "oom"
+          "llm",
+          "safety"
         ]
       }
     },
     {
-      "rule_id": "cv-throughput-high",
+      "rule_id": "llm-rate-limited",
       "version": "1.0.0",
-      "name": "High image throughput",
-      "description": "Extract image count with separators and flag if >= 3000",
+      "name": "Rate limited (429)",
+      "description": "LLM provider returned 429",
       "applies_to": [
-        "computer_vision"
+        "llm"
       ],
       "when": {
         "all": [
           {
-            "field": "meta.raw_message",
-            "op": "extract_number",
-            "pattern": "([0-9,]+)\\s+images",
-            "compare": {
-              "gte": 3000
-            }
+            "field": "@errorCode",
+            "op": "eq",
+            "value": 429
           }
         ]
       },
       "then": {
-        "level": "info",
-        "category": "cv",
-        "sub_category": "metrics",
-        "outcome": "success",
+        "level": "error",
+        "category": "llm",
+        "sub_category": "rate_limit",
+        "outcome": "failure",
         "tags": [
-          "cv",
-          "throughput"
+          "llm",
+          "rate_limited"
         ]
       }
     },
     {
-      "rule_id": "cv-batch-slow",
+      "rule_id": "llm-rag-timeout",
       "version": "1.0.0",
-      "name": "Slow batch inference (by seconds in message)",
-      "description": "Extract seconds from raw message and flag if >= 60s",
+      "name": "RAG stage timeout/slow failure",
+      "description": "Timeout/slow failure in RAG embedding",
       "applies_to": [
-        "computer_vision"
+        "llm"
       ],
       "when": {
         "all": [
           {
-            "field": "phase",
+            "field": "pipeline_stage",
+            "op": "eq",
+            "value": "rag_embed"
+          },
+          {
+            "field": "@status",
+            "op": "eq",
+            "value": "failure"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "rag_timeout",
+        "outcome": "timeout",
+        "tags": [
+          "llm",
+          "rag"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-ttft-anomalous",
+      "version": "1.0.0",
+      "name": "TTFT anomalous",
+      "description": "Warn on TTFT >= 1500ms during inference",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "pipeline_stage",
             "op": "eq",
             "value": "inference"
           },
           {
-            "field": "meta.raw_message",
-            "op": "extract_ms",
-            "pattern": "([0-9]+)\\s*s",
-            "compare": {
-              "gte": 60000
-            }
+            "field": "ttft_ms",
+            "op": "gte",
+            "value": 1500
+          },
+          {
+            "field": "@status",
+            "op": "eq",
+            "value": "success"
           }
         ]
       },
       "then": {
         "level": "warn",
-        "category": "cv",
-        "sub_category": "inference",
+        "category": "llm",
+        "sub_category": "metrics",
         "outcome": "success",
         "tags": [
-          "cv",
-          "slow_batch"
+          "llm",
+          "latency",
+          "ttft"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-tokenizer-error",
+      "version": "1.0.0",
+      "name": "Tokenizer error",
+      "description": "Tokenizer init/processing failure",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "pipeline_stage",
+            "op": "eq",
+            "value": "tokenizer"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "regex",
+            "value": "(?i)tokenizer"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "llm",
+        "sub_category": "tokenizer",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "tokenizer"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-kv-cache-anomaly",
+      "version": "1.0.0",
+      "name": "KV cache anomaly",
+      "description": "High KV cache pressure / miss",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "error.message",
+            "op": "contains",
+            "value": "KV cache"
+          },
+          {
+            "all": [
+              {
+                "field": "kv_cache_usage_percent",
+                "op": "gte",
+                "value": 90
+              },
+              {
+                "field": "output_tokens",
+                "op": "gte",
+                "value": 256
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "llm",
+        "sub_category": "kv_cache",
+        "outcome": "failure",
+        "tags": [
+          "llm",
+          "kv_cache"
         ]
       }
     },
@@ -1175,7 +1141,7 @@
       "then": {
         "level": "warn",
         "category": "core_api",
-        "sub_category": "network",  
+        "sub_category": "network",
         "outcome": "success",
         "tags": [
           "global",
@@ -1217,4 +1183,5 @@
         ]
       }
     }
-  ]}
+  ]
+}

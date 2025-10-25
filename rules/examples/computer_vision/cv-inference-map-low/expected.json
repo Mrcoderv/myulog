@@ -3,10 +3,7 @@
   "category": "cv",
   "sub_category": "metrics",
   "outcome": "running",
-  "tags": [
-    "cv",
-    "map"
-  ],
+  "tags": ["cv", "map"],
   "provenance": {
     "rule_id": "cv-inference-map-low",
     "rule_index": 27

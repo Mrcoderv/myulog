@@ -3,10 +3,7 @@
   "category": "cv",
   "sub_category": "inference",
   "outcome": "success",
-  "tags": [
-    "cv",
-    "slow_batch"
-  ],
+  "tags": ["cv", "slow_batch"],
   "provenance": {
     "rule_id": "cv-batch-slow",
     "rule_index": 30
