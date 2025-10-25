@@ -146,8 +146,11 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
 
-# --- Baseline generation and validation ---
-data.generate.baseline:
-	@poetry run python data/generate_baseline.py
-data.generate.validate.baseline:
-	@poetry run python data/validate_baseline.py
+
+# --- Baseline dataset (Ticket 2.3) ---
+
+data.generate.baseline: ## Generate paired raw+parsed JSONL and labels (200 total; 50/domain)
+@poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+
+data.validate.baseline: ## Validate baseline integrity and alignment
+@poetry run python data/generator/validate_baseline.py
