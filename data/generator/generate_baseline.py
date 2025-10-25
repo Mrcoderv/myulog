@@ -77,7 +77,7 @@ def generate_raw_logs(domain: str, count: int, seed: int) -> pathlib.Path:
         "-n",
         output_name,
         "-o",
-        str(RAW_DIR),
+        str(DATA_SYNTHETIC),
         "--raw-mirror",
     ]
 
