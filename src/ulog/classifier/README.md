@@ -657,21 +657,90 @@ docker run -p 8000:8000 ulog-classifier:latest
 ```
 
 ### Lambda Deployment (Adapter Ready)
+# ULog Classifier Service
 
-The classifier is Lambda-compatible. To package for AWS Lambda:
+## Overview
+The Classifier Service provides schema validation, normalization, and classification for ULog records.  
+It runs as a FastAPI service and can also be deployed as an AWS Lambda function using the Mangum adapter.
 
-```bash
-# Create deployment package
-# (Package script to be implemented in Subtask 5)
-./scripts/package_lambda_zip.sh
+This module includes:
+- JSON Schema validation for multiple log domains (LLM, core_api, agentic, CV)
+- Full `$ref` resolution across `schemas/` and `vocab/` directories
+- HTTP endpoints for parsing and classifying logs
+- Lambda-ready handler for serverless deployments
 
-# This will create dist/classifier_lambda.zip with:
-# - Lambda handler
-# - All dependencies
-# - Minimal runtime footprint
-```
+---
 
-**Note**: The Lambda adapter implementation is tracked separately. The core classifier functionality is Lambda-ready.
+## Endpoints
+
+### `GET /health`
+Returns service status.
+
+**Example Response**
+```json
+{ "status": "ok", "service": "ClassifierLog" }
+POST /parse
+
+Processes raw log records containing @timestamp and @message.
+Example Input
+[
+  { "@timestamp": "2025-10-13T12:01:22Z", "@message": "model loaded" }
+]  
+POST /classify
+
+Classifies structured log data using schema validation.
+
+Example Input
+[
+  {
+    "timestamp": "2025-10-13T12:01:22Z",
+    "request_id": "44444444-4444-4444-8444-444444444444",
+    "model": "gpt-4o-mini",
+    "pipeline_stage": "inference",
+    "outcome": "success",
+    "latency_ms": 120,
+    "result": { "output_text_length": 42 },
+    "meta": { "raw_message": "synthetic" }
+  }
+]
+Example Output
+[
+  {
+    "timestamp": "2025-10-13T12:01:22Z",
+    "outcome": "success",
+    "level": "info",
+    "category": "core_api",
+    "provenance": {
+      "parser_rule_id": "default",
+      "rule_version": "v1.0.0"
+    }
+  }
+]
+Local Development
+
+Run the API locally
+PYTHONPATH=src poetry run uvicorn ulog.classifier.http:app --host 0.0.0.0 --port 8000
+Test the API
+curl -s http://127.0.0.1:8000/health
+curl -sS http://127.0.0.1:8000/classify \
+  -H "Content-Type: application/json" \
+  --data-binary @event.json | jq .
+Validation and Testing
+
+Run all tests to verify schema loading, endpoints, and Lambda behavior.
+PYTHONPATH=src poetry run pytest -q
+Expected output:
+404 passed in 1.53s
+
+AWS Lambda Deployment
+# src/ulog/classifier/handler.py
+from mangum import Mangum
+from .http import app
+
+lambda_handler = Mangum(app)
+
+Runtime: python3.12
+Handler: ulog.classifier.handler.lambda_handler
 
 ## Configuration
 
