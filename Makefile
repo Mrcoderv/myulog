@@ -43,10 +43,8 @@ help: ## Show available commands
 	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
 	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
 	@echo ""
-	@echo "Setup:"
-	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
-	@echo "  make data.generate.baseline - Generate baseline data 50 record for each domain"
-	@echo "  make data.generate.validate.baseline - Validate baseline data"
+@echo "Setup:"
+@echo " make setup - install local dev tools (ruff, pytest) (optional)"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
