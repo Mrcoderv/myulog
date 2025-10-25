@@ -1,5 +1,6 @@
 from ulog.classifier.handler import lambda_handler
 
+
 def test_health_smoke():
     event = {
         "version": "2.0",

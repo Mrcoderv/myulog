@@ -1,6 +1,5 @@
 """Test cases for Subtask 2 (Schema Validator) and Subtask 3 (Rule Evaluator)."""
 
-import pytest
 
 from ulog.classifier import RuleEvaluator, SchemaValidator
 

@@ -1,9 +1,9 @@
 """Rule evaluation engine with first-match-wins semantics."""
 
 import json
-import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, Optional
 
 
 class RuleEvaluator:

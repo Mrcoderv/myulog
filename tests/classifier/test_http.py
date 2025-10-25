@@ -1,11 +1,18 @@
 """Tests for HTTP service."""
-import sys, os, json, pytest
+import json
+import os
+import sys
 from typing import Any, Dict, List
+
+import pytest
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+
+from fastapi.testclient import TestClient
 
 from ulog.classifier.core import ClassifierPipeline, NormalizerAdapter
 from ulog.classifier.http import app
-from fastapi.testclient import TestClient
+
 
 class TestHTTPService:
     """Test the HTTP service endpoints."""

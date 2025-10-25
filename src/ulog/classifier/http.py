@@ -1,13 +1,12 @@
 """HTTP Service"""
-import sys
-import os
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, ConfigDict 
+from pydantic import BaseModel, ConfigDict, Field
 
 from .core import ClassifierPipeline
+
 
 class StrictRawLogRecord(BaseModel):
     """A raw log record, requiring @timestamp and @message."""
