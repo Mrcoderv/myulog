@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from .normalizer_adapter import NormalizerAdapter
 from .rule_evaluator import RuleEvaluator
 from .validator import SchemaValidator
+from .vocab import assert_vocab
 
 
 class ClassifierPipeline:
@@ -129,6 +130,16 @@ class ClassifierPipeline:
 
             # Apply rules
             classified_record = self.rule_evaluator.classify(record)
+            try:
+                assert_vocab(
+                    classified_record.get("level"),
+                    classified_record.get("category"),
+                    classified_record.get("outcome"),
+                )
+            except ValueError as ve:
+                # Attach explicit error so CI can fail via tests, but don't drop the record
+                classified_record.setdefault("validation_failed", True)
+                classified_record.setdefault("validation_error", {})["vocabulary_error"] = str(ve)
             classified.append(classified_record)
 
         return classified
