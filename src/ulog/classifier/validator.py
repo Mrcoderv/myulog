@@ -2,15 +2,16 @@ class SchemaValidator:
     """Validates normalized logs against domain-specific JSON schemas."""
 
     def __init__(self):
-    self._schema_cache = {}
-    self._validators = {}
-    self._schema_dir = Path(__file__).parent.parent.parent.parent / "schemas"
-    self._registry = None  # set in _load_schemas()
-    self._load_schemas()
+        """Initialize validator with schema cache."""
+        self._schema_cache = {}
+        self._validators = {}
+        self._registry = None  # for debugging / introspection
+        self._schema_dir = Path(__file__).parent.parent.parent.parent / "schemas"
+        self._load_schemas()
     
     def _load_schemas(self):
-    """Load all domain schemas from /schemas and build a registry with URL aliases."""
-    registry_resources = []
+        """Load all domain schemas from /schemas and build a registry with URL aliases."""
+        registry_resources = []
 
     def add_resource(contents: dict, *keys: str):
         res = Resource.from_contents(contents, default_specification=DRAFT202012)
