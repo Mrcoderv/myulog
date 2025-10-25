@@ -86,7 +86,7 @@ async def parse_raw_logs(logs: List[StrictRawLogRecord]):
     """
     raw_data = [log.model_dump(by_alias=True, exclude_none=True) for log in logs]
     
-    return JSONResponse(content=_process_records(raw_data, input_format="raw"))
+    return JSONResponse(content=_process_records(raw_data, input_format="json"))
 
 
 
