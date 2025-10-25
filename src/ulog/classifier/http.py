@@ -1,17 +1,9 @@
 """HTTP Service"""
-<<<<<<< HEAD
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
-=======
-from typing import List, Dict, Any, Optional
-
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, ConfigDict
->>>>>>> 5546e96 (fix(classifier): resolve  issues, load vocab in registry, return JSONResponse)
 
 from .core import ClassifierPipeline
 
