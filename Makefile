@@ -38,8 +38,8 @@ help: ## Show available commands
 	@echo "  make data.generate.baseline    - Generate paired raw+parsed JSONL and labels (200 total; 50/domain)"
 	@echo "  make data.validate.baseline    - Validate baseline: round-trip counts, label alignment, minima"
 	@echo ""
-@echo "Setup:"
-@echo " make setup - install local dev tools (ruff, pytest) (optional)"
+	@echo "Setup:"
+	@echo " make setup - install local dev tools (ruff, pytest) (optional)"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
