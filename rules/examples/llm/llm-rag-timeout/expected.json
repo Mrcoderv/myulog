@@ -1,12 +1,9 @@
 {
   "level": "error",
   "category": "llm",
-  "outcome": "timeout",
-  "tags": [
-    "llm",
-    "rag"
-  ],
   "sub_category": "rag_timeout",
+  "outcome": "timeout",
+  "tags": ["llm", "rag"],
   "provenance": {
     "rule_id": "llm-rag-timeout",
     "rule_index": 18

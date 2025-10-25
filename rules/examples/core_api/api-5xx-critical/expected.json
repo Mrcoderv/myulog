@@ -2,10 +2,7 @@
   "level": "critical",
   "category": "core_api",
   "outcome": "failure",
-  "tags": [
-    "core_api",
-    "5xx"
-  ],
+  "tags": ["core_api", "5xx"],
   "sub_category": "service",
   "provenance": {
     "rule_id": "api-5xx-critical",

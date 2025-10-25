@@ -1,7 +1,5 @@
 {
   "schema_id": "llm",
-  "safety_flags": [
-    "policy_violation"
-  ],
+  "safety_flags": ["policy_violation"],
   "outcome": "failure"
 }

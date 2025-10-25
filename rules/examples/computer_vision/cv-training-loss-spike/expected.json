@@ -3,10 +3,7 @@
   "category": "cv",
   "sub_category": "model",
   "outcome": "failure",
-  "tags": [
-    "cv",
-    "loss_spike"
-  ],
+  "tags": ["cv", "loss_spike"],
   "provenance": {
     "rule_id": "cv-training-loss-spike",
     "rule_index": 26

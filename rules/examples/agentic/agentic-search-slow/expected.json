@@ -3,11 +3,7 @@
   "category": "agentic",
   "sub_category": "tool_call",
   "outcome": "success",
-  "tags": [
-    "agentic",
-    "slow",
-    "search"
-  ],
+  "tags": ["agentic", "slow", "search"],
   "provenance": {
     "rule_id": "agentic-search-slow",
     "rule_index": 29

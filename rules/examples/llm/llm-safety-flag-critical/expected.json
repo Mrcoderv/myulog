@@ -3,10 +3,7 @@
   "category": "llm",
   "sub_category": "safety",
   "outcome": "failure",
-  "tags": [
-    "llm",
-    "safety"
-  ],
+  "tags": ["llm", "safety"],
   "provenance": {
     "rule_id": "llm-safety-flag-critical",
     "rule_index": 13

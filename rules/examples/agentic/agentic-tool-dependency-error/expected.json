@@ -2,10 +2,7 @@
   "level": "error",
   "category": "agentic",
   "outcome": "failure",
-  "tags": [
-    "agentic",
-    "dependency"
-  ],
+  "tags": ["agentic", "dependency"],
   "sub_category": "dependency",
   "provenance": {
     "rule_id": "agentic-tool-dependency-error",
