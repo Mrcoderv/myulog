@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "llm",
+  "outcome": "failure",
+  "sub_category": "rate_limit",
+  "tags": ["llm", "token_budget"],
+  "provenance": {
+    "rule_id": "llm-token-budget-exceeded",
+    "rule_index": 14
+  }
+}

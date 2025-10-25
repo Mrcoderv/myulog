@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "agentic",
+  "sub_category": "tracking",
+  "outcome": "failure",
+  "tags": ["agentic", "missing_context"],
+  "provenance": {
+    "rule_id": "agentic-missing-error-context",
+    "rule_index": 23
+  }
+}

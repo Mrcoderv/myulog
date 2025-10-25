@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "agentic",
+  "outcome": "success",
+  "tags": ["agentic", "slow"],
+  "sub_category": "tool_call",
+  "provenance": {
+    "rule_id": "agentic-tool-slow",
+    "rule_index": 25
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "level": "info",
+  "category": "agentic",
+  "sub_category": "planner",
+  "outcome": "running",
+  "tags": ["agentic", "planner"],
+  "provenance": {
+    "rule_id": "agentic-planner-long-running",
+    "rule_index": 19
+  }
+}

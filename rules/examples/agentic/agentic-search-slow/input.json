@@ -1,0 +1,7 @@
+{
+  "schema_id": "agentic",
+  "step_kind": "tool_call",
+  "tool_name": "search_web",
+  "status": "success",
+  "duration_ms": 3500
+}
