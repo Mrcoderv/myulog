@@ -59,9 +59,7 @@ jobs:
               run: poetry install --with dev --no-interaction --no-ansi
 
             # --- Lint ---
-
-
-name: Ruff lint
+            - name: Ruff lint
               run: poetry run ruff check .
 
             - name: YAML lint (4-space indentation on this workflow)
@@ -132,6 +130,23 @@ name: Ruff lint
 
             - name: Run round-trip test (synthetic raw ↔ normalized)
               run: make test.roundtrip
+
+            - name: Generate baseline dataset (seed=42, 50/domain)
+              run: |
+                poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+
+            - name: Validate baseline dataset (round-trip counts + label alignment)
+              run: |
+                poetry run python data/generator/validate_baseline.py
+
+            - name: Upload baseline dataset artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: baseline-dataset
+                  path: |
+                    data/synthetic/raw/*_baseline_raw.jsonl
+                    data/synthetic/baseline/*_baseline_parsed.jsonl
+                    data/synthetic/baseline_labels.jsonl
 
     export-requirements:
         runs-on: ubuntu-latest

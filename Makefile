@@ -1,14 +1,7 @@
 # Use bash for nicer behavior
 SHELL := /bin/bash
 
-.PHONY: help setup lint test test.schemas test.schemas.json test.all \
-        demo.generate demo.run \
-        lint-vocab format-vocab \
-        rules.validate rules.test rules.check \
-        generate classify down \
-        coverage test.determinism \
-		
-		
+.PHONY: help setup lint test test.schemas test.schemas.json test.all
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -40,8 +33,10 @@ help: ## Show available commands
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
 	@echo "  make format-vocab       - auto-format the vocabulary JSON"
 	@echo "Synthetic Data:"
-	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
-	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate             - Generate normalized synthetic JSONL (per domain)"
+	@echo "  make data.generate.raw         - Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate.baseline    - Generate paired raw+parsed JSONL and labels (200 total; 50/domain)"
+	@echo "  make data.validate.baseline    - Validate baseline: round-trip counts, label alignment, minima"
 	@echo ""
 @echo "Setup:"
 @echo " make setup - install local dev tools (ruff, pytest) (optional)"
@@ -149,7 +144,7 @@ test.roundtrip:
 # --- Baseline dataset (Ticket 2.3) ---
 
 data.generate.baseline: ## Generate paired raw+parsed JSONL and labels (200 total; 50/domain)
-@poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+	@poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
 
 data.validate.baseline: ## Validate baseline integrity and alignment
-@poetry run python data/generator/validate_baseline.py
+	@poetry run python data/generator/validate_baseline.py
