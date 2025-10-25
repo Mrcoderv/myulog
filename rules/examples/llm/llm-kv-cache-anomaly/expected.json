@@ -1,0 +1,11 @@
+{
+  "level": "warn",
+  "category": "llm",
+  "sub_category": "kv_cache",
+  "outcome": "failure",
+  "tags": ["llm", "kv_cache"],
+  "provenance": {
+    "rule_id": "llm-kv-cache-anomaly",
+    "rule_index": 16
+  }
+}

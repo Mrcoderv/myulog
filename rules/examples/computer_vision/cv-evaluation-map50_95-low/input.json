@@ -1,0 +1,6 @@
+{
+  "schema_id": "computer_vision",
+  "phase": "evaluation",
+  "metrics": { "mAP_50_95": 0.15 },
+  "outcome": "success"
+}

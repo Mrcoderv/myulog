@@ -59,6 +59,7 @@ jobs:
               run: poetry install --with dev --no-interaction --no-ansi
 
             # --- Lint ---
+
             - name: Ruff lint
               run: poetry run ruff check .
 

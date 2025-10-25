@@ -1,7 +1,12 @@
 # Use bash for nicer behavior
 SHELL := /bin/bash
 
-.PHONY: help setup lint test test.schemas test.schemas.json test.all
+.PHONY: help setup lint test test.schemas test.schemas.json test.all \
+        demo.generate demo.run \
+        lint-vocab format-vocab \
+        rules.validate rules.test rules.check \
+        generate classify down \
+        coverage test.determinism
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -39,7 +44,7 @@ help: ## Show available commands
 	@echo "  make data.validate.baseline    - Validate baseline: round-trip counts, label alignment, minima"
 	@echo ""
 	@echo "Setup:"
-	@echo " make setup - install local dev tools (ruff, pytest) (optional)"
+	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
@@ -111,7 +116,10 @@ rules.validate: ## Validate rules.json against rules.schema.json
 
 rules.test: ## Run unit tests for rules examples
 	@echo "Testing rules against examples..."
+	# Legacy location (may be empty)
 	@poetry run pytest -q tests/rules/test_rules_examples.py
+	# New acceptance tests for Ticket 2.1 (structure + rules/examples)
+	@poetry run pytest -q tests/rules/test_rules.py
 
 rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate

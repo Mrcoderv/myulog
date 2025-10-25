@@ -1,0 +1,11 @@
+{
+  "level": "info",
+  "category": "cv",
+  "outcome": "success",
+  "tags": ["cv", "throughput"],
+  "sub_category": "metrics",
+  "provenance": {
+    "rule_id": "cv-throughput-high",
+    "rule_index": 29
+  }
+}
