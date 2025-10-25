@@ -33,7 +33,7 @@ Within each category, more specific conditions come before general ones.
 
 ### Example Ordering
 
-\```json
+```json
 [
   {
     "rule_id": "api-5xx-critical",
@@ -48,7 +48,7 @@ Within each category, more specific conditions come before general ones.
     "when": {"field": "outcome", "op": "eq", "value": "failure"}
   }
 ]
-\```
+```
 
 In this example:
 - HTTP 503 matches `api-5xx-critical` (stops evaluation)
@@ -81,7 +81,7 @@ Each rule has:
 
 Example:
 
-\```json
+```json
 {
   "rule_id": "llm-safety-flag-critical",
   "version": "1.0.0",
@@ -101,13 +101,13 @@ Example:
     "tags": ["llm", "safety", "policy_violation"]
   }
 }
-\```
+```
 
 ## Aliases
 
 Aliases enable cross-schema field mapping for common patterns:
 
-\```json
+```json
 {
   "aliases": {
     "@status": ["outcome", "status", "result"],
@@ -115,7 +115,7 @@ Aliases enable cross-schema field mapping for common patterns:
     "@errorCode": ["http_status", "error.code", "response.status"]
   }
 }
-\```
+```
 
 Use aliases in conditions to write rules that work across multiple schemas without duplicating logic.
 
@@ -145,14 +145,14 @@ Use aliases in conditions to write rules that work across multiple schemas witho
 
 All rules inject provenance metadata (at minimum `rule_id`; engines may add `rule_index`, `evaluated_at`):
 
-\```json
+```json
 {
   "provenance": {
     "rule_id": "llm-safety-flag-critical",
     "rule_index": 13
   }
 }
-\```
+```
 
 ## Worked Examples
 
@@ -162,10 +162,10 @@ See `examples/` for `input.json` → `expected.json` pairs organized by domain/r
 
 Local checks:
 
-\```bash
+```bash
 make rules.validate     # JSON & schema validation
 pytest -q tests/rules/test_rules.py   # acceptance tests
-\```
+```
 
 ## Vocabulary Compliance
 
