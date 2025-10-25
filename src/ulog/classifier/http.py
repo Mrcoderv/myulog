@@ -4,6 +4,7 @@ import os
 from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict 
 
 from .core import ClassifierPipeline
