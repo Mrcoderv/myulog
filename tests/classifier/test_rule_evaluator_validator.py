@@ -1,6 +1,5 @@
 """Test cases for Subtask 2 (Schema Validator) and Subtask 3 (Rule Evaluator)."""
 
-
 from ulog.classifier import RuleEvaluator, SchemaValidator
 
 
@@ -159,8 +158,7 @@ class TestSubtask3RuleEvaluator:
         assert evaluator._evaluate_field_condition({"field": "value", "op": "lt", "value": 200}, record) is True
         assert evaluator._evaluate_field_condition({"field": "value", "op": "lte", "value": 100}, record) is True
         assert (
-            evaluator._evaluate_field_condition({"field": "value", "op": "in", "value": [50, 100, 150]}, record)
-            is True
+            evaluator._evaluate_field_condition({"field": "value", "op": "in", "value": [50, 100, 150]}, record) is True
         )
 
     def test_string_operators(self):
@@ -170,9 +168,7 @@ class TestSubtask3RuleEvaluator:
         record = {"message": "Error: connection timeout"}
 
         assert (
-            evaluator._evaluate_field_condition(
-                {"field": "message", "op": "regex", "value": "(?i)error|fail"}, record
-            )
+            evaluator._evaluate_field_condition({"field": "message", "op": "regex", "value": "(?i)error|fail"}, record)
             is True
         )
         assert (
@@ -195,8 +191,7 @@ class TestSubtask3RuleEvaluator:
             evaluator._evaluate_field_condition(condition, {"meta": {"raw_message": "Processed 5,000 images"}}) is True
         )
         assert (
-            evaluator._evaluate_field_condition(condition, {"meta": {"raw_message": "Processed 1,000 images"}})
-            is False
+            evaluator._evaluate_field_condition(condition, {"meta": {"raw_message": "Processed 1,000 images"}}) is False
         )
 
         # extract_percent

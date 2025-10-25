@@ -1,4 +1,5 @@
 """Vocabulary-aware normalization tests."""
+
 from ulog.normalizer import Normalizer
 
 
@@ -7,7 +8,7 @@ def test_level_outcome_category_canonicalization():
     raw = {
         "level": "INFO",
         "outcome": "Success",
-        "category": "HTTP",     # will be overridden by domain -> 'core_api'
+        "category": "HTTP",  # will be overridden by domain -> 'core_api'
         "sub_category": "network",
         "safety_flags": ["None"],
         "latency": "75s",
@@ -34,4 +35,3 @@ def test_bad_safety_flag_marks_reason():
     }
     out = norm.normalize(raw, domain="llm")
     assert out.get("unparsed_reason") == "invalid_safety_flags"
-

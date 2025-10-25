@@ -31,6 +31,7 @@ class TestRulesStructure:
 
     def test_unique_rule_ids(self):
         from collections import Counter
+
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
         rule_ids = [r.get("rule_id") for r in rules_data["rules"]]
@@ -194,8 +195,11 @@ class TestGuardsAndDocumentation:
         with open(RULES_PATH) as f:
             rules_data = json.load(f)
         guard_keywords = ["guard", "startup", "build", "health"]
-        guard_rules = [r.get("rule_id") for r in rules_data["rules"]
-                       if any(kw in (r.get("rule_id") or "").lower() for kw in guard_keywords)]
+        guard_rules = [
+            r.get("rule_id")
+            for r in rules_data["rules"]
+            if any(kw in (r.get("rule_id") or "").lower() for kw in guard_keywords)
+        ]
         assert len(guard_rules) >= 3, f"Expected ≥3 guard rules, got {len(guard_rules)}: {guard_rules}"
 
     def test_readme_documents_first_match_wins(self):
@@ -208,4 +212,6 @@ class TestGuardsAndDocumentation:
         assert README_PATH.exists(), "rules/README.md not found"
         with open(README_PATH) as f:
             content = f.read().lower()
-        assert "conflict" in content or "ordering" in content, "README must document conflict resolution or ordering policy"
+        assert "conflict" in content or "ordering" in content, (
+            "README must document conflict resolution or ordering policy"
+        )

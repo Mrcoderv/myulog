@@ -18,7 +18,7 @@ python -m venv "${BUILD_DIR}/venv"
 source "${BUILD_DIR}/venv/bin/activate"
 pip install --upgrade pip
 pip install --target "${BUILD_DIR}/package" \
-    fastapi mangum jsonschema click pydantic "starlette>=0.40,<0.49"
+    fastapi mangum jsonschema click pydantic "starlette>=0.40,<0.49" referencing
 
 mkdir -p "${BUILD_DIR}/package/schemas" "${BUILD_DIR}/package/rules" "${BUILD_DIR}/package/vocab"
 [ -d "${ROOT_DIR}/schemas" ] && rsync -a "${ROOT_DIR}/schemas/" "${BUILD_DIR}/package/schemas/"

@@ -1,4 +1,3 @@
-
 """Command-line interface for ULog Normalizer."""
 
 from __future__ import annotations
@@ -164,12 +163,8 @@ def parse(domain: Optional[str], out_format: str) -> None:
             parser = router.route(message, domain_hint=domain)
             result = parser.parse(message)
             if result.success:
-                normalized = normalizer.normalize(
-                    result.data, parser.parser_name.replace("_parser", "")
-                )
-                enriched = provenance_tracker.enrich(
-                    normalized, message, result, parser
-                )
+                normalized = normalizer.normalize(result.data, parser.parser_name.replace("_parser", ""))
+                enriched = provenance_tracker.enrich(normalized, message, result, parser)
                 enriched["timestamp"] = timestamp
                 output_json(enriched, out_format)
             else:
@@ -233,7 +228,9 @@ def parse(domain: Optional[str], out_format: str) -> None:
     help="Domain thresholds: llm=95,agentic=95,cv=80,core_api=70.",
 )
 def stats(
-    input: Optional[Any], out_format: str, threshold: Optional[str]  # noqa: A002
+    input: Optional[Any],
+    out_format: str,
+    threshold: Optional[str],  # noqa: A002
 ) -> None:
     """Compute parse stats by domain with default thresholds."""
     from collections import Counter
@@ -368,8 +365,7 @@ def stats(
     else:
         click.echo()
         click.echo(
-            f"{'Domain':<12} {'Total':>7} {'Parsed':>7} {'Failed':>7} "
-            f"{'Rate':>7} {'Threshold':>10} {'Status':>8}"
+            f"{'Domain':<12} {'Total':>7} {'Parsed':>7} {'Failed':>7} {'Rate':>7} {'Threshold':>10} {'Status':>8}"
         )
         click.echo("-" * 80)
         for dom in ["core_api", "llm", "agentic", "cv"]:
@@ -382,15 +378,10 @@ def stats(
             for reason, count in row["top_errors"]:
                 click.echo(f"  └─ {reason}: {count}")
         click.echo("-" * 80)
-        click.echo(
-            f"{'OVERALL':<12} {overall_t:>7} {overall_p:>7} "
-            f"{overall_t - overall_p:>7} {overall_rate:>6.1f}%"
-        )
+        click.echo(f"{'OVERALL':<12} {overall_t:>7} {overall_p:>7} {overall_t - overall_p:>7} {overall_rate:>6.1f}%")
         click.echo()
         click.echo(
-            "✓ All domains meet acceptance thresholds"
-            if all_ok
-            else "✗ One or more domains failed to meet thresholds"
+            "✓ All domains meet acceptance thresholds" if all_ok else "✗ One or more domains failed to meet thresholds"
         )
         click.echo()
 

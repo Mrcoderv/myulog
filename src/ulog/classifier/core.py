@@ -1,6 +1,7 @@
 """Core classifier pipeline implementation."""
 
 import json
+import os
 from typing import Any, Dict, List, Optional
 
 from .normalizer_adapter import NormalizerAdapter
@@ -130,6 +131,7 @@ class ClassifierPipeline:
 
             # Apply rules
             classified_record = self.rule_evaluator.classify(record)
+            strict = os.getenv("CLASSIFIER_VOCAB_STRICT", "0").lower() in {"1", "true", "yes"}
             try:
                 assert_vocab(
                     classified_record.get("level"),
@@ -137,10 +139,12 @@ class ClassifierPipeline:
                     classified_record.get("outcome"),
                 )
             except ValueError as ve:
-                # Attach explicit error so CI can fail via tests, but don't drop the record
+                if strict:
+                    # Fail fast in CI when vocab is violated
+                    raise
+                # Otherwise annotate the record so tests can assert on it
                 classified_record.setdefault("validation_failed", True)
                 classified_record.setdefault("validation_error", {})["vocabulary_error"] = str(ve)
-            classified.append(classified_record)
 
         return classified
 

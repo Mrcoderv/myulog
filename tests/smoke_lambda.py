@@ -11,11 +11,11 @@ def test_health_smoke():
             "http": {
                 "method": "GET",
                 "path": "/health",
-                "sourceIp": "127.0.0.1",   # <- required by Mangum
+                "sourceIp": "127.0.0.1",  # <- required by Mangum
             }
         },
         "headers": {"host": "localhost"},
-        "isBase64Encoded": False
+        "isBase64Encoded": False,
     }
     resp = lambda_handler(event, None)
     assert isinstance(resp, dict)

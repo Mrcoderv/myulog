@@ -11,6 +11,7 @@ Domain = Literal["core_api", "agentic", "cv", "llm"]
 # Paths & small utils
 # --------------------------------------------------------------------------------------
 
+
 def project_root() -> Path:
     """
     Return the repository root (parent of the 'tests' folder).
@@ -51,6 +52,7 @@ def json_files(*dirs: str | Path, pattern: str = "*.json") -> List[Path]:
 # --------------------------------------------------------------------------------------
 # Schema discovery for each domain
 # --------------------------------------------------------------------------------------
+
 
 def _schema_basenames(domain: Domain) -> List[str]:
     """
@@ -105,9 +107,7 @@ def load_schema(domain: Domain, required: bool = False) -> dict:
             for d in _schema_search_dirs(domain):
                 for base in _schema_basenames(domain):
                     searched.append(str((d / base).resolve()))
-            raise FileNotFoundError(
-                f"Schema for domain '{domain}' not found. Searched:\n" + "\n".join(searched)
-            )
+            raise FileNotFoundError(f"Schema for domain '{domain}' not found. Searched:\n" + "\n".join(searched))
         return {}
     return _load_json(path)
 
@@ -136,6 +136,7 @@ SCHEMA_BY_DOMAIN: Dict[Domain, str] = {
 # --------------------------------------------------------------------------------------
 # Example file helpers (by domain)
 # --------------------------------------------------------------------------------------
+
 
 def examples_dir(domain: Domain) -> Path:
     """

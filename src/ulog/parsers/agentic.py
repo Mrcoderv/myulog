@@ -22,10 +22,8 @@ class LangChainAgentLogPattern(Pattern):
     confidence = 0.90
 
     # We'll detect two families:
-    gt_re = re.compile(r'^\>\s+(?P<message>.+)$')
-    step_re = re.compile(
-        r'^(?P<kind>Action Input|Action|Observation|Thought|Final Answer):\s*(?P<payload>.*)$'
-    )
+    gt_re = re.compile(r"^\>\s+(?P<message>.+)$")
+    step_re = re.compile(r"^(?P<kind>Action Input|Action|Observation|Thought|Final Answer):\s*(?P<payload>.*)$")
 
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         # ">" lines
@@ -41,7 +39,7 @@ class LangChainAgentLogPattern(Pattern):
             if "Entering new" in msg:
                 out["step_kind"] = "chain_start"
                 # try to extract chain name
-                name = re.search(r'Entering new\s+([A-Za-z0-9_]+)\s+chain', msg)
+                name = re.search(r"Entering new\s+([A-Za-z0-9_]+)\s+chain", msg)
                 if name:
                     out["chain_name"] = name.group(1)
             elif "Finished" in msg and "chain" in msg:
@@ -74,54 +72,51 @@ class LangChainAgentLogPattern(Pattern):
 
 class SessionStartPattern(Pattern):
     """Matches [Agent] session_start with key=value format.
-    
+
     Examples:
     - [Agent] session_start id=agnt-6f21f req_id=4a2c.. model=llm-7b-instruct locale=es-ES tz=Europe/Madrid
     - [Agent] session_end id=agnt-6f21f result='success_with_artifacts'
     """
-    
+
     pattern_id = "agent_session_event"
     confidence = 0.98
-    
-    regex = re.compile(
-        r'\[Agent\]\s+(?P<event_type>session_start|session_end)\s+(?P<message>.+)',
-        re.IGNORECASE
-    )
-    
+
+    regex = re.compile(r"\[Agent\]\s+(?P<event_type>session_start|session_end)\s+(?P<message>.+)", re.IGNORECASE)
+
     field_extractions = [
         FieldExtraction("event_type", "step_kind"),
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match agent session pattern and extract fields."""
         m = self.regex.search(text)
         if m:
             fields = self.extract_fields(m)
-            
+
             # Set category and level
             fields["category"] = "workflow"
             fields["level"] = "info"
-            
+
             # Extract key-value pairs from message
             kv_pairs = self._extract_key_values(fields["message"])
             fields.update(kv_pairs)
-            
+
             return fields
         return None
-    
+
     def _extract_key_values(self, message: str) -> Dict[str, Any]:
         """Extract key=value pairs from message."""
         kv_dict = {}
-        
+
         # Pattern for key=value pairs (handles quoted values)
         kv_pattern = re.compile(r"(\w+)=(?:'([^']*)'|\"([^\"]*)\"|([^\s]+))")
-        
+
         for match in kv_pattern.finditer(message):
             key = match.group(1)
             # Get the value from whichever group matched (quoted or unquoted)
             value = match.group(2) or match.group(3) or match.group(4)
-            
+
             # Try to convert to appropriate type
             try:
                 kv_dict[key] = int(value)
@@ -130,45 +125,45 @@ class SessionStartPattern(Pattern):
                     kv_dict[key] = float(value)
                 except ValueError:
                     kv_dict[key] = value
-        
+
         return kv_dict
 
 
 class ToolCallPattern(Pattern):
     """Matches [Tool] call {tool_name} args={...} format.
-    
+
     Examples:
     - [Tool] call web_search args={'q':'python logging library comparison 2024 site:docs','k':5} timeout=6000ms
     - [Tool] call code_exec args={'cmd':'python - <<PY\\n...\\nPY'} sandbox='seccompv2' timeout=5000ms
     - [Tool][INFO] web_search result_count=5 latency=211ms
     - [Tool][ERROR] code_exec exit_code=1 stderr='ModuleNotFoundError: No module named "structlog"'
     """
-    
+
     pattern_id = "tool_call_event"
     confidence = 0.95
-    
+
     regex = re.compile(
-        r'\[Tool\](?:\[(?P<level>INFO|WARNING|ERROR|DEBUG|WARN)\])?\s+(?P<action>call)?\s*(?P<tool_name>\w+)\s+(?P<message>.*)',
-        re.IGNORECASE
+        r"\[Tool\](?:\[(?P<level>INFO|WARNING|ERROR|DEBUG|WARN)\])?\s+(?P<action>call)?\s*(?P<tool_name>\w+)\s+(?P<message>.*)",
+        re.IGNORECASE,
     )
-    
+
     field_extractions = [
         FieldExtraction("level", "level", transform=lambda x: x.lower() if x else None),
         FieldExtraction("action", "action"),
         FieldExtraction("tool_name", "tool_name"),
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match tool call pattern and extract fields."""
         m = self.regex.search(text)
         if m:
             fields = self.extract_fields(m)
-            
+
             # Set category and step_kind
             fields["category"] = "tool"
             fields["step_kind"] = "tool_call"
-            
+
             # Infer level if not explicitly set
             if not fields.get("level"):
                 message_lower = fields.get("message", "").lower()
@@ -178,32 +173,32 @@ class ToolCallPattern(Pattern):
                     fields["level"] = "warning"
                 else:
                     fields["level"] = "info"
-            
+
             # Extract key-value pairs from message
             kv_pairs = self._extract_key_values(fields.get("message", ""))
             fields.update(kv_pairs)
-            
+
             # Determine outcome based on level
             if fields["level"] == "error":
                 fields["outcome"] = "failure"
             else:
                 fields["outcome"] = "success"
-            
+
             return fields
         return None
-    
+
     def _extract_key_values(self, message: str) -> Dict[str, Any]:
         """Extract key=value pairs from message."""
         kv_dict = {}
-        
+
         # Pattern for key=value pairs (handles quoted values and nested structures)
         kv_pattern = re.compile(r"(\w+)=(?:'([^']*)'|\"([^\"]*)\"|({[^}]*})|(\[[^\]]*\])|([^\s,]+))")
-        
+
         for match in kv_pattern.finditer(message):
             key = match.group(1)
             # Get the value from whichever group matched
             value = match.group(2) or match.group(3) or match.group(4) or match.group(5) or match.group(6)
-            
+
             # Try to convert to appropriate type
             try:
                 kv_dict[key] = int(value)
@@ -212,61 +207,60 @@ class ToolCallPattern(Pattern):
                     kv_dict[key] = float(value)
                 except ValueError:
                     kv_dict[key] = value
-        
+
         return kv_dict
 
 
 class StateTransitionPattern(Pattern):
     """Matches [Graph] state={from} -> {to} format.
-    
+
     Examples:
     - [Graph] state=PLAN -> ACT reason='ready_to_execute_first_tool'
     - [Graph] state=ACT -> OBSERVE reason='tool_outputs_ready'
     """
-    
+
     pattern_id = "graph_state_transition"
     confidence = 0.98
-    
+
     regex = re.compile(
-        r'\[Graph\]\s+state=(?P<from_state>\w+)\s*->\s*(?P<to_state>\w+)\s+(?P<message>.*)',
-        re.IGNORECASE
+        r"\[Graph\]\s+state=(?P<from_state>\w+)\s*->\s*(?P<to_state>\w+)\s+(?P<message>.*)", re.IGNORECASE
     )
-    
+
     field_extractions = [
         FieldExtraction("from_state", "from_state"),
         FieldExtraction("to_state", "to_state"),
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match state transition pattern and extract fields."""
         m = self.regex.search(text)
         if m:
             fields = self.extract_fields(m)
-            
+
             # Set category, step_kind, and level
             fields["category"] = "workflow"
             fields["step_kind"] = "state_transition"
             fields["level"] = "info"
-            
+
             # Extract key-value pairs from message (e.g., reason='...')
             kv_pairs = self._extract_key_values(fields.get("message", ""))
             fields.update(kv_pairs)
-            
+
             return fields
         return None
-    
+
     def _extract_key_values(self, message: str) -> Dict[str, Any]:
         """Extract key=value pairs from message."""
         kv_dict = {}
-        
+
         # Pattern for key=value pairs (handles quoted values)
         kv_pattern = re.compile(r"(\w+)=(?:'([^']*)'|\"([^\"]*)\"|([^\s]+))")
-        
+
         for match in kv_pattern.finditer(message):
             key = match.group(1)
             value = match.group(2) or match.group(3) or match.group(4)
-            
+
             # Try to convert to appropriate type
             try:
                 kv_dict[key] = int(value)
@@ -275,13 +269,13 @@ class StateTransitionPattern(Pattern):
                     kv_dict[key] = float(value)
                 except ValueError:
                     kv_dict[key] = value
-        
+
         return kv_dict
 
 
 class AgenticComponentPattern(Pattern):
     """Matches other [Component] {message} formats for agentic workflows.
-    
+
     Examples:
     - [Planner] plan_created plan_id=pln-0a91 steps=7 plan_hash=2d1f7e.. (redacted)
     - [Selector] ranked_tools=[('web_search',0.91),('vector_search',0.67)] chosen='web_search'
@@ -290,29 +284,28 @@ class AgenticComponentPattern(Pattern):
     - [RAG] vector_search top_k=6 query='python structured logging' hits=4 store='team-knowledge' latency=34ms
     - [RAG][WARN] low_recall threshold=0.3 actual=0.18 -> fallback='hybrid' (bm25+dense)
     """
-    
+
     pattern_id = "agentic_component_log"
     confidence = 0.85
-    
+
     regex = re.compile(
-        r'\[(?P<component>[^\]]+)\](?:\[(?P<level>INFO|WARNING|ERROR|DEBUG|WARN)\])?\s+(?P<message>.+)',
-        re.IGNORECASE
+        r"\[(?P<component>[^\]]+)\](?:\[(?P<level>INFO|WARNING|ERROR|DEBUG|WARN)\])?\s+(?P<message>.+)", re.IGNORECASE
     )
-    
+
     field_extractions = [
         FieldExtraction("component", "component"),
         FieldExtraction("level", "level", transform=lambda x: x.lower() if x else None),
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match agentic component pattern and extract fields."""
         m = self.regex.search(text)
         if m:
             fields = self.extract_fields(m)
-            
+
             component = fields["component"].lower()
-            
+
             # Map component to category and step_kind
             if component in ["planner", "plan"]:
                 fields["category"] = "planning"
@@ -416,7 +409,7 @@ class AgenticComponentPattern(Pattern):
             else:
                 fields["category"] = "workflow"
                 fields["step_kind"] = "step"
-            
+
             # Infer level if not explicitly set
             if not fields.get("level"):
                 message_lower = fields.get("message", "").lower()
@@ -426,26 +419,26 @@ class AgenticComponentPattern(Pattern):
                     fields["level"] = "warning"
                 else:
                     fields["level"] = "info"
-            
+
             # Extract key-value pairs from message
             kv_pairs = self._extract_key_values(fields.get("message", ""))
             fields.update(kv_pairs)
-            
+
             return fields
         return None
-    
+
     def _extract_key_values(self, message: str) -> Dict[str, Any]:
         """Extract key=value pairs from message."""
         kv_dict = {}
-        
+
         # Pattern for key=value pairs (handles quoted values and nested structures)
         kv_pattern = re.compile(r"(\w+)=(?:'([^']*)'|\"([^\"]*)\"|({[^}]*})|(\[[^\]]*\])|([^\s,;]+))")
-        
+
         for match in kv_pattern.finditer(message):
             key = match.group(1)
             # Get the value from whichever group matched
             value = match.group(2) or match.group(3) or match.group(4) or match.group(5) or match.group(6)
-            
+
             # Try to convert to appropriate type
             try:
                 kv_dict[key] = int(value)
@@ -454,38 +447,37 @@ class AgenticComponentPattern(Pattern):
                     kv_dict[key] = float(value)
                 except ValueError:
                     kv_dict[key] = value
-        
+
         return kv_dict
 
 
 class AgenticParser(BaseParser):
     """Parser for Agentic domain logs.
-    
+
     Handles agent workflows, tool calls, state transitions, planning, and orchestration.
     """
-    
+
     parser_name = "agentic_parser"
     parser_version = "1.0.0"
-    
+
     def __init__(self):
         """Initialize parser with patterns."""
         self.patterns: List[Pattern] = [
             # NEW
             LangChainAgentLogPattern(),
-
             # existing
             SessionStartPattern(),
             StateTransitionPattern(),
             ToolCallPattern(),
             AgenticComponentPattern(),
         ]
-    
+
     def parse(self, raw_message: str) -> ParseResult:
         """Parse an Agentic log message.
-        
+
         Args:
             raw_message: Raw log message text
-            
+
         Returns:
             ParseResult with extracted data or error
         """
@@ -493,7 +485,7 @@ class AgenticParser(BaseParser):
         best_match = None
         best_confidence = 0.0
         best_pattern_id = None
-        
+
         for pattern in self.patterns:
             result = pattern.match(raw_message)
             if result is not None:
@@ -501,7 +493,7 @@ class AgenticParser(BaseParser):
                     best_match = result
                     best_confidence = pattern.confidence
                     best_pattern_id = pattern.pattern_id
-        
+
         if best_match is not None:
             return ParseResult(
                 success=True,
@@ -509,7 +501,7 @@ class AgenticParser(BaseParser):
                 pattern_id=best_pattern_id,
                 confidence=best_confidence,
                 error=None,
-                unparsed_reason=None
+                unparsed_reason=None,
             )
         else:
             return ParseResult(
@@ -518,9 +510,9 @@ class AgenticParser(BaseParser):
                 pattern_id=None,
                 confidence=0.0,
                 error="no_pattern_match",
-                unparsed_reason="no_pattern_match"
+                unparsed_reason="no_pattern_match",
             )
-    
+
     def get_patterns(self) -> List[Pattern]:
         """Return list of patterns this parser supports."""
         return self.patterns

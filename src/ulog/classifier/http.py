@@ -1,4 +1,5 @@
 """HTTP Service"""
+
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -10,6 +11,7 @@ from .core import ClassifierPipeline
 
 class StrictRawLogRecord(BaseModel):
     """A raw log record, requiring @timestamp and @message."""
+
     model_config = ConfigDict(extra="allow", populate_by_name=True)
     at_timestamp: str = Field(alias="@timestamp")
     at_message: str = Field(alias="@message")
@@ -17,11 +19,13 @@ class StrictRawLogRecord(BaseModel):
 
 class FlexibleLogRecord(BaseModel):
     """A flexible log model."""
+
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
 class ClassifierLog(BaseModel):
     """Structure of response for a single log output (for docs only)."""
+
     model_config = ConfigDict(extra="allow")
     timestamp: str
     message: Optional[str] = None

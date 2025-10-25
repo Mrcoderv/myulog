@@ -2,68 +2,93 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Set
+from typing import Any, Dict, Optional, Set
 
-# Default/fallback vocabulary (used if the JSON file is missing or invalid)
-_DEFAULT_LEVEL = {"info", "warning", "error", "debug", "critical"}
-_DEFAULT_CATEGORY = {"core_api", "llm", "agentic", "cv"}
-_DEFAULT_OUTCOME = {"success", "failure", "partial", "unknown"}
+# Fallback vocabulary aligned with main's controlled_vocabulary.json ($defs)
+_FALLBACK_LEVEL = {"critical", "debug", "error", "info", "warn"}
+_FALLBACK_CATEGORY = {"agentic", "core_api", "cv", "llm"}
+_FALLBACK_OUTCOME = {"cancelled", "failure", "pending", "running", "success", "timeout"}
 
-# Public sets (populated at import time, can be reloaded)
-LEVEL: Set[str] = set(_DEFAULT_LEVEL)
-CATEGORY: Set[str] = set(_DEFAULT_CATEGORY)
-OUTCOME: Set[str] = set(_DEFAULT_OUTCOME)
+LEVEL: Set[str] = set(_FALLBACK_LEVEL)
+CATEGORY: Set[str] = set(_FALLBACK_CATEGORY)
+OUTCOME: Set[str] = set(_FALLBACK_OUTCOME)
+
 
 def _repo_root() -> Path:
-    # .../src/ulog/classifier/vocab.py  -> parents[3] == repository root
+    # .../src/ulog/classifier/vocab.py  -> parents[3] == repository root or site-packages root
     return Path(__file__).resolve().parents[3]
 
-def _load_json(path: Path) -> Optional[dict]:
+
+def _load_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         if not path.exists():
             return None
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
-        if not isinstance(data, dict):
-            return None
-        return data
+        return data if isinstance(data, dict) else None
     except Exception:
-        # Any error: treat as no-op and keep defaults
         return None
+
 
 def reload_vocabulary(custom_path: Optional[Path] = None) -> None:
     """
-    Reload vocabulary from a JSON file if present. Falls back to defaults otherwise.
+    Load controlled vocabulary from vocab/controlled_vocabulary.json if present.
+    Supports both structures used in main:
 
-    Expected JSON structure in 'vocab/controlled_vocabulary.json':
-    {
-      "level":    ["info", "warning", "error", "debug", "critical"],
-      "category": ["core_api", "llm", "agentic", "cv"],
-      "outcome":  ["success", "failure", "partial", "unknown"]
-    }
+    1) Rich object with "vocabulary" maps (keys are the actual labels):
+       {
+         "vocabulary": {
+           "levels": {"debug": "...", "info": "...", "warn": "...", ...},
+           "categories": {"core_api":"...", "llm":"...", ...},
+           "outcomes": {"success":"...", "failure":"...", ...}
+         },
+         "$defs": { ...enums duplicated... }
+       }
+
+    2) Pure enums under "$defs" (source of truth for validation):
+       "$defs": {
+         "levels": {"type":"string","enum":[...]},
+         "categories": {"type":"string","enum":[...]},
+         "outcomes": {"type":"string","enum":[...]}
+       }
     """
     global LEVEL, CATEGORY, OUTCOME
 
-    # Reset to defaults first
-    LEVEL = set(_DEFAULT_LEVEL)
-    CATEGORY = set(_DEFAULT_CATEGORY)
-    OUTCOME = set(_DEFAULT_OUTCOME)
+    # Reset to fallbacks first
+    LEVEL = set(_FALLBACK_LEVEL)
+    CATEGORY = set(_FALLBACK_CATEGORY)
+    OUTCOME = set(_FALLBACK_OUTCOME)
 
     path = custom_path or (_repo_root() / "vocab" / "controlled_vocabulary.json")
     data = _load_json(path)
     if not data:
-        return  # keep defaults
+        return
 
-    level = data.get("level")
-    category = data.get("category")
-    outcome = data.get("outcome")
+    # Prefer $defs enums when available (most authoritative)
+    try:
+        defs = data.get("$defs") or {}
+        def_levels = set(defs.get("levels", {}).get("enum", []))
+        def_categories = set(defs.get("categories", {}).get("enum", []))
+        def_outcomes = set(defs.get("outcomes", {}).get("enum", []))
+    except Exception:
+        defs = {}
+        def_levels = def_categories = def_outcomes = set()
 
-    if isinstance(level, list) and all(isinstance(x, str) for x in level):
-        LEVEL = set(level)
-    if isinstance(category, list) and all(isinstance(x, str) for x in category):
-        CATEGORY = set(category)
-    if isinstance(outcome, list) and all(isinstance(x, str) for x in outcome):
-        OUTCOME = set(outcome)
+    if def_levels:
+        LEVEL = def_levels
+    elif "vocabulary" in data and "levels" in data["vocabulary"]:
+        LEVEL = set((data["vocabulary"]["levels"] or {}).keys())
+
+    if def_categories:
+        CATEGORY = def_categories
+    elif "vocabulary" in data and "categories" in data["vocabulary"]:
+        CATEGORY = set((data["vocabulary"]["categories"] or {}).keys())
+
+    if def_outcomes:
+        OUTCOME = def_outcomes
+    elif "vocabulary" in data and "outcomes" in data["vocabulary"]:
+        OUTCOME = set((data["vocabulary"]["outcomes"] or {}).keys())
+
 
 def assert_vocab(level: Optional[str], category: Optional[str], outcome: Optional[str]) -> None:
     """
@@ -77,7 +102,8 @@ def assert_vocab(level: Optional[str], category: Optional[str], outcome: Optiona
     if outcome is not None and outcome not in OUTCOME:
         raise ValueError(f"outcome out-of-vocabulary: {outcome}")
 
-# Populate sets once at import time (safe no-op if file is absent/invalid)
+
+# Initialize on import
 reload_vocabulary()
 
 __all__ = ["LEVEL", "CATEGORY", "OUTCOME", "reload_vocabulary", "assert_vocab"]

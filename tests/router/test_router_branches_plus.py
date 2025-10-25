@@ -26,7 +26,6 @@ def test_extract_message_variants_and_concatenated_json():
 
 
 def test_domain_detection_by_component_and_heuristics():
-
     # by component (non-ambiguous)
     assert route_domain("[Tokenizer] Started") == "llm"
     assert route_domain("[Pose] infer start") == "cv"

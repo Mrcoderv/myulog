@@ -1,4 +1,5 @@
 """Tests for HTTP service."""
+
 import json
 import os
 import sys
@@ -6,7 +7,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 
 from fastapi.testclient import TestClient
 
@@ -26,10 +27,10 @@ class TestHTTPService:
         "message": "INFO: Service started successfully",
         "meta": {
             "parse": {
-                "ok": True, 
-                "pattern_id": "mock_pattern_id", 
+                "ok": True,
+                "pattern_id": "mock_pattern_id",
             }
-        }
+        },
     }
 
     failure_result = {
@@ -41,7 +42,10 @@ class TestHTTPService:
     @pytest.fixture(autouse=True)
     def patch_pipeline(self, monkeypatch):
         """Patches ClassifierPipeline.process_input to test HTTP service in isolation."""
-        def mock_process_input(self_instance, input_data: List[Dict[str, Any]], input_format: str) -> List[Dict[str, Any]]:
+
+        def mock_process_input(
+            self_instance, input_data: List[Dict[str, Any]], input_format: str
+        ) -> List[Dict[str, Any]]:
             if input_data:
                 return [self.successful_result]
             return []
@@ -72,7 +76,7 @@ class TestHTTPService:
         result = results[0]
         pattern_id = self.successful_result["meta"]["parse"]["pattern_id"]
         assert result["meta"]["parse"]["pattern_id"] == pattern_id
-        
+
         assert "provenance" in result
         assert result["provenance"]["parser_rule_id"] == pattern_id
 
@@ -81,13 +85,13 @@ class TestHTTPService:
         Test POST /classify endpoint and verify annotation.
         """
         adapter = NormalizerAdapter()
-        payload = adapter.process_raw_input(self.raw_data) 
+        payload = adapter.process_raw_input(self.raw_data)
         response = self.client.post("/classify", json=payload)
 
         assert response.status_code == 200
         results = response.json()
         assert len(results) == 1
-        
+
         result = results[0]
         pattern_id = self.successful_result["meta"]["parse"]["pattern_id"]
         assert result["meta"]["parse"]["pattern_id"] == pattern_id
@@ -101,15 +105,13 @@ class TestHTTPService:
         assert response.status_code == 422
         assert "detail" in response.json()
         assert "Field required" in str(response.json())
-        
+
     def test_classify_endpoint_invalid_json_format(self):
         """Test API error handling for non-JSON input."""
-        response = self.client.post("/classify", content=json.dumps({"a": 1}), headers={"Content-Type": "application/json"})
-        
+        response = self.client.post(
+            "/classify", content=json.dumps({"a": 1}), headers={"Content-Type": "application/json"}
+        )
+
         assert response.status_code == 422
         assert "detail" in response.json()
         assert "Input should be a valid list" in str(response.json())
-
-
-
-    
