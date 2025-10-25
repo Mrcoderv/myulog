@@ -125,8 +125,7 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate data.generate.raw test.roundtrip\
- 		data.generate.baseline data.generate.validate.baseline\
+.PHONY: data.generate data.generate.raw test.roundtrip data.generate.baseline data.validate.baseline
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python data/generator/main.py -d agentic -n log_agentic
