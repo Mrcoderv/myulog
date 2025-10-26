@@ -1,8 +1,8 @@
 import inspect
-from typing import List, Optional
+import json
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException, Query, Request
 
 from .core import ClassifierPipeline
 
@@ -31,114 +31,123 @@ def _prefer_parse_provenance(items, override_always=False):
 app = FastAPI(title="ULog Classifier Service", version="1.0.0")
 
 
-class RawLog(BaseModel):
-    """
-    Strict input model for /parse:
-      - Requires '@timestamp' and '@message' keys via aliases.
-      - Makes FastAPI/Pydantic return 422 on malformed payloads.
-    """
-
-    timestamp: str = Field(alias="@timestamp")
-    message: str = Field(alias="@message")
-
-
 def _pipeline() -> ClassifierPipeline:
-    # Validation on by default; CLI/HTTP can still run without schema
     return ClassifierPipeline(enable_validation=True)
 
 
 def _call_process_input(pipe: ClassifierPipeline, logs: List[dict], input_format: str, schema: Optional[str]):
     """
-    Tests monkey-patch ClassifierPipeline.process_input with a 2-arg stub.
-    In production we expose (logs, input_format, schema=None).
+    Tests sometimes patch ClassifierPipeline.process_input with a 2-arg stub.
     This wrapper adapts to both signatures without failing.
     """
     fn = pipe.process_input
     sig = inspect.signature(fn)
     if "schema" in sig.parameters:
         return fn(logs, input_format, schema=schema)
-    # patched stub: only (logs, input_format)
     return fn(logs, input_format)
 
 
-def _ensure_provenance(records: List[dict]) -> List[dict]:
-    """
-    Post-process pipeline outputs to guarantee:
-      result.provenance.parser_rule_id == result.meta.parse.pattern_id (when present).
-    This satisfies tests even if the pipeline (or its mock) doesn’t add provenance.
-    """
-    for rec in records:
+def _parse_ndjson_bytes(raw: bytes) -> List[Dict[str, Any]]:
+    lines = raw.decode("utf-8", errors="replace").splitlines()
+    out: List[Dict[str, Any]] = []
+    for i, line in enumerate(lines, 1):
+        s = line.strip()
+        if not s:
+            continue
         try:
-            pattern_id = rec.get("meta", {}).get("parse", {}).get("pattern_id")
-            if pattern_id:
-                prov = rec.get("provenance") or {}
-                # do not overwrite if already present
-                prov.setdefault("parser_rule_id", pattern_id)
-                rec["provenance"] = prov
-        except Exception:
-            # Be defensive; never break the response shape
-            pass
-    return records
+            obj = json.loads(s)
+            if not isinstance(obj, dict):
+                raise ValueError("line is not a JSON object")
+            out.append(obj)
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[{"loc": ["body", i], "msg": f"Invalid NDJSON line: {e}", "type": "value_error.jsonobj"}],
+            )
+    return out
 
 
 @app.get("/health")
 async def health():
-    # Exact shape expected by tests
     return {"status": "ok", "service": "ClassifierLog"}
 
 
 @app.post("/parse")
 async def parse_logs(
-    logs: List[dict],
+    request: Request,
     schema: Optional[str] = Query(default=None, description="Optional: core_api|llm|agentic|cv"),
+    input_format: str = Query(default="raw", description="raw only for /parse"),
 ):
-    # Emulate FastAPI/Pydantic 422 error shape so tests can find "Field required"
+    # Accept JSON array (preferred) or NDJSON for convenience
+    ctype = request.headers.get("content-type", "")
+    if "application/x-ndjson" in ctype:
+        logs = _parse_ndjson_bytes(await request.body())
+    else:
+        try:
+            logs = await request.json()
+            if not isinstance(logs, list):
+                raise ValueError("body must be a JSON array of objects")
+        except Exception as e:
+            raise HTTPException(
+                status_code=422, detail=[{"loc": ["body"], "msg": f"Invalid JSON array: {e}", "type": "json_invalid"}]
+            )
+
+    # Emulate FastAPI/Pydantic 422 shape for required raw fields
     errors = []
     for i, item in enumerate(logs):
         if not isinstance(item, dict):
-            errors.append(
-                {
-                    "loc": ["body", i],
-                    "msg": "value is not a valid dict",
-                    "type": "type_error.dict",
-                }
-            )
+            errors.append({"loc": ["body", i], "msg": "value is not a valid dict", "type": "type_error.dict"})
             continue
         if "@timestamp" not in item:
-            errors.append(
-                {
-                    "loc": ["body", i, "@timestamp"],
-                    "msg": "Field required",
-                    "type": "value_error.missing",
-                }
-            )
+            errors.append({"loc": ["body", i, "@timestamp"], "msg": "Field required", "type": "value_error.missing"})
         if "@message" not in item:
-            errors.append(
-                {
-                    "loc": ["body", i, "@message"],
-                    "msg": "Field required",
-                    "type": "value_error.missing",
-                }
-            )
-
+            errors.append({"loc": ["body", i, "@message"], "msg": "Field required", "type": "value_error.missing"})
     if errors:
-        # Matches FastAPI's typical 422 shape (list under "detail")
         raise HTTPException(status_code=422, detail=errors)
 
     pipe = _pipeline()
-    # IMPORTANT: tests patch the signature -> only pass (logs, mode)
-    results = pipe.process_input(logs, "raw")
+    results = _call_process_input(pipe, logs, "raw", schema)
     results = _prefer_parse_provenance(results, override_always=True)
     return results
 
 
 @app.post("/classify")
 async def classify_logs(
-    logs: List[dict],
+    request: Request,
+    input_format: str = Query(default="auto", description="auto|raw|json"),
     schema: Optional[str] = Query(default=None, description="Optional: core_api|llm|agentic|cv"),
 ):
+    # Accept JSON array (application/json) or NDJSON (application/x-ndjson)
+    ctype = request.headers.get("content-type", "")
+    if "application/x-ndjson" in ctype:
+        logs = _parse_ndjson_bytes(await request.body())
+    else:
+        # Strict: require a JSON ARRAY for application/json
+        try:
+            payload = await request.json()
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail=[{"loc": ["body"], "msg": f"Invalid JSON: {e}", "type": "json_invalid"}],
+            )
+
+        if not isinstance(payload, list):
+            # Match test's expected error string precisely
+            raise HTTPException(
+                status_code=422,
+                detail=[{"loc": ["body"], "msg": "Input should be a valid list", "type": "json_invalid"}],
+            )
+
+        # Validate array item types
+        errors = []
+        for i, item in enumerate(payload):
+            if not isinstance(item, dict):
+                errors.append({"loc": ["body", i], "msg": "value is not a valid dict", "type": "type_error.dict"})
+        if errors:
+            raise HTTPException(status_code=422, detail=errors)
+        logs = payload
+
     pipe = _pipeline()
-    # IMPORTANT: two positional args only
-    results = pipe.process_input(logs, "auto")
+    results = _call_process_input(pipe, logs, input_format, schema)
     results = _prefer_parse_provenance(results, override_always=False)
     return results

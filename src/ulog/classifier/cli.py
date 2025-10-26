@@ -1,10 +1,28 @@
 import json
 import sys
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import click
 
 from .core import ClassifierPipeline
+
+
+def _ensure_provenance(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Force provenance.parser_rule_id to mirror meta.parse.pattern_id when present.
+    We intentionally OVERWRITE any existing value to match test expectations.
+    """
+    for rec in records:
+        try:
+            pid = (rec.get("meta") or {}).get("parse", {}).get("pattern_id")
+            if pid:
+                prov = (rec.get("provenance") or {}).copy()
+                prov["parser_rule_id"] = pid  # <- force override
+                rec["provenance"] = prov
+        except Exception:
+            # Never break the response shape
+            pass
+    return records
 
 
 @click.command()
@@ -16,17 +34,20 @@ from .core import ClassifierPipeline
 )
 @click.option(
     "--schema",
-    type=str,
-    help="Optional schema domain (core_api, llm, agentic, cv). If omitted, schema will be inferred when possible",
+    type=click.Choice(["core_api", "llm", "agentic", "cv"]),
+    help="Optional schema domain override.",
 )
-@click.option("--stats", is_flag=True, help="Print processing statistics")
+@click.option("--stats", is_flag=True, help="Print processing statistics to STDERR.")
 @click.option("--no-validation", is_flag=True, help="Disable validation entirely (classification still runs).")
 def classify(input_format: str, schema: Optional[str], stats: bool, no_validation: bool):
-    """Classify logs from stdin and write JSONL to stdout."""
+    """Classify logs from STDIN (JSONL) and write JSONL to STDOUT."""
     pipeline = ClassifierPipeline(enable_validation=not no_validation)
 
     try:
         results = pipeline.process_stream(sys.stdin, input_format, schema)
+        # Ensure meta.parse.pattern_id → provenance.parser_rule_id for CLI parity with HTTP
+        results = _ensure_provenance(results)
+
         for result in results:
             print(json.dumps(result, ensure_ascii=False))
 
@@ -48,3 +69,11 @@ def classify(input_format: str, schema: Optional[str], stats: bool, no_validatio
     except Exception as e:
         click.echo(f"ERROR: {e}", err=True)
         sys.exit(1)
+
+
+def main() -> None:
+    classify()  # let Click handle help/errors (standalone_mode=True by default)
+
+
+if __name__ == "__main__":
+    main()

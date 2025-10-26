@@ -138,67 +138,60 @@ Classify normalized or raw log entries.
 
 **Endpoint**: `POST /classify`
 
-**Request Body**: Array of log records (normalized or raw format).
+**Query Params**:
+- `input_format`: `auto` (default) | `raw` | `json`
+- `schema`: optional `core_api|llm|agentic|cv` (overrides automatic inference)
 
-**Example Request with Raw Logs**:
+#### Option A — JSON array (application/json)
 ```bash
-curl -X POST http://localhost:8000/classify \
+curl -sS http://localhost:8000/classify \
   -H "Content-Type: application/json" \
-  -d '[
-    {
-      "@timestamp": "2025-10-22T10:15:32.789Z",
-      "@message": "ERROR: Database connection failed - timeout after 30s"
-    }
+  --data-binary '[
+    { "@timestamp": "2025-10-22T10:15:32.789Z", "@message": "ERROR: Database connection failed - timeout after 30s" },
+    { "timestamp": "2025-10-22T10:20:00.000Z", "level": "info", "category": "core_api", "outcome": "success", "meta": {"raw_message":"synthetic"} }
   ]'
 ```
 
-**Example Request with Normalized Logs**:
+#### Option B — JSON Lines (JSONL / NDJSON)
 ```bash
-curl -X POST http://localhost:8000/classify \
-  -H "Content-Type: application/json" \
-  -d '[
-    {
-      "timestamp": "2025-10-22T10:20:00.000Z",
-      "level": "info",
-      "category": "core_api",
-      "message": "Service started",
-      "outcome": "success"
-    },
-    {
-      "timestamp": "2025-10-22T10:20:01.000Z",
-      "level": "error",
-      "category": "core_api",
-      "message": "Connection timeout",
-      "outcome": "failure"
-    }
-  ]'
+curl -sS "http://localhost:8000/classify?input_format=auto&schema=core_api" \
+  -H "Content-Type: application/x-ndjson" \
+  --data-binary @samples/core_api.jsonl
 ```
 
-**Example Response**:
-```json
-[
-  {
-    "timestamp": "2025-10-22T10:20:00.000Z",
-    "level": "info",
-    "category": "core_api",
-    "message": "Service started",
-    "outcome": "success",
-    "meta": {
-      "parse": {
-        "ok": true
-      }
-    },
-    "provenance": {
-      "classification": {
-        "rule_id": "core_api_success",
-        "priority": 100,
-        "matched_conditions": [
-          {"field": "outcome", "operator": "equals", "value": "success"}
-        ]
-      }
-    }
-  }
-]
+**Response**: JSON array of classified (and validated, when enabled) records, with
+`meta.parse.pattern_id` preserved and `provenance.parser_rule_id` set accordingly.
+
+
+---
+
+# 3) Optional test to lock JSONL behavior
+
+Create `tests/http/test_http_jsonl.py`:
+
+```python
+import json
+from fastapi.testclient import TestClient
+from ulog.classifier.http import app
+
+client = TestClient(app)
+
+
+def test_classify_accepts_jsonl_and_schema_override():
+    payload = '\n'.join([
+        json.dumps({"@timestamp": "2025-10-22T10:00:00Z", "@message": "INFO: GET /health 200 in 12ms"}),
+        json.dumps({"@timestamp": "2025-10-22T10:00:01Z", "@message": "ERROR: DB timeout"})
+    ])
+    r = client.post("/classify?input_format=auto&schema=core_api",
+                    data=payload,
+                    headers={"Content-Type": "application/x-ndjson"})
+    assert r.status_code == 200
+    items = r.json()
+    assert isinstance(items, list) and len(items) == 2
+    # Ensure provenance is present when meta.parse.pattern_id exists
+    for it in items:
+        prov = (it.get("provenance") or {})
+        assert "parser_rule_id" in prov
 ```
 
 ### Error Responses
