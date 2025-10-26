@@ -1,7 +1,8 @@
 # tests/classifier/test_vocabulary_compliance.py
-import json
+import json, sys, os
 from pathlib import Path
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 from ulog.classifier.core import ClassifierPipeline
 
 def _vocab(path: Path):
@@ -31,6 +32,8 @@ def test_classifier_outputs_only_controlled_vocabulary_values():
             "meta": {"raw_message": "synthetic"}
         }
     ]
+    RULES_PATH = Path(__file__).resolve().parents[2] / "rules" / "rules.json"
+    os.environ["ULOG_RULES_PATH"] = str(RULES_PATH)
 
     pipe = ClassifierPipeline()
     outputs = pipe.process_input(sample, input_format="json")
@@ -45,3 +48,5 @@ def test_classifier_outputs_only_controlled_vocabulary_values():
             assert rec["sub_category"] in v["sub_categories"], f"[{i}] invalid sub_category: {rec['sub_category']}"
         if "outcome" in rec:
             assert rec["outcome"] in v["outcomes"], f"[{i}] invalid outcome: {rec['outcome']}"
+
+
