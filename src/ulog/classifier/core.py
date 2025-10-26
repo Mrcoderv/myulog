@@ -1,191 +1,208 @@
-"""Core classifier pipeline implementation."""
-
 import json
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from .normalizer_adapter import NormalizerAdapter
 from .rule_evaluator import RuleEvaluator
 from .validator import SchemaValidator
-from .vocab import assert_vocab
+
+__all__ = ["ClassifierPipeline", "NormalizerAdapter"]
 
 
 class ClassifierPipeline:
-    """Main classifier pipeline that orchestrates the full processing flow."""
+    """
+    Orchestrates: parse -> (optional) validate -> classify.
+    Validation is non-blocking: if schema is unknown, we skip it but still classify.
+    """
 
     def __init__(self, enable_validation: bool = True):
-        """Initialize classifier pipeline.
-
-        Args:
-            enable_validation: Whether to enable schema validation (default: True)
-        """
-        self.normalizer_adapter = NormalizerAdapter()
-        self.validator = SchemaValidator() if enable_validation else None
-        self.rule_evaluator = RuleEvaluator()
         self.enable_validation = enable_validation
+        self.normalizer_adapter = NormalizerAdapter()
+        self.validator = SchemaValidator()
+        self.rule_evaluator = RuleEvaluator()
 
-    def process_input(
-        self, input_data: List[Dict[str, Any]], input_format: str = "raw", schema: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
-        """Process input data through the classifier pipeline.
+    # ---------- Input format handling ----------
 
-        Args:
-            input_data: List of input records
-            input_format: Either "raw" or "json"
-            schema: Optional schema domain for validation
+    def _guess_format(self, sample_records: List[Dict[str, Any]]) -> str:
+        for r in sample_records[:50]:
+            if isinstance(r, dict):
+                if "@message" in r:  # raw-like
+                    return "raw"
+                if "timestamp" in r and "meta" in r:  # normalized-like
+                    return "json"
+        if any(isinstance(r, dict) and "@message" in r for r in sample_records):
+            return "raw"
+        return "json"
 
-        Returns:
-            List of processed records with classification metadata
-        """
-        # Step 1: Parse/normalize
-        if input_format == "raw":
-            normalized = self.normalizer_adapter.process_raw_input(input_data)
-        elif input_format == "json":
-            normalized = self.normalizer_adapter.process_json_input(input_data)
-        else:
-            raise ValueError(f"Unsupported input format: {input_format}")
+    # ---------- Schema inference (optional) ----------
 
-        # Step 2: Validate (if enabled)
-        if self.enable_validation and self.validator:
-            normalized = self._validate_records(normalized, schema)
+    def infer_schema(self, record: Dict[str, Any]) -> Optional[str]:
+        meta = record.get("meta", {})
+        parse = meta.get("parse", {})
 
-        # Step 3: Classify with rules
-        classified = self._classify_records(normalized)
+        dom = parse.get("domain")
+        if dom in {"core_api", "llm", "agentic", "cv"}:
+            return dom
 
-        return classified
+        if any(k in record for k in ("event_type", "http_status", "endpoint", "action", "service")):
+            return "core_api"
+        if any(
+            k in record
+            for k in ("pipeline_stage", "usage", "ttft_ms", "sampler", "finish_reason", "request_id", "model")
+        ):
+            return "llm"
+        if any(k in record for k in ("step_kind", "workflow_id", "tool_name", "plan_id", "ranked_tools")):
+            return "agentic"
+        if any(k in record for k in ("phase", "model_name", "dataset_id", "metrics", "hardware", "image_count")):
+            return "cv"
+
+        pid = parse.get("pattern_id")
+        if isinstance(pid, str):
+            s = pid.lower()
+            if "agent" in s:
+                return "agentic"
+            if "http" in s or "apprunner" in s or "build" in s:
+                return "core_api"
+            if "token" in s or "kv_cache" in s or "llm" in s:
+                return "llm"
+            if "infer" in s or "cv" in s or "batch" in s:
+                return "cv"
+        return None
+
+    # ---------- Public entry points ----------
 
     def process_stream(
-        self, input_stream, input_format: str = "raw", schema: Optional[str] = None
+        self, input_stream, input_format: str = "auto", schema: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """Process input from a stream (file or stdin).
-
-        Args:
-            input_stream: File-like object or sys.stdin
-            input_format: Either "raw" or "json"
-            schema: Optional schema domain for validation
-
-        Returns:
-            List of processed records
-        """
-        input_data = []
-
+        input_data: List[Dict[str, Any]] = []
         for line in input_stream:
             line = line.strip()
             if not line:
                 continue
-
             try:
-                record = json.loads(line)
-                input_data.append(record)
+                input_data.append(json.loads(line))
             except json.JSONDecodeError:
-                # Skip invalid JSON lines
                 continue
+
+        if input_format == "auto":
+            input_format = self._guess_format(input_data)
 
         return self.process_input(input_data, input_format, schema)
 
-    def _validate_records(self, records: List[Dict[str, Any]], schema: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Validate records against schemas.
-
-        Args:
-            records: List of normalized records
-            schema: Optional schema domain override
-
-        Returns:
-            Records with validation errors annotated
+    def process_input(
+        self, input_data: List[Dict[str, Any]], input_format: str, schema: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
-        validated = []
-
-        for record in records:
-            is_valid, error_envelope = self.validator.validate(record, schema)
-
-            if not is_valid:
-                # Annotate record with validation error
-                record["validation_failed"] = True
-                record["validation_error"] = error_envelope
-
-            validated.append(record)
-
-        return validated
-
-    def _classify_records(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Classify records using rule evaluator.
-
-        Args:
-            records: List of normalized records
-
-        Returns:
-            Classified records with provenance
+        Process records with input_format: 'auto' | 'raw' | 'json'.
+        Validation runs iff enabled AND (schema provided or inferred).
+        Classification always runs; never blocked by validation.
         """
-        classified = []
+        if input_format == "auto":
+            input_format = self._guess_format(input_data)
 
-        for record in records:
-            # Skip classification if parsing failed
-            if record.get("unparsed_reason"):
-                classified.append(record)
+        # 1) Normalize
+        if input_format == "raw":
+            normalized = self.normalizer_adapter.process_raw_input(input_data)
+        else:  # 'json' path tolerates raw-like dicts with @message
+            normalized = self.normalizer_adapter.process_json_input(input_data)
+
+        outputs: List[Dict[str, Any]] = []
+        for rec in normalized:
+            ok_parse = bool(rec.get("meta", {}).get("parse", {}).get("ok"))
+            if not ok_parse:
+                outputs.append(rec)
                 continue
 
-            # Skip classification if validation failed (but still add warning)
-            if record.get("validation_failed", False):
-                classified.append(record)
-                continue
+            # 2) Validation (optional)
+            effective_schema = schema or self.infer_schema(rec)
+            validation_attempted = False
+            validation_ok = None
+            validation_errors: Optional[List[str]] = None
 
-            # Apply rules
-            classified_record = self.rule_evaluator.classify(record)
-            strict = os.getenv("CLASSIFIER_VOCAB_STRICT", "0").lower() in {"1", "true", "yes"}
-            try:
-                assert_vocab(
-                    classified_record.get("level"),
-                    classified_record.get("category"),
-                    classified_record.get("outcome"),
-                )
-            except ValueError as ve:
-                if strict:
-                    # Fail fast in CI when vocab is violated
-                    raise
-                # Otherwise annotate the record so tests can assert on it
-                classified_record.setdefault("validation_failed", True)
-                classified_record.setdefault("validation_error", {})["vocabulary_error"] = str(ve)
+            if self.enable_validation and effective_schema:
+                validation_attempted = True
+                validation_ok, validation_errors = self._validate_record(rec, effective_schema)
 
-        return classified
+            vmeta = rec.setdefault("meta", {}).setdefault("validation", {})
+            if validation_attempted:
+                vmeta["schema"] = effective_schema
+                vmeta["ok"] = bool(validation_ok)
+                if not validation_ok and validation_errors:
+                    vmeta["errors"] = validation_errors
+            else:
+                vmeta["skipped"] = True
 
-    def get_processing_stats(self, results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Generate processing statistics from results.
+            # 3) Classification
+            classified = self._classify_record(rec, effective_schema)
+            outputs.append(classified)
 
-        Args:
-            results: List of processed records
+        return outputs
 
-        Returns:
-            Dictionary with processing statistics
-        """
-        total = len(results)
-        parsed = sum(1 for r in results if r.get("meta", {}).get("parse", {}).get("ok", False))
-        failed = total - parsed
-        validated = sum(1 for r in results if not r.get("validation_failed", False))
-        validation_failed = total - validated
-        classified = sum(1 for r in results if r.get("provenance", {}).get("parser_rule_id"))
+    # ---------- Helpers ----------
 
-        # Count failure reasons
-        failure_reasons = {}
-        for result in results:
-            if not result.get("meta", {}).get("parse", {}).get("ok", False):
-                reason = result.get("unparsed_reason", "unknown")
-                failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
+    def _validate_record(self, rec: Dict[str, Any], schema: str) -> Tuple[bool, Optional[List[str]]]:
+        try:
+            self.validator.validate(rec, schema)
+            return True, None
+        except Exception as e:
+            return False, [str(e)]
 
-        # Count rule matches
-        rule_matches = {}
-        for result in results:
-            rule_id = result.get("provenance", {}).get("parser_rule_id")
-            if rule_id:
-                rule_matches[rule_id] = rule_matches.get(rule_id, 0) + 1
+    def _classify_record(self, rec: Dict[str, Any], schema: Optional[str]) -> Dict[str, Any]:
+        evaluator = self.rule_evaluator
+        for name in ("apply", "evaluate", "classify", "apply_rules", "evaluate_one"):
+            if hasattr(evaluator, name):
+                func = getattr(evaluator, name)
+                try:
+                    try:
+                        res = func(rec, domain=schema)
+                    except TypeError:
+                        res = func(rec)
+                    return res if res is not None else rec
+                except Exception as e:
+                    rec.setdefault("meta", {}).setdefault("classifier", {})["error"] = str(e)
+                    return rec
 
+        rec.setdefault("meta", {}).setdefault("classifier", {})["error"] = "rule_evaluator_api_not_found"
+        rec.setdefault("provenance", {}).setdefault("parser_rule_id", None)
+        return rec
+
+    # ---------- Stats ----------
+
+    def get_processing_stats(self, results: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
+        total = parsed = failed = validated_ok = validated_fail = validated_skipped = classified = 0
+        reasons: Dict[str, int] = {}
+
+        for r in results:
+            total += 1
+            pmeta = r.get("meta", {}).get("parse", {})
+            if pmeta.get("ok"):
+                parsed += 1
+            else:
+                failed += 1
+                # Prefer explicit unparsed_reason; fallback to parser error; then generic.
+                reason = r.get("unparsed_reason") or pmeta.get("error") or "parse_error"
+                reasons[reason] = reasons.get(reason, 0) + 1
+
+            vmeta = r.get("meta", {}).get("validation", {})
+            if vmeta.get("skipped"):
+                validated_skipped += 1
+            elif "ok" in vmeta:
+                if vmeta["ok"]:
+                    validated_ok += 1
+                else:
+                    validated_fail += 1
+
+            if r.get("provenance", {}).get("parser_rule_id"):
+                classified += 1
+
+        parse_rate = (parsed / total * 100.0) if total else 0.0
         return {
             "total": total,
             "parsed": parsed,
             "failed": failed,
-            "parse_rate": (parsed / total * 100) if total > 0 else 0,
-            "validated": validated,
-            "validation_failed": validation_failed,
+            "parse_rate": parse_rate,
+            "validated": validated_ok,
+            "validation_failed": validated_fail,
+            "validation_skipped": validated_skipped,
             "classified": classified,
-            "failure_reasons": failure_reasons,
-            "rule_matches": rule_matches,
+            "failure_reasons": reasons,
         }

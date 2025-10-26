@@ -44,24 +44,27 @@ class NormalizerAdapter:
         return results
 
     def process_json_input(self, input_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Process already-normalized JSON input.
-
-        Args:
-            input_data: List of normalized log records
-
-        Returns:
-            List of log records (pass-through with validation)
         """
-        # For JSON input, we assume it's already normalized
-        # Just ensure it has the required structure
-        results = []
+        Accept already-normalized records.
+        If a record looks raw (has '@message'), parse+normalize it instead of failing.
+        """
+        results: List[Dict[str, Any]] = []
+
         for record in input_data:
             if self._is_valid_normalized_record(record):
                 results.append(record)
-            else:
-                # Create error envelope for invalid records
-                error_record = self._create_error_envelope(raw_data=record, error="invalid_normalized_record")
-                results.append(error_record)
+                continue
+
+            # Fallback: treat as raw if it has @message
+            if isinstance(record, dict) and "@message" in record:
+                ts = record.get("@timestamp") or record.get("timestamp") or ""
+                stream = record.get("stream")
+                parsed = self._parse_and_normalize(raw_message=record["@message"], timestamp=ts, stream=stream)
+                results.append(parsed)
+                continue
+
+            # Otherwise, keep the error envelope behavior
+            results.append(self._create_error_envelope(raw_data=record, error="invalid_normalized_record"))
 
         return results
 

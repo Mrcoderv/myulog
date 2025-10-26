@@ -28,13 +28,14 @@ FILENAME_HINTS = [
 
 # Default locations baked into the image; can be overridden by env/.env
 DEFAULT_CLASSIFY_ENV = {
-    "RULES_PATH":       os.environ.get("RULES_PATH", "/app/rules/rules.json"),
-    "ULOG_RULES_PATH":  os.environ.get("ULOG_RULES_PATH", "/app/rules/rules.json"),
-    "SCHEMAS_DIR":      os.environ.get("SCHEMAS_DIR", "/app/schemas"),
+    "RULES_PATH": os.environ.get("RULES_PATH", "/app/rules/rules.json"),
+    "ULOG_RULES_PATH": os.environ.get("ULOG_RULES_PATH", "/app/rules/rules.json"),
+    "SCHEMAS_DIR": os.environ.get("SCHEMAS_DIR", "/app/schemas"),
     "ULOG_SCHEMAS_DIR": os.environ.get("ULOG_SCHEMAS_DIR", "/app/schemas"),
-    "VOCAB_PATH":       os.environ.get("VOCAB_PATH", "/app/vocab/vocab.json"),
-    "ULOG_VOCAB_PATH":  os.environ.get("ULOG_VOCAB_PATH", "/app/vocab/vocab.json"),
+    "VOCAB_PATH": os.environ.get("VOCAB_PATH", "/app/vocab/vocab.json"),
+    "ULOG_VOCAB_PATH": os.environ.get("ULOG_VOCAB_PATH", "/app/vocab/vocab.json"),
 }
+
 
 def _env_bool(name: str, default: bool = False) -> bool:
     v = os.environ.get(name)
@@ -42,12 +43,14 @@ def _env_bool(name: str, default: bool = False) -> bool:
         return default
     return str(v).strip().lower() in {"1", "true", "yes", "y"}
 
+
 def guess_schema_from_filename(name: str) -> Optional[str]:
     lower = name.lower()
     for needle, schema in FILENAME_HINTS:
         if needle in lower:
             return schema
     return None
+
 
 def guess_schema_from_message(msg: str) -> Optional[str]:
     lower = msg.lower()
@@ -60,6 +63,7 @@ def guess_schema_from_message(msg: str) -> Optional[str]:
     if "ttft" in lower or "tokens" in lower or "prompt" in lower or "model=" in lower:
         return "llm"
     return None
+
 
 def run_classify(payload: str, schema: str, input_format: str) -> Tuple[str, str, int]:
     """
@@ -82,6 +86,7 @@ def run_classify(payload: str, schema: str, input_format: str) -> Tuple[str, str
     )
     return proc.stdout, proc.stderr, proc.returncode
 
+
 def process_file(src: Path) -> None:
     print(f"classifier: processing {src.name}", flush=True)
     out_path = OUT_DIR / f"{src.name}.classified.jsonl"
@@ -89,9 +94,7 @@ def process_file(src: Path) -> None:
 
     filename_hint = guess_schema_from_filename(src.name)
 
-    with src.open("r", encoding="utf-8", errors="ignore") as fin, \
-         out_path.open("w", encoding="utf-8") as fout:
-
+    with src.open("r", encoding="utf-8", errors="ignore") as fin, out_path.open("w", encoding="utf-8") as fout:
         for raw in fin:
             line = raw.strip()
             if not line:
@@ -138,8 +141,7 @@ def process_file(src: Path) -> None:
 
             if not out.strip():
                 sys.stderr.write(
-                    f"classifier: no output for a line in {src.name}. "
-                    f"schemas_tried={try_order} rc={rc}\n{(err or '')}"
+                    f"classifier: no output for a line in {src.name}. schemas_tried={try_order} rc={rc}\n{(err or '')}"
                 )
                 continue
 
@@ -156,14 +158,13 @@ def process_file(src: Path) -> None:
                     fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
                     written += 1
                 except Exception:
-                    sys.stderr.write(
-                        f"classifier: produced non-JSON output in {src.name}: {out_line[:200]}\n"
-                    )
+                    sys.stderr.write(f"classifier: produced non-JSON output in {src.name}: {out_line[:200]}\n")
 
     if written:
         print(f"classifier: wrote {out_path.name} ({written} lines)", flush=True)
     else:
         print(f"classifier: no classified records for {src.name}", flush=True)
+
 
 def main() -> int:
     IN_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,6 +185,7 @@ def main() -> int:
 
     (OUT_DIR / "_DONE").write_text("ok\n", encoding="utf-8")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
