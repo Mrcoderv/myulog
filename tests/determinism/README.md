@@ -96,12 +96,113 @@ The verification script checks:
 - Domain distribution
 - Parse success rate (warns if <80%)
 
-### Running Determinism Tests
+### Running the Two-Pass Determinism Test
+
+The two-pass determinism test executes the full ULog pipeline twice with identical inputs and performs byte-level comparison of all outputs. This validates that the pipeline behaves deterministically across runs.
+
+#### Running the Test
 
 ```bash
-# Run determinism test suite (after Subtask 2 implementation)
-make test.determinism
+# Run the determinism test with pytest
+poetry run pytest tests/determinism/test_golden_determinism.py -v
 
-# Or directly with pytest
-poetry run pytest -q tests/determinism/test_golden_determinism.py
+# Run with detailed output
+poetry run pytest tests/determinism/test_golden_determinism.py -v -s
+
+# Run as part of the full test suite
+poetry run pytest tests/determinism/
 ```
+
+#### Expected Behavior
+
+**On Success:**
+- The test executes the pipeline twice on the golden raw events
+- Both runs produce identical outputs (byte-for-byte)
+- Test passes with exit code 0
+- Console shows: `PASSED tests/determinism/test_golden_determinism.py::test_golden_set_determinism`
+
+**On Failure:**
+- The test detects differences between the two runs
+- Test fails with exit code 1
+- Detailed diff report is printed to console
+- Diff files are saved to `tests/determinism/diffs/` for inspection
+
+#### Test Output Format
+
+**Success Output:**
+```
+tests/determinism/test_golden_determinism.py::test_golden_set_determinism PASSED [100%]
+
+Determinism Test: PASSED
+- Run 1: 131 events processed
+- Run 2: 131 events processed
+- Outputs are byte-identical ✓
+```
+
+**Failure Output:**
+```
+tests/determinism/test_golden_determinism.py::test_golden_set_determinism FAILED [100%]
+
+Determinism Test: FAILED
+Found 3 differences between runs:
+
+Event 42 - Field: meta.parse.pattern_id
+  Run 1: "agentic_session_start_v1"
+  Run 2: "agentic_session_start_v2"
+  Type: value
+
+Event 89 - Field: timestamp
+  Run 1: "2025-10-09T09:15:00.101Z"
+  Run 2: "2025-10-09T09:15:00.102Z"
+  Type: value
+
+Event 120 - Field: metrics.latency
+  Run 1: 0.123456
+  Run 2: 0.12345600
+  Type: formatting
+
+Diff files saved to: tests/determinism/diffs/
+```
+
+#### Inspecting Diff Files
+
+When the test fails, detailed diff files are saved for analysis:
+
+```bash
+# View the differences report
+cat tests/determinism/diffs/differences.txt
+
+# Compare the two runs side-by-side
+diff tests/determinism/diffs/run1_output.jsonl tests/determinism/diffs/run2_output.jsonl
+
+# View specific run output
+jq '.' tests/determinism/diffs/run1_output.jsonl | less
+```
+
+#### Troubleshooting Determinism Failures
+
+If the determinism test fails, consult the [Troubleshooting Guide](./TROUBLESHOOTING.md) for:
+
+- Common causes of nondeterminism (dictionary ordering, floating-point formatting, timestamps, etc.)
+- Code examples showing problems and fixes
+- Debugging workflow and testing recommendations
+- Best practices for maintaining deterministic pipeline behavior
+
+**Quick debugging steps:**
+
+1. Review the diff output to identify which fields differ
+2. Check the [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) guide for the relevant category
+3. Inspect the code that generates the differing fields
+4. Apply the recommended fix (e.g., `sort_keys=True`, deterministic formatting)
+5. Re-run the test to verify the fix
+
+#### Performance
+
+The two-pass determinism test typically completes in:
+- **Local development**: 30-60 seconds for 134 events
+- **CI environment**: 1-2 minutes for 134 events
+
+If the test takes significantly longer, check for:
+- Network calls during pipeline execution (should be none)
+- File I/O bottlenecks
+- Inefficient comparison logic
