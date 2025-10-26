@@ -10,29 +10,6 @@ import re
 from typing import Any, Dict, Optional
 
 
-def _resolve_rules_path() -> str:
-    # 1) Respect an explicit override
-    env = os.getenv("ULOG_RULES_PATH")
-    if env and Path(env).exists():
-        return env
-
-    # 2) Use rules bundled in the ZIP next to this module
-    here = Path(__file__).resolve()
-    bundled = here.parent.parent.parent.parent / "rules" / "rules.json"
-    if bundled.exists():
-        return str(bundled)
-
-    # 3) (Optional) legacy fallback used in some tests
-    legacy = Path("/tmp/rules/rules.json")
-    if legacy.exists():
-        return str(legacy)
-
-    raise FileNotFoundError(
-        "Could not locate rules.json. "
-        "Set ULOG_RULES_PATH or ensure rules/ is bundled in the deployment artifact."
-    )
-
-
 class RuleEvaluator:
     """Evaluates classification rules in priority order (first-match-wins)."""
 
@@ -51,7 +28,7 @@ class RuleEvaluator:
                 # .../src/ulog/classifier/rule_evaluator.py -> repo root == parents[3]
                 rules_path = Path(__file__).resolve().parents[3] / "rules" / "rules.json"
 
-        self.rules_path = _resolve_rules_path()
+        self.rules_path = rules_path
         self.rules_data = self._load_rules()
         self.aliases: Dict[str, list[str]] = self.rules_data.get("aliases", {})  # e.g. "@latency": ["latency_ms", ...]
         self.default_action = self.rules_data.get("default_action", {})
