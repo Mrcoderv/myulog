@@ -35,8 +35,6 @@ def test_classifier_outputs_only_controlled_vocabulary_values():
             "meta": {"raw_message": "synthetic"}
         }
     ]
-    RULES_PATH = Path(__file__).resolve().parents[2] / "rules" / "rules.json"
-    os.environ["ULOG_RULES_PATH"] = str(RULES_PATH)
 
     pipe = ClassifierPipeline()
     outputs = pipe.process_input(sample, input_format="json")

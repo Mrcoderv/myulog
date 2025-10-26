@@ -18,7 +18,7 @@ def _resolve_rules_path() -> str:
 
     # 2) Use rules bundled in the ZIP next to this module
     here = Path(__file__).resolve()
-    bundled = here.parent.parent.parent / "rules" / "rules.json"
+    bundled = here.parent.parent.parent.parent / "rules" / "rules.json"
     if bundled.exists():
         return str(bundled)
 
