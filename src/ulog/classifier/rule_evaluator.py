@@ -51,7 +51,7 @@ class RuleEvaluator:
                 # .../src/ulog/classifier/rule_evaluator.py -> repo root == parents[3]
                 rules_path = Path(__file__).resolve().parents[3] / "rules" / "rules.json"
 
-        self.rules_path = rules_path
+        self.rules_path = _resolve_rules_path()
         self.rules_data = self._load_rules()
         self.aliases: Dict[str, list[str]] = self.rules_data.get("aliases", {})  # e.g. "@latency": ["latency_ms", ...]
         self.default_action = self.rules_data.get("default_action", {})
