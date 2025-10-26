@@ -1,9 +1,12 @@
 # tests/classifier/test_vocabulary_compliance.py
-import json, sys, os
+import json
+import os
 from pathlib import Path
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
 from ulog.classifier.core import ClassifierPipeline
+
 
 def _vocab(path: Path):
     data = json.loads(path.read_text(encoding="utf-8"))
