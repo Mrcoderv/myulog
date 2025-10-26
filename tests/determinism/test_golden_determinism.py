@@ -273,17 +273,17 @@ def test_golden_set_determinism(
     assert golden_input_path.exists(), f"Golden input file not found: {golden_input_path}"
     
     # Run pipeline twice
-    print(f"\n🔄 Running pipeline pass 1...")
+    print("\n🔄 Running pipeline pass 1...")
     output1 = determinism_tester.run_pipeline(golden_input_path)
     
-    print(f"🔄 Running pipeline pass 2...")
+    print("🔄 Running pipeline pass 2...")
     output2 = determinism_tester.run_pipeline(golden_input_path)
     
     print(f"✓ Processed {len(output1)} events in pass 1")
     print(f"✓ Processed {len(output2)} events in pass 2")
     
     # Compare outputs
-    print(f"\n🔍 Comparing outputs...")
+    print("\n🔍 Comparing outputs...")
     identical, report = determinism_tester.compare_outputs(output1, output2)
     
     # Save diff files if outputs differ
@@ -298,4 +298,4 @@ def test_golden_set_determinism(
         )
     
     print(f"\n{report}")
-    print(f"✓ Determinism test passed!")
+    print("✓ Determinism test passed!")

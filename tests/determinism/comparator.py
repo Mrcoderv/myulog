@@ -5,7 +5,7 @@ in field values, types, ordering, or structure between pipeline runs.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -181,7 +181,7 @@ class ByteComparator:
         differences = []
         
         # Check type equality
-        if type(val1) != type(val2):
+        if type(val1) is not type(val2):
             differences.append(Difference(
                 event_index=event_index,
                 field_path=field_path,
