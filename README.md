@@ -37,9 +37,9 @@ Build reproducible distribution artifacts locally:
 ./scripts/build.sh
 ```
 
-Produces: Python wheel, CLI bundle, Lambda ZIP, and checksums in `dist/`
+Outputs wheel, CLI bundle, Lambda ZIP, and checksums under `dist/`.
 
-📦 **[Full Build & Packaging Documentation](.github/workflows/build_and_packaging.md)**
+📦 See **[Build & Packaging](.github/workflows/build_and_packaging.md)** for details.
 
 ## Schema harness
 Validate schemas and examples locally:

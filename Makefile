@@ -6,8 +6,8 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
-        build build.verify package clean \
-        coverage test.determinism
+        coverage test.determinism \
+        build build.verify package clean
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -109,15 +109,15 @@ down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
 
 # --- Build & Packaging ---
-build: ## Build all distribution artifacts
+build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
 	@./scripts/build.sh
 
-build.verify: ## Verify build reproducibility
+build.verify: ## Verify build reproducibility (two clean builds → identical checksums)
 	@./scripts/verify_reproducible_build.sh
 
-package: build ## Alias build and package all artifacts into dist
+package: build ## Alias for build (produces dist/* + SHA256SUMS)
 
-clean: ## Remove local build artifacts (safe)
+clean: ## Remove local build artifacts
 	@rm -rf dist/
 
 # --- Vocabulary helpers ---
