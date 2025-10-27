@@ -6,6 +6,27 @@ from fastapi import FastAPI, HTTPException, Query, Request
 
 from .core import ClassifierPipeline
 
+CLASSIFICATION_KEYS = {
+    # generic enrichment
+    "category","event_type","service","env","level","tags",
+    "provenance","validation","component","module","endpoint","action",
+    "request_id","http_status","latency_ms","duration_ms","error",
+    "error_code","version","safety_flags","metadata","sub_category",
+    "outcome",
+
+    # CV-specific blocks
+    "phase","model_name","dataset_id","image_count","metrics","batch_size","hardware","result",
+
+    # LLM-specific blocks
+    "pipeline_stage","model","usage","sampler","finish_reason","ttft_ms",
+}
+
+def _strip_classification_fields(ev: dict) -> dict:
+    """Keep normalized core fields (timestamp, message, meta.parse/raw_message, etc).
+    Remove classification/rules/validation/provenance so /parse is normalize-only.
+    """
+    return {k: v for k, v in ev.items() if k not in CLASSIFICATION_KEYS}
+
 
 def _prefer_parse_provenance(items, override_always=False):
     """
@@ -108,6 +129,7 @@ async def parse_logs(
     pipe = _pipeline()
     results = _call_process_input(pipe, logs, "raw", schema)
     results = _prefer_parse_provenance(results, override_always=True)
+    results = [_strip_classification_fields(r) for r in results]
     return results
 
 

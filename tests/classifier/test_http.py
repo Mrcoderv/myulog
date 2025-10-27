@@ -22,10 +22,13 @@ class TestHTTPService:
 
     raw_data = [{"@timestamp": "2025-01-01T12:34:56.789Z", "@message": "INFO: Service started successfully"}]
 
+    # Mock normalized result returned by the pipeline (normalize-only for /parse)
     successful_result = {
         "timestamp": "2025-01-01T12:34:56.789Z",
         "message": "INFO: Service started successfully",
         "meta": {
+            # include raw_message so tests can assert normalization retains it
+            "raw_message": "INFO: Service started successfully",
             "parse": {
                 "ok": True,
                 "pattern_id": "mock_pattern_id",
@@ -61,24 +64,45 @@ class TestHTTPService:
 
     def test_parse_endpoint(self):
         """
-        Test POST /parse (raw input) and verify:
-        1. Status code is 200.
-        2. meta.parse.pattern_id is preserved.
-        3. provenance.parser_rule_id is correctly annotated.
+        Test POST /parse (normalize-only) and verify:
+        1) HTTP 200 with exactly one normalized item.
+        2) meta.parse.pattern_id is preserved (parser provenance).
+        3) Normalization only: no classification/rules/validation fields present.
         """
         payload = self.raw_data
         response = self.client.post("/parse", json=payload)
 
         assert response.status_code == 200
         results = response.json()
-        assert len(results) == 1
+        assert isinstance(results, list) and len(results) == 1
 
         result = results[0]
-        pattern_id = self.successful_result["meta"]["parse"]["pattern_id"]
-        assert result["meta"]["parse"]["pattern_id"] == pattern_id
 
-        assert "provenance" in result
-        assert result["provenance"]["parser_rule_id"] == pattern_id
+        # 1) parser pattern id is preserved in meta.parse
+        expected_pid = self.successful_result["meta"]["parse"]["pattern_id"]
+        assert result["meta"]["parse"]["pattern_id"] == expected_pid
+
+        # 2) normalize-only: NO classification/rules/validation fields
+        forbidden = {
+            # generic classification / rules outputs
+            "provenance", "category", "level", "event_type", "service", "env", "tags",
+            "sub_category", "outcome", "request_id", "http_status", "latency_ms",
+            "duration_ms", "error", "error_code", "version", "safety_flags",
+            "metadata", "component", "module", "endpoint", "action",
+            # CV-specific blocks
+            "phase", "model_name", "dataset_id", "image_count", "metrics",
+            "batch_size", "hardware", "result",
+            # LLM-specific blocks
+            "pipeline_stage", "model", "usage", "sampler", "finish_reason", "ttft_ms",
+            # internal validation summary (classification-time)
+            "validation",
+        }
+        for key in forbidden:
+            assert key not in result, f"/parse must be normalize-only; unexpected field '{key}' present"
+
+        # 3) essential normalized fields remain
+        assert "timestamp" in result
+        assert "meta" in result and "raw_message" in result["meta"]
 
     def test_classify_endpoint(self):
         """

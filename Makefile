@@ -6,6 +6,7 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
+        http.up http.down http.logs http.test http.smoke \
         coverage test.determinism \
         build build.verify package clean
 
@@ -35,6 +36,12 @@ help: ## Show available commands
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
 	@echo ""
+	@echo "HTTP Service:"
+	@echo "  make http.up            - start HTTP classifier service"
+	@echo "  make http.down          - stop HTTP classifier service"
+	@echo "  make http.logs          - view HTTP service logs"
+	@echo "  make http.test          - run smoke tests against HTTP service"
+	@echo "  make http.smoke         - start service and run smoke tests"
 	@echo "Build & Packaging:"
 	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
 	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
@@ -108,6 +115,31 @@ classify: ## Run local pipeline (docker compose)
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
 
+# --- HTTP Service ---
+http.up: ## Start HTTP classifier service
+	@cd local_pipeline && docker compose up -d classifier-http
+	@echo "HTTP service starting at http://localhost:$${PORT:-8080}"
+	@echo "Health: curl http://localhost:$${PORT:-8080}/health"
+
+http.down: ## Stop HTTP classifier service
+	@cd local_pipeline && (docker compose stop classifier-http || true)
+	@cd local_pipeline && (docker compose rm -f classifier-http || true)
+
+http.logs: ## View HTTP service logs
+	@cd local_pipeline && docker compose logs -f classifier-http
+
+http.test: ## Run smoke tests against HTTP service
+	@./scripts/smoke_http.sh "http://localhost:$${PORT:-8080}"
+
+http.smoke: ## Start service and run smoke tests
+	@$(MAKE) http.up
+	@echo "Waiting for service..."
+	@bash -c 'for i in $$(seq 1 30); do curl -fsS http://localhost:$${PORT:-8080}/health >/dev/null && exit 0; sleep 1; done; exit 1'
+	@$(MAKE) http.test
+
+http.screens: ## Capture fresh screenshots into docs/screenshots/
+	@./scripts/capture_screenshots.sh
+	
 # --- Build & Packaging ---
 build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
 	@./scripts/build.sh
