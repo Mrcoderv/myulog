@@ -134,11 +134,11 @@ jobs:
 
             - name: Generate baseline dataset (seed=42, 50/domain)
               run: |
-                poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+                make data.generate.baseline
 
             - name: Validate baseline dataset (round-trip counts + label alignment)
               run: |
-                poetry run python data/generator/validate_baseline.py
+                make data.validate.baseline
 
             - name: Upload baseline dataset artifacts
               uses: actions/upload-artifact@v4
