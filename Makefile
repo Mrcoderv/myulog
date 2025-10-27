@@ -6,7 +6,8 @@ SHELL := /bin/bash
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
         generate classify down \
-        coverage test.determinism
+        coverage test.determinism \
+        build build.verify package clean
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -33,6 +34,12 @@ help: ## Show available commands
 	@echo "  make generate           - create a sample log in local_pipeline/in"
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo ""
+	@echo "Build & Packaging:"
+	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
+	@echo "  make package            - alias for 'make build' (produces dist/* + SHA256SUMS)"
+	@echo "  make clean              - remove ./dist (no Docker pruning)"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -100,6 +107,18 @@ classify: ## Run local pipeline (docker compose)
 
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
+
+# --- Build & Packaging ---
+build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
+	@./scripts/build.sh
+
+build.verify: ## Verify build reproducibility (two clean builds → identical checksums)
+	@./scripts/verify_reproducible_build.sh
+
+package: build ## Alias for build (produces dist/* + SHA256SUMS)
+
+clean: ## Remove local build artifacts
+	@rm -rf dist/
 
 # --- Vocabulary helpers ---
 lint-vocab:

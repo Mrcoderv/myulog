@@ -14,6 +14,8 @@ ULog is an initiative to standardize and make actionable the telemetry generated
 - `tests/` – unit tests (CI runs `pytest`)
 - `local_pipeline/` – docker-compose demo with a placeholder `classifier` service
   - `in/` and `out/` are mounted as volumes at `/in` and `/out` inside the container
+- `scripts/` – build and packaging scripts
+- `dist/` – build artifacts (wheel, CLI bundle, Lambda ZIP, checksums)
 
 
 ## Privacy & Data-Handling (must read)
@@ -26,6 +28,18 @@ See **[docs/PRIVACY.md](./docs/PRIVACY.md)** for redaction rules, unsafe→safe 
 2. Generate a sample input: `make generate`
 3. Run the pipeline: `make classify`
 4. Check outputs in `local_pipeline/out/`
+
+## Build & Packaging
+
+Build reproducible distribution artifacts locally:
+
+```bash
+./scripts/build.sh
+```
+
+Outputs wheel, CLI bundle, Lambda ZIP, and checksums under `dist/`.
+
+📦 See **[Build & Packaging](.github/workflows/build_and_packaging.md)** for details.
 
 ## Schema harness
 Validate schemas and examples locally:
@@ -73,6 +87,9 @@ No secrets required.
 - `make data.generate` / `make data.generate.raw` – synthetic dataset + raw mirror  
 - `make generate` – create a sample input file for the local pipeline  
 - `make classify` / `make down` – run/stop the Docker Compose (v2) pipeline
+- `make build` - build all distribution artifacts (wheel, CLI, Lambda ZIP)
+- `make build.verify`  - verify build reproducibility (builds twice, compares checksums)
+- `make clean` - remove local dist/ directory
 
 ### Rule evaluation (first-match-wins)
 
