@@ -1,26 +1,32 @@
+---
 services:
-  classifier:
-    build:
-      context: ..
-      dockerfile: local_pipeline/classifier/Dockerfile
-    # env_file: ../.env
-    environment:
-      # Helpful defaults while you tune rules:
-      CLASSIFIER_VOCAB_STRICT: "0"
-      LOG_LEVEL: "DEBUG"
-      # Set to "1" to bypass JSON Schema validation (lets you see parser output/diagnostics):
-      CLASSIFIER_NO_VALIDATION: "1"
-      # If you are not using env_file, keep these explicit to be safe:
-      RULES_PATH: /app/rules/rules.json
-      ULOG_RULES_PATH: /app/rules/rules.json
-      SCHEMAS_DIR: /app/schemas
-      ULOG_SCHEMAS_DIR: /app/schemas
-      VOCAB_PATH: /app/vocab/vocab.json
-      ULOG_VOCAB_PATH: /app/vocab/vocab.json
-      IN_DIR: /in
-      OUT_DIR: /out
-    volumes:
-      - ./in:/in:ro
-      - ./out:/out
-    tty: true
-    restart: "no"
+    classifier:
+        build:
+            context: ..
+            dockerfile: local_pipeline/classifier/Dockerfile
+
+        # env_file: ../.env
+
+        environment:
+            # Helpful defaults while you tune rules:
+            CLASSIFIER_VOCAB_STRICT: "0"
+            LOG_LEVEL: "INFO"
+            # Set to "1" to bypass JSON Schema validation
+            CLASSIFIER_NO_VALIDATION: "0"
+            RULES_PATH: /app/rules/rules.json
+            ULOG_RULES_PATH: /app/rules/rules.json
+            SCHEMAS_DIR: /app/schemas
+            ULOG_SCHEMAS_DIR: /app/schemas
+            VOCAB_PATH: /app/vocab/controlled_vocabulary.json
+            ULOG_VOCAB_PATH: /app/vocab/controlled_vocabulary.json
+            IN_DIR: /in
+            OUT_DIR: /out
+
+        user: "${UID:-1000}:${GID:-1000}"
+
+        volumes:
+            - ./in:/in:ro
+            - ./out:/out
+
+        tty: true
+        restart: "no"

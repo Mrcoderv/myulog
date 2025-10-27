@@ -32,8 +32,8 @@ DEFAULT_CLASSIFY_ENV = {
     "ULOG_RULES_PATH": os.environ.get("ULOG_RULES_PATH", "/app/rules/rules.json"),
     "SCHEMAS_DIR": os.environ.get("SCHEMAS_DIR", "/app/schemas"),
     "ULOG_SCHEMAS_DIR": os.environ.get("ULOG_SCHEMAS_DIR", "/app/schemas"),
-    "VOCAB_PATH": os.environ.get("VOCAB_PATH", "/app/vocab/vocab.json"),
-    "ULOG_VOCAB_PATH": os.environ.get("ULOG_VOCAB_PATH", "/app/vocab/vocab.json"),
+    "VOCAB_PATH": os.environ.get("VOCAB_PATH", "/app/vocab/controlled_vocabulary.json"),
+    "ULOG_VOCAB_PATH": os.environ.get("ULOG_VOCAB_PATH", "/app/vocab/controlled_vocabulary.json"),
 }
 
 
@@ -124,14 +124,25 @@ def process_file(src: Path) -> None:
 
             for schema in try_order:
                 if is_json:
-                    # 1) Try feeding the full JSON record
-                    out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "json")
+                    # Decide format based on keys present
+                    is_raw_envelope = isinstance(obj, dict) and ("@message" in obj)
+                    is_normalized = isinstance(obj, dict) and (
+                        ("level" in obj) or ("category" in obj) or ("outcome" in obj)
+                    )
 
-                    # 2) If nothing came out, try only the @message as raw
-                    if not out.strip():
-                        only_msg = obj.get("@message")
-                        if only_msg:
-                            out, err, rc = run_classify(only_msg, schema, "raw")
+                    if is_raw_envelope:
+                        # Raw JSON line: pass whole object (keeps @timestamp)
+                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
+                    elif is_normalized:
+                        # Already-normalized record
+                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "json")
+                    else:
+                        # Unknown JSON shape: try raw first
+                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
+
+                    # Fallback: if nothing came out and we have @message, try raw again
+                    if not out.strip() and isinstance(obj, dict) and obj.get("@message"):
+                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
                 else:
                     # Plain text line
                     out, err, rc = run_classify(line, schema, "raw")
