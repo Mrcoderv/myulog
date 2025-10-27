@@ -1,4 +1,5 @@
 """Tests for CV parser."""
+
 from ulog.parsers.cv import CVParser
 
 

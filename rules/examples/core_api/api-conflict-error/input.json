@@ -1,0 +1,6 @@
+{
+  "schema_id": "core_api",
+  "trace_id": "test-trace-123",
+  "http_status": 409,
+  "outcome": "failure"
+}

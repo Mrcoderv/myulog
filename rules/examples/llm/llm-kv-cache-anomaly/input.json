@@ -1,0 +1,8 @@
+{
+  "schema_id": "llm",
+  "pipeline_stage": "inference",
+  "outcome": "failure",
+  "error": { "message": "KV cache miss and memory pressure detected" },
+  "kv_cache_usage_percent": 95,
+  "output_tokens": 512
+}

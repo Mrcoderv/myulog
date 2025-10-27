@@ -100,9 +100,7 @@ class StubParser:
                 "metadata": {"parsed_at": time.time(), "line_count": len(lines)},
             }
             for i, line in enumerate(lines):
-                normalized["entries"].append(
-                    {"line_number": i + 1, "content": line, "timestamp": time.time()}
-                )
+                normalized["entries"].append({"line_number": i + 1, "content": line, "timestamp": time.time()})
             return ParseResult(success=True, normalized_json=normalized)
 
         except json.JSONDecodeError as e:
@@ -173,9 +171,7 @@ def _resolve_refs(data, base_path: Path, cache: Dict[Path, dict]):
 
             # Merge siblings (other keywords next to $ref) over the resolved fragment
             if isinstance(resolved, dict):
-                siblings = {
-                    k: _resolve_refs(v, base_path, cache) for k, v in data.items() if k != "$ref"
-                }
+                siblings = {k: _resolve_refs(v, base_path, cache) for k, v in data.items() if k != "$ref"}
                 merged = {**resolved, **siblings}
                 return _resolve_refs(merged, base_path, cache)
             else:
@@ -289,10 +285,7 @@ def print_summary_table(metrics: Dict[str, DomainMetrics], results: List[TestRes
     print("DOMAIN SUMMARY")
     print("=" * 80)
 
-    header = (
-        f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} "
-        f"{'Parse Err':<11} {'Schema Fail':<12} {'Parse Rate%':<12}"
-    )
+    header = f"{'Domain':<15} {'Total':<8} {'Parse OK':<10} {'Parse Err':<11} {'Schema Fail':<12} {'Parse Rate%':<12}"
     print(header)
     print("-" * len(header))
 
@@ -349,9 +342,7 @@ def export_junit_xml(results: List[TestResult], output_path: Path):
                 if not r.parse_result.success:
                     failure.set("message", "Parse failed: " + r.parse_result.error_message)
                 elif r.validation_result and not r.validation_result.success:
-                    failure.set(
-                        "message", "Schema validation failed: " + r.validation_result.error_message
-                    )
+                    failure.set("message", "Schema validation failed: " + r.validation_result.error_message)
             elif r.final_status == "SKIP":
                 skipped = ET.SubElement(testcase, "skipped")
                 skipped.set("message", "Validation skipped (jsonschema not available)")
@@ -464,9 +455,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                             print("     ✅ PASS (valid)")
                         else:
                             msg = (
-                                result.validation_result.error_message
-                                if result.validation_result
-                                else "No validation"
+                                result.validation_result.error_message if result.validation_result else "No validation"
                             )
                             print(f"     ✅ PASS (invalid as expected): {msg}")
                     else:
@@ -499,10 +488,7 @@ def run(format_type: str = "text", output_path: Optional[Path] = None) -> int:
                         if not result.parse_result.success:
                             msg = f"Parse failed: {result.parse_result.error_message}"
                         elif result.validation_result and not result.validation_result.success:
-                            msg = (
-                                "Schema validation failed: "
-                                + result.validation_result.error_message
-                            )
+                            msg = "Schema validation failed: " + result.validation_result.error_message
                         else:
                             msg = "No details"
                         print(f"     ❌ FAIL: {msg}")
@@ -552,9 +538,7 @@ def main():
     if args.format in ("junit", "json") and not output_path:
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         ts = time.strftime("%Y%m%d_%H%M%S")
-        output_path = REPORTS_DIR / (
-            f"schema_tests_{ts}.xml" if args.format == "junit" else f"schema_tests_{ts}.json"
-        )
+        output_path = REPORTS_DIR / (f"schema_tests_{ts}.xml" if args.format == "junit" else f"schema_tests_{ts}.json")
 
     sys.exit(run(args.format, output_path))
 

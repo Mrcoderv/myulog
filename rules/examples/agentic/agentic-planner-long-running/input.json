@@ -1,0 +1,7 @@
+{
+  "schema_id": "agentic",
+  "step_kind": "plan",
+  "tool_name": "planner",
+  "status": "success",
+  "duration_ms": 65000
+}

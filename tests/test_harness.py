@@ -268,9 +268,7 @@ class TestEndToEnd(unittest.TestCase):
         parser = StubParser()
         schema = {"type": "object"}
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False, prefix="invalid_"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, prefix="invalid_") as f:
             # Write empty content
             f.write("")
             temp_path = Path(f.name)
@@ -291,9 +289,7 @@ class TestEndToEnd(unittest.TestCase):
         parser = StubParser()
         schema = {"type": "object"}
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".txt", delete=False, prefix="valid_"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, prefix="valid_") as f:
             # Write empty content
             f.write("")
             temp_path = Path(f.name)

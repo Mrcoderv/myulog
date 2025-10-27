@@ -7,7 +7,8 @@ SHELL := /bin/bash
         rules.validate rules.test rules.check \
         generate classify down \
         http.up http.down http.logs http.test http.smoke \
-        coverage test.determinism
+        coverage test.determinism \
+        build build.verify package clean
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -41,6 +42,11 @@ help: ## Show available commands
 	@echo "  make http.logs          - view HTTP service logs"
 	@echo "  make http.test          - run smoke tests against HTTP service"
 	@echo "  make http.smoke         - start service and run smoke tests"
+	@echo "Build & Packaging:"
+	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
+	@echo "  make package            - alias for 'make build' (produces dist/* + SHA256SUMS)"
+	@echo "  make clean              - remove ./dist (no Docker pruning)"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -129,6 +135,18 @@ http.smoke: ## Start service and run smoke tests
 	@echo "Waiting for service to be healthy..."
 	@sleep 3
 	@$(MAKE) http.test
+	
+# --- Build & Packaging ---
+build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
+	@./scripts/build.sh
+
+build.verify: ## Verify build reproducibility (two clean builds → identical checksums)
+	@./scripts/verify_reproducible_build.sh
+
+package: build ## Alias for build (produces dist/* + SHA256SUMS)
+
+clean: ## Remove local build artifacts
+	@rm -rf dist/
 
 # --- Vocabulary helpers ---
 lint-vocab:
@@ -143,7 +161,10 @@ rules.validate: ## Validate rules.json against rules.schema.json
 
 rules.test: ## Run unit tests for rules examples
 	@echo "Testing rules against examples..."
+	# Legacy location (may be empty)
 	@poetry run pytest -q tests/rules/test_rules_examples.py
+	# New acceptance tests for Ticket 2.1 (structure + rules/examples)
+	@poetry run pytest -q tests/rules/test_rules.py
 
 rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate

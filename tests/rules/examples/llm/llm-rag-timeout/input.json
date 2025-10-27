@@ -1,6 +1,0 @@
-{
-  "schema_id": "llm",
-  "pipeline_stage": "rag_embed",
-  "outcome": "failure",
-  "latency_ms": 1500
-}

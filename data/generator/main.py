@@ -15,9 +15,7 @@ parser = argparse.ArgumentParser(description="ULog synthetic data generator")
 parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
 parser.add_argument("-c", "--count", type=int, default=10, help="Number of samples")
 parser.add_argument("-n", "--name", type=str, default="log", help="Base output file name")
-parser.add_argument(
-    "-o", "--output-dir", type=str, default=DEFAULT_OUTPUT_DIR, help="Output directory"
-)
+parser.add_argument("-o", "--output-dir", type=str, default=DEFAULT_OUTPUT_DIR, help="Output directory")
 parser.add_argument(
     "-d",
     "--domain",
@@ -32,10 +30,7 @@ parser.add_argument(
     type=str,
     nargs=argparse.REMAINDER,
     default="",
-    help=(
-        "Optional generator parameters; repeatable. "
-        "This argument must be last on the command line."
-    ),
+    help=("Optional generator parameters; repeatable. This argument must be last on the command line."),
 )
 parser.add_argument(
     "--raw-mirror",
@@ -149,9 +144,11 @@ generator = domain["class"](
     valid_params=domain["valid_params"],
 )
 
+
 def _timestamp_for_raw(log: dict, fallback_ts: str) -> str:
     # Use log["timestamp"] if present; otherwise provide a deterministic fallback
-    return (log.get("timestamp") or fallback_ts)
+    return log.get("timestamp") or fallback_ts
+
 
 if args.raw_mirror:
     raw_dir = output_dir / "raw"

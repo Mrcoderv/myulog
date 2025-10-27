@@ -151,9 +151,7 @@ def test_invalid_sub_category(validator, sub_category):
 
 
 # Outcome Vocabulary Tests
-@pytest.mark.parametrize(
-    "outcome", ["success", "failure", "timeout", "cancelled", "running", "pending"]
-)
+@pytest.mark.parametrize("outcome", ["success", "failure", "timeout", "cancelled", "running", "pending"])
 def test_valid_outcome(validator, outcome):
     """Valid outcome values should pass validation."""
     # failure outcome requires error field

@@ -1,0 +1,6 @@
+{
+  "schema_id": "core_api",
+  "trace_id": "test-trace-123",
+  "event_type": "http_response",
+  "http_status": 403
+}

@@ -1,0 +1,5 @@
+{"@timestamp": "2025-10-22T10:15:30.123Z", "@message": "INFO: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)"}
+{"@timestamp": "2025-10-22T10:15:31.456Z", "@message": "INFO: GET /api/users/123 returned 200 in 45ms"}
+{"@timestamp": "2025-10-22T10:15:32.789Z", "@message": "ERROR: Database connection failed - timeout after 30s"}
+{"@timestamp": "2025-10-22T10:15:33.012Z", "@message": "2025-10-22 10:15:33.012 INFO [auth-service] User authentication successful for user_id=12345"}
+{"@timestamp": "2025-10-22T10:15:34.345Z", "@message": "WARNING: Rate limit approaching for API key abc123 (85% of quota used)"}
