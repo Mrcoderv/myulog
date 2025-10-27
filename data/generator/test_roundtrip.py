@@ -54,9 +54,20 @@ def _config(domain):
         "api": {
             "fields": ["request_id", "timestamp", "service", "event_type", "endpoint", "action", "env", "outcome"],
             "valid_params": [
-                "parse", "level", "category", "sub_category", "component", "module",
-                "safety_flag", "error_code", "version", "stack", "request_id",
-                "http_status", "latency_ms", "duration_ms",
+                "parse",
+                "level",
+                "category",
+                "sub_category",
+                "component",
+                "module",
+                "safety_flag",
+                "error_code",
+                "version",
+                "stack",
+                "request_id",
+                "http_status",
+                "latency_ms",
+                "duration_ms",
             ],
             "class": GenerateAPILog,
         },
@@ -89,8 +100,17 @@ def _config(domain):
         },
         "llm": {
             "fields": [
-                "timestamp", "model", "framework", "component", "phase",
-                "level", "category", "sub_category", "outcome", "message", "duration_ms",
+                "timestamp",
+                "model",
+                "framework",
+                "component",
+                "phase",
+                "level",
+                "category",
+                "sub_category",
+                "outcome",
+                "message",
+                "duration_ms",
             ],
             "valid_params": ["request_id", "version", "stack_trace", "latency_ms", "throughput"],
             "class": GenerateLLMLog,
@@ -123,4 +143,3 @@ def _roundtrip_for(domain, count):
 def test_roundtrip_all_domains_small():
     for dom in ["cv", "api", "agentic", "llm"]:
         _roundtrip_for(dom, 3)
-        

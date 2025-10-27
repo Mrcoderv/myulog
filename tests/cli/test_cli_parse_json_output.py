@@ -14,17 +14,21 @@ def test_parse_json_pretty(monkeypatch):
             class P:
                 parser_name = "core_api_parser"
                 parser_version = "1.0.0"
+
                 def parse(self, message: str):
                     class R:
                         success = True
                         error = None
                         data = {"category": "core_api", "event_type": "startup"}
+
                     return R()
+
             return P()
 
     class Norm:
         def normalize(self, data, domain):
-            return {"category":"core_api", "event_type":"startup", "ok": True}
+            return {"category": "core_api", "event_type": "startup", "ok": True}
+
     class Prov:
         def enrich(self, normalized, raw, result, parser):
             return dict(normalized)
@@ -38,4 +42,4 @@ def test_parse_json_pretty(monkeypatch):
     res = runner.invoke(cli_mod.cli, ["parse", "--format", "json"], input=raw)
     assert res.exit_code == 0
     # pretty-printed JSON contains newlines/indentation
-    assert "\n  \"" in res.output
+    assert '\n  "' in res.output

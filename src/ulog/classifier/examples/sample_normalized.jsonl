@@ -1,0 +1,4 @@
+{"timestamp": "2025-10-22T10:20:00.000Z", "level": "info", "category": "core_api", "message": "Service started successfully", "outcome": "success", "service": "api-gateway", "env": "production"}
+{"timestamp": "2025-10-22T10:20:01.000Z", "level": "error", "category": "core_api", "message": "Connection timeout", "outcome": "failure", "service": "database", "error": {"type": "TimeoutError", "message": "Connection timeout after 30s"}}
+{"timestamp": "2025-10-22T10:20:02.000Z", "level": "warning", "category": "core_api", "message": "High memory usage detected", "service": "worker-1", "metrics": {"memory_percent": 85}}
+{"timestamp": "2025-10-22T10:20:03.000Z", "level": "info", "category": "llm", "message": "Model inference completed", "outcome": "success", "model": "gpt-4", "latency_ms": 1234}
