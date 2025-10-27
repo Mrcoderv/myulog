@@ -10,6 +10,7 @@ def test_schema_field_order_and_enum_docs():
             keys = list(data.keys())
             # Best-effort order guard
             assert "required" in keys and "properties" in keys
+
         # Check enums carry at least one of description/$comment nearby
         def check_enums(obj):
             if isinstance(obj, dict):
@@ -20,4 +21,5 @@ def test_schema_field_order_and_enum_docs():
             elif isinstance(obj, list):
                 for v in obj:
                     check_enums(v)
+
         check_enums(data)

@@ -38,10 +38,7 @@ def test_langchain_step_lines(p, line, expected):
 
 
 def test_session_start_with_kv_extraction(p):
-    line = (
-        "[Agent] session_start id=agnt-6f21f req_id=42 model=llm-7b "
-        "locale='es-ES' tz=\"Europe/Madrid\""
-    )
+    line = "[Agent] session_start id=agnt-6f21f req_id=42 model=llm-7b locale='es-ES' tz=\"Europe/Madrid\""
     r = p.parse(line)
     assert r.success
     d = r.data

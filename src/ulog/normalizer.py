@@ -74,7 +74,7 @@ class Normalizer:
         """Append a human-readable parse error and mark ok=False (keeps unparsed_reason untouched)."""
         parse = self._ensure_parse_meta(doc)
         prev = str(parse.get("error") or "").strip()
-        parse["error"] = (prev + ("; " if prev else "") + msg)
+        parse["error"] = prev + ("; " if prev else "") + msg
         parse["ok"] = False
 
     # ---------------------------- public ----------------------------
@@ -92,12 +92,19 @@ class Normalizer:
 
         duration_fields = {"latency_ms", "duration_ms", "ttft_ms", "latency", "duration", "ttft"}
         numeric_fields = {
-            "tokens", "prompt_tokens", "completion_tokens", "total_tokens",
-            "http_status", "status_code", "count", "size", "bytes",
+            "tokens",
+            "prompt_tokens",
+            "completion_tokens",
+            "total_tokens",
+            "http_status",
+            "status_code",
+            "count",
+            "size",
+            "bytes",
         }
         normalized = self._normalize_dict(normalized, duration_fields, numeric_fields)
         self._precanonicalize(normalized, domain)
-        self._apply_vocabulary(normalized)   # keeps unparsed_reason; also records meta.parse
+        self._apply_vocabulary(normalized)  # keeps unparsed_reason; also records meta.parse
         self._post_by_domain(normalized, domain)
         return normalized
 
@@ -245,8 +252,13 @@ class Normalizer:
                 if not ph:
                     hint = str(doc.get("category") or "").lower()
                     hint_map = {
-                        "data_loading": "ingest", "preprocessing": "preprocess", "postprocessing": "postprocess",
-                        "inference": "inference", "evaluation": "eval", "serving": "serve", "tracking": "track",
+                        "data_loading": "ingest",
+                        "preprocessing": "preprocess",
+                        "postprocessing": "postprocess",
+                        "inference": "inference",
+                        "evaluation": "eval",
+                        "serving": "serve",
+                        "tracking": "track",
                         "pose_estimation": "pose",
                     }
                     ph = hint_map.get(hint)
