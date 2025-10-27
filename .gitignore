@@ -112,3 +112,6 @@ data/synthetic/raw/*.jsonl
 
 # Lambda build
 .lambda_build/
+
+# Ignore json files in docs/screenshots folder
+docs/screenshots/*.json

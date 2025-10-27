@@ -118,23 +118,27 @@ down: ## Stop services and remove containers
 # --- HTTP Service ---
 http.up: ## Start HTTP classifier service
 	@cd local_pipeline && docker compose up -d classifier-http
-	@echo "HTTP service starting at http://localhost:8080"
-	@echo "Check health: curl http://localhost:8080/health"
+	@echo "HTTP service starting at http://localhost:$${PORT:-8080}"
+	@echo "Health: curl http://localhost:$${PORT:-8080}/health"
 
 http.down: ## Stop HTTP classifier service
-	@cd local_pipeline && docker compose down classifier-http
+	@cd local_pipeline && (docker compose stop classifier-http || true)
+	@cd local_pipeline && (docker compose rm -f classifier-http || true)
 
 http.logs: ## View HTTP service logs
 	@cd local_pipeline && docker compose logs -f classifier-http
 
 http.test: ## Run smoke tests against HTTP service
-	@./scripts/smoke_http.sh
+	@./scripts/smoke_http.sh "http://localhost:$${PORT:-8080}"
 
 http.smoke: ## Start service and run smoke tests
 	@$(MAKE) http.up
-	@echo "Waiting for service to be healthy..."
-	@sleep 3
+	@echo "Waiting for service..."
+	@bash -c 'for i in $$(seq 1 30); do curl -fsS http://localhost:$${PORT:-8080}/health >/dev/null && exit 0; sleep 1; done; exit 1'
 	@$(MAKE) http.test
+
+http.screens: ## Capture fresh screenshots into docs/screenshots/
+	@./scripts/capture_screenshots.sh
 	
 # --- Build & Packaging ---
 build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
