@@ -38,10 +38,13 @@ cat normalized.jsonl | python -m ulog.classifier.cli --input-format json > outpu
 cat logs.jsonl | python -m ulog.classifier.cli --input-format raw --stats
 
 # Disable schema validation for performance
-cat logs.jsonl | python -m ulog.classifier.cli --input-format raw --no-validation
+CLASSIFIER_NO_VALIDATION=1 cat logs.jsonl | python -m ulog.classifier.cli --input-format raw
 
 # Specify target schema domain
 cat logs.jsonl | python -m ulog.classifier.cli --input-format raw --schema core_api
+
+# Tip: if you installed the console script, you can use `classify` directly:
+# cat logs.jsonl | classify --input-format raw --schema core_api
 ```
 
 #### Option 2: HTTP Service
@@ -60,6 +63,18 @@ uvicorn ulog.classifier.http:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The service will be available at `http://localhost:8000` with interactive API docs at `http://localhost:8000/docs`.
+
+### Configuration (env vars)
+
+These match the Docker Compose and local pipeline:
+
+| Variable | Meaning | Example |
+|---|---|---|
+| `LOG_LEVEL` | Service verbosity (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO` |
+| `CLASSIFIER_NO_VALIDATION` | `"1"` to bypass JSON Schema validation (faster) | `0` |
+| `RULES_PATH`, `ULOG_RULES_PATH` | Path to `rules/rules.json` | `/app/rules/rules.json` |
+| `SCHEMAS_DIR`, `ULOG_SCHEMAS_DIR` | Root folder for schemas | `/app/schemas` |
+| `VOCAB_PATH`, `ULOG_VOCAB_PATH` | Path to `vocab/controlled_vocabulary.json` | `/app/vocab/controlled_vocabulary.json` |
 
 ## HTTP API Reference
 
@@ -200,11 +215,7 @@ def test_classify_accepts_jsonl_and_schema_override():
 ```json
 {
   "detail": [
-    {
-      "type": "missing",
-      "loc": ["body", 0, "@timestamp"],
-      "msg": "Field required"
-    }
+    { "loc": ["body"], "msg": "Body must be a JSON array of objects.", "type": "json_invalid" }
   ]
 }
 ```
@@ -368,9 +379,9 @@ Validated: 2
 Validation Failed: 0
 Classified: 2
 
-Rule Matches:
-  core_api_success: 1
-  error_failure: 1
+### Rule Matches
+  missing-trace-identifier: 1  
+  api-high-latency: 1
 ```
 
 ### Example 3: Multi-line Stacktrace Handling
@@ -522,14 +533,13 @@ Output (annotated with provenance)
 
 ## Dependencies
 
-- **ULog Normalizer** (existing) - Raw log parsing and normalization
-- **ULog Router** (existing) - Domain detection and routing
-- **ULog Provenance** (existing) - Metadata and audit trail tracking
-- **jsonschema** - Schema validation
-- **click** - CLI framework
-- **fastapi** (optional) - HTTP service framework
-- **uvicorn** (optional) - ASGI server for HTTP service
+- ULog Normalizer (existing)
+- ULog Router (existing)
 - ULog Provenance (existing)
+- jsonschema
+- click
+- fastapi (optional, for HTTP)
+- uvicorn (optional, for HTTP)
 
 ----------------------------------------------------------------------------
 # Classifier Implementation: Subtasks 2 & 3
@@ -639,15 +649,9 @@ pip install -e .
 uvicorn ulog.classifier.http:app --reload
 ```
 
-### Docker Deployment
+### Docker (clarification)
 
-```bash
-# Build Docker image
-docker build -t ulog-classifier:latest .
-
-# Run container
-docker run -p 8000:8000 ulog-classifier:latest
-```
+The provided Dockerfile under `local_pipeline/classifier/Dockerfile` is for the file-in/file-out pipeline (reads `/in`, writes `/out`), not the HTTP server. Use `make classify` to run that pipeline. To containerize the HTTP service, run `uvicorn ulog.classifier.http:app ...` in your own small image.
 
 ### Lambda Deployment (Adapter Ready)
 # ULog Classifier Service
@@ -666,24 +670,29 @@ This module includes:
 
 ## Endpoints
 
-### `GET /health`
+### GET /health
 Returns service status.
 
-**Example Response**
+Example Response  
 ```json
 { "status": "ok", "service": "ClassifierLog" }
-POST /parse
+```
 
-Processes raw log records containing @timestamp and @message.
-Example Input
+### POST /parse
+Processes raw log records containing `@timestamp` and `@message`.
+
+Example Input  
+```json
 [
   { "@timestamp": "2025-10-13T12:01:22Z", "@message": "model loaded" }
-]  
-POST /classify
+]
+```
 
+### POST /classify
 Classifies structured log data using schema validation.
 
-Example Input
+Example Input  
+```json
 [
   {
     "timestamp": "2025-10-13T12:01:22Z",
@@ -696,7 +705,10 @@ Example Input
     "meta": { "raw_message": "synthetic" }
   }
 ]
-Example Output
+```
+
+Example Output  
+```json
 [
   {
     "timestamp": "2025-10-13T12:01:22Z",
@@ -709,31 +721,7 @@ Example Output
     }
   }
 ]
-Local Development
-
-Run the API locally
-PYTHONPATH=src poetry run uvicorn ulog.classifier.http:app --host 0.0.0.0 --port 8000
-Test the API
-curl -s http://127.0.0.1:8000/health
-curl -sS http://127.0.0.1:8000/classify \
-  -H "Content-Type: application/json" \
-  --data-binary @event.json | jq .
-Validation and Testing
-
-Run all tests to verify schema loading, endpoints, and Lambda behavior.
-PYTHONPATH=src poetry run pytest -q
-Expected output:
-404 passed in 1.53s
-
-AWS Lambda Deployment
-# src/ulog/classifier/handler.py
-from mangum import Mangum
-from .http import app
-
-lambda_handler = Mangum(app)
-
-Runtime: python3.12
-Handler: ulog.classifier.handler.lambda_handler
+```
 
 ## Configuration
 
