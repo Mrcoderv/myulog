@@ -8,7 +8,7 @@ ULog is an initiative to standardize and make actionable the telemetry generated
   - Entry points (wrappers): `schemas/<domain>.schema.json` (stable refs)
   - Versioned files: `schemas/<domain>/vN/<domain>.schema.json`
   - Shared enums: `schemas/_common.json` → `vocab/controlled_vocabulary.json`
-- `rules/` – rule definitions (JSON)
+- `rules/` – rule definitions (JSON) - See the [Rules Engine README](./rules/README.md) for details on ordering and how to add new rules.
 - `data/` – sample or synthetic datasets
 - `docs/` – project documentation
 - `tests/` – unit tests (CI runs `pytest`)
@@ -68,7 +68,12 @@ No secrets required.
 | `OUT_DIR`           | `/out`                   | Output mount for the local Docker Compose pipeline.                                                 |
 | `CLASSIFIER_IMAGE`  | `ulog-classifier:local`  | Image tag used by the `classifier` service in `local_pipeline/docker-compose.yml`.                  |
 | `PYTHON_VERSION`    | `3.12`                   | Python version used by CI and local dev tools.                                                      |
-| `ULOG_VOCAB_PATH`   | *(unset)*                | **Optional.** Absolute/relative path to `vocab/controlled_vocabulary.json` to override packaged/default discovery. |       |
+| `ULOG_VOCAB_PATH`   | `/app/vocab/controlled_vocabulary.json`               | **Optional.** Absolute/relative path to `vocab/controlled_vocabulary.json` to override packaged/default discovery. |       |
+| `LOG_LEVEL` | `INFO` | Local verbosity for CLI/services (`DEBUG`, `INFO`, `WARN`, `ERROR`). |
+| `CLASSIFIER_NO_VALIDATION` | `0` | `"1"` to bypass JSON Schema validation (lets you inspect parser output fast). |
+| `RULES_PATH` / `ULOG_RULES_PATH` | `/app/rules/rules.json` | Path to rules/rules.json (overrides discovery). |
+| `SCHEMAS_DIR` / `ULOG_SCHEMAS_DIR` | `/app/schemas` | Root folder for schemas (overrides discovery). |
+| `VOCAB_PATH` / `ULOG_VOCAB_PATH` | `/app/vocab/controlled_vocabulary.json` | Controlled vocabulary file. |
 
 ### Common Make targets
 
@@ -88,7 +93,7 @@ No secrets required.
 
 ### Rule evaluation (first-match-wins)
 
-Rules are evaluated in priority order. Each rule **must** define a unique `rule_id` and an explicit `priority` (lower number = higher priority). The first rule whose predicate matches is the one applied; subsequent matches are ignored. See `tests/rules/lint_rules_order.py` for guardrails.
+Rules are evaluated in the order they appear in `rules/rules.json`. The first matching rule wins; subsequent rules are not applied.
 
 ### Reproducible requirements
 

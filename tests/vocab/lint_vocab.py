@@ -124,10 +124,7 @@ def maybe_check_common_drift(vocab: Dict[str, Any]) -> None:
     (best-effort; non-fatal if missing)."""
     common_path = Path("schemas/_common.json")
     if not common_path.exists():
-        print(
-            "ℹ️  schemas/_common.json not present (expected after tickets 1.3–1.6); "
-            "skipping drift check."
-        )
+        print("ℹ️  schemas/_common.json not present (expected after tickets 1.3–1.6); skipping drift check.")
         return
     common = load_json(common_path)
     expected = {
@@ -204,10 +201,7 @@ def main():
     # 7) formatting check (indent=2 + trailing newline)
     formatted = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     if content != formatted:
-        print(
-            "❌ File not formatted correctly. "
-            "Run `make format-vocab` to fix spacing/indentation (order preserved)."
-        )
+        print("❌ File not formatted correctly. Run `make format-vocab` to fix spacing/indentation (order preserved).")
         sys.exit(1)
 
     # 8) example sanity checks (≥10, and in-vocabulary)

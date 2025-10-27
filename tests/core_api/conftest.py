@@ -31,9 +31,7 @@ def _load(path: pathlib.Path) -> dict:
 
 def _add(reg: Registry, uri: str, contents: dict) -> Registry:
     """Register a resource at a given absolute URI."""
-    return reg.with_resource(
-        uri, Resource.from_contents(contents, default_specification=DRAFT202012)
-    )
+    return reg.with_resource(uri, Resource.from_contents(contents, default_specification=DRAFT202012))
 
 
 @pytest.fixture(scope="session")
@@ -45,9 +43,7 @@ def schema_validator() -> Callable[[str], Draft202012Validator]:
     common_path = (schemas_dir / "_common.json").resolve()
     vocab_path = (vocab_dir / "controlled_vocabulary.json").resolve()
 
-    def _register_file_and_http(
-        reg: Registry, path: pathlib.Path, contents: dict
-    ) -> tuple[Registry, str | None]:
+    def _register_file_and_http(reg: Registry, path: pathlib.Path, contents: dict) -> tuple[Registry, str | None]:
         """Register file:// and HTTP $id (if present). Returns (reg, http_id_or_None)."""
         reg = _add(reg, path.as_uri(), contents)
         http_id = contents.get("$id")

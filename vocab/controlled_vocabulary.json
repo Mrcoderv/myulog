@@ -216,5 +216,7 @@
       "pattern": "^ULOG-[A-Z]{2,10}-[0-9]{3}$",
       "description": "Standardized error codes following ULOG-[CAT]-[NNN] convention"
     }
-  }
+  },
+  "$id": "https://github.com/OmdenaAI/ULog/vocab/controlled_vocabulary.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
 }

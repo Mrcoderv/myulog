@@ -43,14 +43,14 @@ def test_normalize_nested_dict_and_list_with_parse_error_provenance():
     n = Normalizer()
 
     raw = {
-        "level": "warning",                 # alias -> warn
-        "duration": "bogus",                # will fail duration -> provenance
-        "tokens": "10x",                    # will fail numeric -> provenance
+        "level": "warning",  # alias -> warn
+        "duration": "bogus",  # will fail duration -> provenance
+        "tokens": "10x",  # will fail numeric -> provenance
         "child": {
-            "duration_ms": "5s",            # OK
-            "items": [{"latency": "2s"}, {"latency": "bad"}]  # one good, one bad
+            "duration_ms": "5s",  # OK
+            "items": [{"latency": "2s"}, {"latency": "bad"}],  # one good, one bad
         },
-        "safety_flags": "none",             # string accepted
+        "safety_flags": "none",  # string accepted
     }
 
     out = n.normalize(copy.deepcopy(raw), domain="core_api")
@@ -77,9 +77,9 @@ def test_apply_vocabulary_invalid_scalar_and_flags_sets_unparsed_reason_and_prov
     raw = {
         "level": "warning",
         "category": "core_api",
-        "sub_category": "inference",     # valid
-        "outcome": "not_valid",          # invalid -> unparsed_reason + provenance
-        "safety_flags": ["none", "invalid_flag"]  # invalid -> unparsed_reason + provenance
+        "sub_category": "inference",  # valid
+        "outcome": "not_valid",  # invalid -> unparsed_reason + provenance
+        "safety_flags": ["none", "invalid_flag"],  # invalid -> unparsed_reason + provenance
     }
     out = n.normalize(raw, domain="core_api")
 

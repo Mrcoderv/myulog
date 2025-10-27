@@ -1,4 +1,5 @@
 """Tests for Agentic parser."""
+
 from ulog.parsers.agentic import AgenticParser
 
 

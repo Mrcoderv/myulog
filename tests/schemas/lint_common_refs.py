@@ -6,12 +6,14 @@ from typing import Any, Dict, Optional
 VOCAB_PATH = Path("vocab/controlled_vocabulary.json")
 COMMON_PATH = Path("schemas/_common.json")
 
+
 def load(path: Path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"❌ Cannot read {path}: {e}")
         sys.exit(1)
+
 
 def contains_inline_enum(node) -> bool:
     if isinstance(node, dict):
@@ -21,6 +23,7 @@ def contains_inline_enum(node) -> bool:
     if isinstance(node, list):
         return any(contains_inline_enum(v) for v in node)
     return False
+
 
 def extract_ref(node: Dict[str, Any]) -> Optional[str]:
     """
@@ -45,6 +48,7 @@ def extract_ref(node: Dict[str, Any]) -> Optional[str]:
         if len(refs) == 1:
             return refs[0]
     return None
+
 
 def main():
     if not COMMON_PATH.exists():
@@ -106,6 +110,7 @@ def main():
 
     print("✅ _common.json is ref-only and aligned with vocabulary $defs.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

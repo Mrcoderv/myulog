@@ -16,6 +16,7 @@ env/
 ENV/
 .Python
 
+
 # Testing & Coverage
 .python-version
 .pytest_cache/
@@ -28,6 +29,7 @@ htmlcov/
 .nox/
 nosetests.xml
 coverage.xml
+.temp/
 
 # Type checking
 .mypy_cache/
@@ -107,3 +109,6 @@ data/synthetic/*.jsonl
 !data/synthetic/.gitkeep
 data/synthetic/raw/*.jsonl
 !data/synthetic/raw/.gitkeep
+
+# Lambda build
+.lambda_build/

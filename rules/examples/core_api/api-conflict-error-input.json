@@ -1,7 +1,0 @@
-{
-  "schema_id": "core_api",
-  "error": {
-    "code": 409
-  },
-  "outcome": "failure"
-}
