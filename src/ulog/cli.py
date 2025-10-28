@@ -146,7 +146,12 @@ def cli() -> None:
     default="jsonl",
     help="Output format.",
 )
-def parse(domain: Optional[str], out_format: str) -> None:
+@click.option(
+    "--join",
+    is_flag=True,
+    help="Apply multiline joining if set.",
+)
+def parse(domain: Optional[str], out_format: str, join: bool) -> None:
     """Parse JSONL logs from stdin and output normalized JSON."""
     router = DomainRouter()
     normalizer = Normalizer()
@@ -203,14 +208,14 @@ def parse(domain: Optional[str], out_format: str) -> None:
         except json.JSONDecodeError:
             continue
 
-        flushed, _ = joiner.feed(obj)
-        if flushed:
-            ts, stream, joined = flushed
-            process_one({"@timestamp": ts, "source": stream, "@message": joined})
-
-    # Flush remaining
-    for ts, stream, joined in joiner.drain():
-        process_one({"@timestamp": ts, "source": stream, "@message": joined})
+        # Only apply multiline joining if enabled
+        if join:
+            flushed, _ = joiner.feed(obj)
+            if flushed:
+                ts, stream, joined = flushed
+                process_one({"@timestamp": ts, "source": stream, "@message": joined})
+        else:
+            process_one(obj)
 
 
 @cli.command()

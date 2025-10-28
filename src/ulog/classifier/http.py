@@ -171,5 +171,6 @@ async def classify_logs(
 
     pipe = _pipeline()
     results = _call_process_input(pipe, logs, input_format, schema)
-    results = _prefer_parse_provenance(results, override_always=False)
+    # Match CLI behavior: always prefer pattern_id over classification rule_id
+    results = _prefer_parse_provenance(results, override_always=True)
     return results
