@@ -9,7 +9,7 @@ services:
 
         environment:
             # Helpful defaults while you tune rules:
-            CLASSIFIER_VOCAB_STRICT: "0"
+            CLASSIFIER_VOCAB_STRICT: "1"
             LOG_LEVEL: "INFO"
             # Set to "1" to bypass JSON Schema validation
             CLASSIFIER_NO_VALIDATION: "0"
@@ -27,6 +27,37 @@ services:
         volumes:
             - ./in:/in:ro
             - ./out:/out
+
+    classifier-http:
+        build:
+            context: ..
+            dockerfile: local_pipeline/classifier/Dockerfile.http
+
+        # env_file: ../.env
+
+        environment:
+            PORT: "${PORT:-8080}"
+            LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+            RULES_PATH: /app/rules/rules.json
+            ULOG_RULES_PATH: /app/rules/rules.json
+            SCHEMAS_DIR: /app/schemas
+            ULOG_SCHEMAS_DIR: /app/schemas
+            VOCAB_PATH: /app/vocab/controlled_vocabulary.json
+            ULOG_VOCAB_PATH: /app/vocab/controlled_vocabulary.json
+
+        ports:
+            - "${PORT:-8080}:8080"
+
+        volumes:
+            - ./in:/in
+            - ./out:/out
+
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:${PORT:-8080}/health"]
+            interval: 30s
+            timeout: 3s
+            retries: 3
+            start_period: 10s
 
         tty: true
         restart: "no"
