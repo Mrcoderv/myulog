@@ -57,7 +57,7 @@ class GenerateLLMLog(GenerateLog):
                 "outcome": self.select_enum(self.outcomes) if self.outcomes else "success",
                 "safety_flag": self.select_enum(self.safety_flags) if self.safety_flags else "none",
                 "error_code": self.select_enum(self.error_codes) if self.error_codes else "unknown",
-                "message": self.generate_string(120),
+                    "message": self.generate_message(domain="llm", word_count=24),
                 "duration_ms": self.generate_integer(0, 1000),
                 "tokens_processed": self.generate_integer(1, 10000),
                 "confidence": self.generate_float(0.0, 1.0),

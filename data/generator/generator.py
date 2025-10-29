@@ -35,6 +35,8 @@ class GenerateLog:
             "safety_flags",
             "error_codes",
         ]
+        # lazy-loaded vocabulary pool for generating realistic strings
+        self._vocab_pool: list[str] | None = None
 
     # ---------- Random helpers ----------
 
@@ -44,6 +46,117 @@ class GenerateLog:
     def generate_string(self, length: int) -> str:
         letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         return "".join(self.random.choice(letters) for _ in range(length))
+
+    # ---------- More realistic text helpers ----------
+
+    def _build_vocab_pool(self) -> list[str]:
+        if self._vocab_pool is not None:
+            return self._vocab_pool
+
+        pool = [
+            "request",
+            "response",
+            "connection",
+            "timeout",
+            "error",
+            "failed",
+            "success",
+            "token",
+            "auth",
+            "database",
+            "cache",
+            "upload",
+            "download",
+            "model",
+            "inference",
+            "image",
+            "batch",
+            "metrics",
+            "validation",
+            "schema",
+            "parse",
+            "handler",
+            "service",
+            "worker",
+            "task",
+            "job",
+        ]
+
+        try:
+            with open(self.vocab_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            vocab = data.get("vocabulary", {})
+            # include category and sub_category keys
+            for key in ("categories", "sub_categories", "error_codes"):
+                entries = vocab.get(key, {})
+                for k in entries:
+                    # split camel/underscore and add
+                    pool.extend([p.strip().lower() for p in k.replace("_", " ").split() if p])
+                    # include description words
+                    desc = entries.get(k, "")
+                    if isinstance(desc, str):
+                        pool.extend([w.strip(".,") for w in desc.lower().split() if len(w) > 3])
+        except Exception:
+            # fallback to built-in pool only
+            pass
+
+        # dedupe and keep ordering stable (deterministic via seed not required for pool)
+        seen = set()
+        clean = []
+        for w in pool:
+            if w and w not in seen:
+                seen.add(w)
+                clean.append(w)
+
+        self._vocab_pool = clean
+        return self._vocab_pool
+
+    def generate_message(self, domain: str | None = None, word_count: int = 12) -> str:
+        """Generate a short, plausible log message composed from vocab and common terms.
+
+        The result is a human-readable sentence (capitalized, ends with a period).
+        Domain can be used by callers to tweak content.
+        """
+        pool = self._build_vocab_pool()
+        # favour some domain-specific words when domain provided
+        if domain == "api":
+            extras = ["endpoint", "status", "latency", "request", "response", "auth"]
+        elif domain == "llm":
+            extras = ["tokens", "inference", "model", "prompt", "generation", "decode"]
+        elif domain == "cv":
+            extras = ["image", "fps", "accuracy", "inference", "dataset", "batch"]
+        elif domain == "agentic":
+            extras = ["plan", "tool", "step", "workflow", "action", "session"]
+        else:
+            extras = ["service", "task", "operation"]
+
+        # create a weighted pool
+        weighted = pool + extras * 3
+        words = [self.select_enum(weighted) for _ in range(word_count)]
+        # simple rules for punctuation: make it sentence-like
+        sentence = " ".join(words).capitalize()
+        if not sentence.endswith((".", "!", "?")):
+            sentence = sentence.rstrip() + "."
+        return sentence
+
+    def generate_service_name(self) -> str:
+        """Generate a plausible service name (e.g. auth-service-42)."""
+        base_candidates = ["auth", "payments", "user", "storage", "search", "ingest", "processor", "api", "frontend", "backend", "model"]
+        pool = self._build_vocab_pool()
+        # mix vocab elements into service names occasionally
+        name_parts = []
+        if self.random.random() < 0.6:
+            name_parts.append(self.select_enum(base_candidates))
+        else:
+            name_parts.append(self.select_enum(pool))
+
+        # optional component from vocab
+        if self.random.random() < 0.4:
+            name_parts.append(self.select_enum([p for p in pool if len(p) < 12]))
+
+        svc = "-".join([p.replace(" ", "-") for p in name_parts if p])
+        svc = svc + f"-svc-{self.generate_integer(1,999)}"
+        return svc
 
     def generate_unique_string(self) -> str:
         return str(uuid4())
