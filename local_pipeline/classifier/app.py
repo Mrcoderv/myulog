@@ -21,26 +21,10 @@ import sys
 from typing import List, Optional
 
 from ulog.classifier.core import ClassifierPipeline
+from ulog.core import ensure_provenance
 
 IN_DIR = Path(os.getenv("IN_DIR", "/in"))
 OUT_DIR = Path(os.getenv("OUT_DIR", "/out"))
-
-
-def _ensure_provenance(records: List[dict]) -> List[dict]:
-    """
-    Force provenance.parser_rule_id to mirror meta.parse.pattern_id when present.
-    Match CLI/Lambda behavior for deterministic output.
-    """
-    for rec in records:
-        try:
-            pid = (rec.get("meta") or {}).get("parse", {}).get("pattern_id")
-            if pid:
-                prov = (rec.get("provenance") or {}).copy()
-                prov["parser_rule_id"] = pid
-                rec["provenance"] = prov
-        except Exception:
-            pass
-    return records
 
 
 SCHEMAS_ALL: List[str] = ["agentic", "core_api", "cv", "llm"]
@@ -115,7 +99,7 @@ def process_file(src: Path) -> None:
     try:
         results = pipeline.process_input(input_data, input_format="auto", schema=schema_hint)
         # Match CLI/Lambda behavior: prefer pattern_id over classification rule_id
-        results = _ensure_provenance(results)
+        results = ensure_provenance(results)
     except Exception as e:
         print(f"classifier: error processing {src.name}: {e}", flush=True)
         return

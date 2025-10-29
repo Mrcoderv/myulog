@@ -1,28 +1,12 @@
 import json
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import click
 
+from ulog.core import ensure_provenance
+
 from .core import ClassifierPipeline
-
-
-def _ensure_provenance(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Force provenance.parser_rule_id to mirror meta.parse.pattern_id when present.
-    We intentionally OVERWRITE any existing value to match test expectations.
-    """
-    for rec in records:
-        try:
-            pid = (rec.get("meta") or {}).get("parse", {}).get("pattern_id")
-            if pid:
-                prov = (rec.get("provenance") or {}).copy()
-                prov["parser_rule_id"] = pid  # <- force override
-                rec["provenance"] = prov
-        except Exception:
-            # Never break the response shape
-            pass
-    return records
 
 
 @click.command()
@@ -46,7 +30,7 @@ def classify(input_format: str, schema: Optional[str], stats: bool, no_validatio
     try:
         results = pipeline.process_stream(sys.stdin, input_format, schema)
         # Ensure meta.parse.pattern_id → provenance.parser_rule_id for CLI parity with HTTP
-        results = _ensure_provenance(results)
+        results = ensure_provenance(results)
 
         for result in results:
             print(json.dumps(result, ensure_ascii=False))

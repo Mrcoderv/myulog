@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 
+from ulog.core import ensure_provenance
+
 from .core import ClassifierPipeline
 
 CLASSIFICATION_KEYS = {
@@ -26,27 +28,6 @@ def _strip_classification_fields(ev: dict) -> dict:
     Remove classification/rules/validation/provenance so /parse is normalize-only.
     """
     return {k: v for k, v in ev.items() if k not in CLASSIFICATION_KEYS}
-
-
-def _prefer_parse_provenance(items, override_always=False):
-    """
-    If meta.parse.pattern_id exists, ensure provenance.parser_rule_id reflects it.
-    - override_always=True: force it (used in /parse).
-    - override_always=False: override only if provenance is missing or 'default'.
-    """
-    out = []
-    for r in items:
-        pid = (r.get("meta") or {}).get("parse", {}).get("pattern_id")
-        if pid:
-            prov = (r.get("provenance") or {}).copy()
-            rid = prov.get("parser_rule_id")
-            if override_always or (rid in (None, "", "default")):
-                prov["parser_rule_id"] = pid
-                prov.setdefault("rule_name", "From parse pattern")
-                prov.setdefault("rule_version", "n/a")
-                r = {**r, "provenance": prov}
-        out.append(r)
-    return out
 
 
 app = FastAPI(title="ULog Classifier Service", version="1.0.0")
@@ -128,7 +109,7 @@ async def parse_logs(
 
     pipe = _pipeline()
     results = _call_process_input(pipe, logs, "raw", schema)
-    results = _prefer_parse_provenance(results, override_always=True)
+    results = ensure_provenance(results)
     results = [_strip_classification_fields(r) for r in results]
     return results
 
@@ -172,5 +153,5 @@ async def classify_logs(
     pipe = _pipeline()
     results = _call_process_input(pipe, logs, input_format, schema)
     # Match CLI behavior: always prefer pattern_id over classification rule_id
-    results = _prefer_parse_provenance(results, override_always=True)
+    results = ensure_provenance(results)
     return results
