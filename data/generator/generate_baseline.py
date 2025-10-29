@@ -151,13 +151,12 @@ def classify_logs(parsed_file: pathlib.Path, rules_doc: dict) -> list[dict]:
 
             label = evaluate(event, rules_doc)
             labels.append({
-                "record_index": line_num - 1,
                 "level": label.get("level"),
                 "category": label.get("category"),
                 "sub_category": label.get("sub_category"),
                 "outcome": label.get("outcome"),
                 "tags": label.get("tags", []),
-                "rule_id": label.get("provenance", {}).get("rule_id"),
+                "provenance": label.get("provenance", {})
             })
 
     return labels
