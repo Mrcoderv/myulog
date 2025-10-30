@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from ulog.cli import MultiLineJoiner
+#from ulog.joiner import MultiLineJoiner
 from ulog.normalizer import Normalizer
 from ulog.provenance import ProvenanceTracker
 from ulog.router import DomainRouter
@@ -15,31 +15,37 @@ class NormalizerAdapter:
         self.router = DomainRouter()
         self.normalizer = Normalizer()
         self.provenance_tracker = ProvenanceTracker()
-        self.joiner = MultiLineJoiner()
+        # ✅ NO joiner - descoped for this iteration
 
     def process_raw_input(self, input_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Process raw input with multi-line joining and parsing.
+        """
+        Process raw input records (N→N guarantee).
 
-        Args:
-            input_data: List of raw log records with @timestamp and @message
-
-        Returns:
-            List of normalized log records with parsing metadata
+        Each input record produces exactly one output record.
+        Failed parses produce unparsed envelopes.
         """
         results = []
 
-        # Process through multi-line joiner
         for record in input_data:
-            flushed, _ = self.joiner.feed(record)
-            if flushed:
-                timestamp, stream, joined_message = flushed
-                result = self._parse_and_normalize(raw_message=joined_message, timestamp=timestamp, stream=stream)
-                results.append(result)
+            timestamp = record.get("@timestamp", "")
+            message = record.get("@message", "")
+            stream = record.get("source")
 
-        # Flush remaining buffered entries
-        for timestamp, stream, joined_message in self.joiner.drain():
-            result = self._parse_and_normalize(raw_message=joined_message, timestamp=timestamp, stream=stream)
-            results.append(result)
+            if not timestamp or not message:
+                # Invalid input → unparsed envelope
+                results.append(self._create_error_envelope(
+                    raw_data=record,
+                    timestamp=timestamp,
+                    error="missing_required_fields"
+                ))
+            else:
+                # Parse and normalize this record
+                result = self._parse_and_normalize(
+                    raw_message=message,
+                    timestamp=timestamp,
+                    stream=stream
+                )
+                results.append(result)
 
         return results
 

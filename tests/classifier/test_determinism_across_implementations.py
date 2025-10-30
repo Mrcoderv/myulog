@@ -36,21 +36,69 @@ INPUT = [
     {"@timestamp": "2025-01-01T12:00:02Z", "@message": "[Build] Collecting fastapi==0.103.1"},
 ]
 
-# Expected output - hardcoded baseline (5 input lines → 4 output lines due to MultiLineJoiner)
+# Expected output - hardcoded baseline (5 input lines → 5 output lines, N→N guarantee)
 EXPECTED = [
     {
-        "timestamp": "2025-01-01T12:00:00Z",
-        "unparsed_reason": "no_pattern_match",
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "message": "Traceback (most recent call last):",
+        "error": {
+            "type": "stacktrace",
+            "message": "Traceback (most recent call last):"
+        },
+        "outcome": "failure",
         "meta": {
-            "raw_message": 'Traceback (most recent call last):\n File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+            "raw_message": "Traceback (most recent call last):",
             "parse": {
                 "parser_name": "core_api_parser",
                 "parser_version": "1.0.0",
-                "pattern_id": None,
-                "confidence": 0.0,
-                "ok": False,
-                "error": "no_pattern_match",
+                "confidence": 0.8,
+                "ok": True,
+                "pattern_id": "stacktrace_header",
             },
+            "validation": {"schema": "core_api", "ok": True},
+        },
+        "timestamp": "2025-01-01T12:00:00Z",
+        "sub_category": "service",
+        "tags": ["global", "failure"],
+        "provenance": {
+            "parser_rule_id": "stacktrace_header",
+            "rule_version": "1.0.0",
+            "rule_name": "Universal failure detection",
+        },
+    },
+    {
+        "error": {
+            "file": "/usr/local/lib/python3.8/site-packages/git/__init__.py",
+            "line": 140,
+            "function": "<module>",
+            "type": "stacktrace",
+            "message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        },
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        "outcome": "failure",
+        "meta": {
+            "raw_message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+            "parse": {
+                "parser_name": "core_api_parser",
+                "parser_version": "1.0.0",
+                "confidence": 0.75,
+                "ok": True,
+                "pattern_id": "stacktrace_line",
+            },
+            "validation": {"schema": "core_api", "ok": True},
+        },
+        "timestamp": "2025-01-01T12:00:00Z",
+        "sub_category": "service",
+        "tags": ["global", "failure"],
+        "provenance": {
+            "parser_rule_id": "stacktrace_line",
+            "rule_version": "1.0.0",
+            "rule_name": "Universal failure detection",
         },
     },
     {

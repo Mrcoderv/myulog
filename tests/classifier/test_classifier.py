@@ -50,8 +50,8 @@ class TestNormalizerIntegration:
         assert result["meta"]["parse"]["ok"] is False
         assert result["meta"]["parse"]["pattern_id"] is None
 
-    def test_multi_line_joining(self):
-        """Test multi-line log joining functionality."""
+    def test_line_count_preservation(self):
+        """Test that NormalizerAdapter preserves line count (N→N guarantee)."""
         adapter = NormalizerAdapter()
 
         raw_data = [
@@ -62,20 +62,17 @@ class TestNormalizerIntegration:
 
         results = adapter.process_raw_input(raw_data)
 
-        # MultiLineJoiner behavior: first line + continuation line = 1 result,
-        # third line (also continuation) = separate result
-        assert len(results) == 2
+        # After descoping MultiLineJoiner: 3 inputs → 3 outputs (N→N guarantee)
+        assert len(results) == 3, "Must preserve line count (N→N)"
 
-        # Check that multi-line content is preserved in the first result
-        first_result = results[0]
-        raw_message = first_result["meta"]["raw_message"]
-        assert "ERROR: ValueError: Invalid input" in raw_message
-        assert 'File "app.py", line 42, in main' in raw_message
+        # Each line should be processed independently
+        assert all("timestamp" in r for r in results), "All records must have timestamp"
+        assert all("meta" in r for r in results), "All records must have meta"
 
-        # Check that the third line is in the second result
-        second_result = results[1]
-        raw_message = second_result["meta"]["raw_message"]
-        assert "result = process()" in raw_message
+        # Verify each raw message is preserved independently
+        assert results[0]["meta"]["raw_message"] == "ERROR: ValueError: Invalid input"
+        assert results[1]["meta"]["raw_message"] == '  File "app.py", line 42, in main'
+        assert results[2]["meta"]["raw_message"] == "    result = process()"
 
     def test_pipeline_integration(self):
         """Test full pipeline integration."""
