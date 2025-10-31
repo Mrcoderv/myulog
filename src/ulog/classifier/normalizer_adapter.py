@@ -1,11 +1,38 @@
 """Normalizer integration for classifier pipeline."""
 
+import os
 from typing import Any, Dict, List, Optional
 
-#from ulog.joiner import MultiLineJoiner
+# from ulog.joiner import MultiLineJoiner
 from ulog.normalizer import Normalizer
 from ulog.provenance import ProvenanceTracker
 from ulog.router import DomainRouter
+
+# Error envelope defaults per domain (matches schema requirements)
+ERROR_ENVELOPE_DEFAULTS = {
+    "core_api": {
+        "event_type": "exception",
+        "service": lambda: os.getenv("SERVICE_NAME", "unknown-service"),
+        "env": lambda: os.getenv("ENVIRONMENT", "development"),
+        "outcome": "failure",
+    },
+    "llm": {
+        "request_id": "unknown",
+        "model": lambda: os.getenv("MODEL_NAME", "unknown-model"),
+        "pipeline_stage": "serve",
+        "outcome": "failure",
+    },
+    "agentic": {
+        "step_kind": "unknown",
+        "workflow_id": "unknown",
+        "outcome": "failure",
+    },
+    "cv": {
+        "phase": "unknown",
+        "model_name": lambda: os.getenv("MODEL_NAME", "unknown-model"),
+        "outcome": "failure",
+    },
+}
 
 
 class NormalizerAdapter:
@@ -33,18 +60,12 @@ class NormalizerAdapter:
 
             if not timestamp or not message:
                 # Invalid input → unparsed envelope
-                results.append(self._create_error_envelope(
-                    raw_data=record,
-                    timestamp=timestamp,
-                    error="missing_required_fields"
-                ))
+                results.append(
+                    self._create_error_envelope(raw_data=record, timestamp=timestamp, error="missing_required_fields")
+                )
             else:
                 # Parse and normalize this record
-                result = self._parse_and_normalize(
-                    raw_message=message,
-                    timestamp=timestamp,
-                    stream=stream
-                )
+                result = self._parse_and_normalize(raw_message=message, timestamp=timestamp, stream=stream)
                 results.append(result)
 
         return results
@@ -106,7 +127,10 @@ class NormalizerAdapter:
 
     def _create_parse_failure_envelope(self, raw_message: str, timestamp: str, parser, parse_result) -> Dict[str, Any]:
         """Create structured error envelope for parse failures."""
-        return {
+        # Infer domain from parser name
+        domain = parser.parser_name.replace("_parser", "")
+
+        envelope = {
             "timestamp": timestamp,
             "unparsed_reason": parse_result.error or "no_pattern_match",
             "meta": {
@@ -122,11 +146,16 @@ class NormalizerAdapter:
             },
         }
 
+        # Add schema-required fields
+        envelope = self._add_error_defaults(envelope, domain)
+
+        return envelope
+
     def _create_error_envelope(
         self, raw_message: str = "", timestamp: str = "", error: str = "", raw_data: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """Create error envelope for processing errors."""
-        return {
+        envelope = {
             "timestamp": timestamp,
             "unparsed_reason": error,
             "meta": {
@@ -141,6 +170,22 @@ class NormalizerAdapter:
                 },
             },
         }
+
+        # Add schema-required fields (assume core_api for unknown domain)
+        envelope = self._add_error_defaults(envelope, "core_api")
+
+        return envelope
+
+    def _add_error_defaults(self, envelope: Dict[str, Any], domain: str) -> Dict[str, Any]:
+        """Add schema-required fields to error envelope."""
+        defaults = ERROR_ENVELOPE_DEFAULTS.get(domain, {})
+
+        for field, default in defaults.items():
+            if field not in envelope or not envelope[field]:
+                # Call lambda if it's a function (for env var support)
+                envelope[field] = default() if callable(default) else default
+
+        return envelope
 
     def _is_valid_normalized_record(self, record: Dict[str, Any]) -> bool:
         """Check if record has valid normalized structure."""

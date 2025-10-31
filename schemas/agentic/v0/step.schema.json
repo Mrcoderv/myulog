@@ -177,6 +177,12 @@
         }
       },
       "required": ["message"]
+    },
+
+    "metadata": {
+      "type": "object",
+      "description": "Additional flexible metadata for unknown fields",
+      "additionalProperties": true
     }
   },
   "required": [
