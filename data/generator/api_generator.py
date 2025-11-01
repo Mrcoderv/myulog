@@ -55,10 +55,10 @@ class GenerateAPILog(GenerateLog):
         logs = []
         for _ in range(self.size):
             log_entry = {
-                "meta": {"raw_message": self.generate_message(domain="api", word_count=20)},
+                "meta": {"raw_message": self.generate_string(200)},
                 "timestamp": self.generate_timestamp(),
                 "event_type": self.select_enum(self.event_types),
-                "service": self.generate_service_name(),
+                "service": self.generate_string(24),
                 "env": self.select_enum(self.env),
                 "outcome": self.select_enum(self.outcomes),
             }
