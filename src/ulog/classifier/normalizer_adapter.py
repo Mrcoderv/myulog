@@ -191,3 +191,120 @@ class NormalizerAdapter:
         """Check if record has valid normalized structure."""
         required_fields = ["timestamp", "meta"]
         return all(field in record for field in required_fields)
+
+    def strip_classification_fields(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        """Strip classification and validation fields that are not in schema.
+        
+        Removes: tags, provenance, sub_category (if not in schema), meta.validation, meta.classifier
+        Also cleans meta.parse to only include schema-allowed fields.
+        These are added by ClassifierPipeline but should not be in schema-compliant output.
+        """
+        result = record.copy()
+        
+        # Detect domain to determine if sub_category should be removed
+        # For LLM schema, sub_category is not allowed (moved to metadata by normalizer)
+        domain = None
+        if "pipeline_stage" in result:
+            domain = "llm"
+        elif "event_type" in result:
+            domain = "core_api"
+        elif "step_kind" in result:
+            domain = "agentic"
+        elif "phase" in result:
+            domain = "cv"
+        
+        # Remove top-level classification fields
+        result.pop("tags", None)
+        result.pop("provenance", None)
+        
+        # Fix category for LLM domain 
+        if domain == "llm" and "pipeline_stage" in result:
+            result["category"] = "llm"
+        
+        # Fix category for agentic domain 
+        if domain == "agentic" and "step_kind" in result:
+            result["category"] = "agentic"
+        
+        # Fix category for CV domain 
+        if domain == "cv" and "phase" in result:
+            result["category"] = "cv"
+        
+        # Remove sub_category for LLM domain (should be in metadata)
+        if domain == "llm" and "sub_category" in result:
+            result.pop("sub_category", None)
+        
+        # Remove sub_category for CV domain (should be in metadata)
+        if domain == "cv" and "sub_category" in result:
+            result.pop("sub_category", None)
+        
+        # Remove timestamp for agentic domain (should be in metadata)
+        if domain == "agentic" and "timestamp" in result:
+            # Move timestamp to metadata if it exists
+            if "metadata" not in result:
+                result["metadata"] = {}
+            result["metadata"]["timestamp"] = result.pop("timestamp")
+        
+        # Ensure LLM conditional requirements: result field when outcome is success
+        if domain == "llm" and result.get("outcome") == "success":
+            if "result" not in result:
+                result["result"] = {"output_text_length": 0}
+            elif isinstance(result.get("result"), dict) and "output_text_length" not in result["result"]:
+                result["result"]["output_text_length"] = 0
+        
+        # Ensure agentic conditional requirements: error field when status is failed or timeout
+        if domain == "agentic" and result.get("status") in ("failed", "timeout"):
+            if "error" not in result:
+                result["error"] = {"message": "Step failed or timed out"}
+            elif isinstance(result.get("error"), dict) and "message" not in result["error"]:
+                result["error"]["message"] = "Step failed or timed out"
+        
+        # Ensure CV conditional requirements: error field when outcome is failure
+        if domain == "cv" and result.get("outcome") == "failure":
+            if "error" not in result:
+                result["error"] = {"message": "CV operation failed"}
+            elif isinstance(result.get("error"), dict) and "message" not in result["error"]:
+                result["error"]["message"] = "CV operation failed"
+        
+        # Clean meta object
+        if "meta" in result and isinstance(result["meta"], dict):
+            result["meta"] = result["meta"].copy()
+            
+            # Remove meta.validation and meta.classifier (not in schema)
+            result["meta"].pop("validation", None)
+            result["meta"].pop("classifier", None)
+            
+            # Clean meta.parse to only include schema-allowed fields
+            if "parse" in result["meta"] and isinstance(result["meta"]["parse"], dict):
+                parse = result["meta"]["parse"].copy()
+                if domain == "llm":
+                    allowed_parse_fields = {"parser_name", "parser_version", "pattern_id", "confidence"}
+                    result["meta"]["parse"] = {
+                        k: v for k, v in parse.items() if k in allowed_parse_fields
+                    }
+                elif domain == "agentic":
+                    has_parser_name = "parser_name" in parse
+                    if has_parser_name:
+                        # Standard format - keep standard fields only
+                        allowed_parse_fields = {"parser_name", "parser_version", "pattern_id", "confidence", "ok", "error"}
+                        result["meta"]["parse"] = {
+                            k: v for k, v in parse.items() if k in allowed_parse_fields
+                        }
+                    else:
+                        # Legacy format - keep legacy fields only
+                        allowed_parse_fields = {"timestamp", "version"}
+                        result["meta"]["parse"] = {
+                            k: v for k, v in parse.items() if k in allowed_parse_fields
+                        }
+                elif domain == "cv":
+                    allowed_parse_fields = {"parser_name", "parser_version", "pattern_id", "ok"}
+                    result["meta"]["parse"] = {
+                        k: v for k, v in parse.items() if k in allowed_parse_fields
+                    }
+                else:
+                    # For other domains, use same cleaning as LLM
+                    allowed_parse_fields = {"parser_name", "parser_version", "pattern_id", "confidence"}
+                    result["meta"]["parse"] = {
+                        k: v for k, v in parse.items() if k in allowed_parse_fields
+                    }
+        
+        return result
