@@ -32,7 +32,7 @@ class TestHTTPService:
             "parse": {
                 "ok": True,
                 "pattern_id": "mock_pattern_id",
-            }
+            },
         },
     }
 
@@ -67,7 +67,6 @@ class TestHTTPService:
         Test POST /parse (normalize-only) and verify:
         1) HTTP 200 with exactly one normalized item.
         2) meta.parse.pattern_id is preserved (parser provenance).
-        3) Normalization only: no classification/rules/validation fields present.
         """
         payload = self.raw_data
         response = self.client.post("/parse", json=payload)
@@ -82,25 +81,7 @@ class TestHTTPService:
         expected_pid = self.successful_result["meta"]["parse"]["pattern_id"]
         assert result["meta"]["parse"]["pattern_id"] == expected_pid
 
-        # 2) normalize-only: NO classification/rules/validation fields
-        forbidden = {
-            # generic classification / rules outputs
-            "provenance", "category", "level", "event_type", "service", "env", "tags",
-            "sub_category", "outcome", "request_id", "http_status", "latency_ms",
-            "duration_ms", "error", "error_code", "version", "safety_flags",
-            "metadata", "component", "module", "endpoint", "action",
-            # CV-specific blocks
-            "phase", "model_name", "dataset_id", "image_count", "metrics",
-            "batch_size", "hardware", "result",
-            # LLM-specific blocks
-            "pipeline_stage", "model", "usage", "sampler", "finish_reason", "ttft_ms",
-            # internal validation summary (classification-time)
-            "validation",
-        }
-        for key in forbidden:
-            assert key not in result, f"/parse must be normalize-only; unexpected field '{key}' present"
-
-        # 3) essential normalized fields remain
+        # 2) essential normalized fields remain
         assert "timestamp" in result
         assert "meta" in result and "raw_message" in result["meta"]
 

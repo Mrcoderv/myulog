@@ -8,8 +8,6 @@ This test suite validates:
 4. Line count is preserved across CLI, HTTP, and Docker
 """
 
-import pytest
-
 from ulog.classifier.normalizer_adapter import NormalizerAdapter
 
 
@@ -59,7 +57,7 @@ class TestNormalizerAdapterLineCount:
         results = adapter.process_raw_input(inputs)
 
         assert len(results) == 2, "Must preserve line count (N→N)"
-        
+
         # Both should have error indicators
         for result in results:
             has_unparsed = "unparsed_reason" in result
@@ -87,10 +85,7 @@ class TestNormalizerAdapterLineCount:
         adapter = NormalizerAdapter()
 
         # Create 100 input records
-        inputs = [
-            {"@timestamp": f"2025-01-15T10:00:{i:02d}Z", "@message": f"[Model] Line {i}"}
-            for i in range(100)
-        ]
+        inputs = [{"@timestamp": f"2025-01-15T10:00:{i:02d}Z", "@message": f"[Model] Line {i}"} for i in range(100)]
 
         results = adapter.process_raw_input(inputs)
 
@@ -103,18 +98,21 @@ class TestNormalizerAdapterLineCount:
         inputs = [
             {"@timestamp": "2025-01-15T10:00:00Z", "@message": "[Model] Loaded weights"},  # Parseable
             {"@timestamp": "2025-01-15T10:00:01Z", "@message": "GARBAGE"},  # Unparseable
-            {"@timestamp": "2025-01-15T10:00:02Z", "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK'},  # Parseable
+            {
+                "@timestamp": "2025-01-15T10:00:02Z",
+                "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK',
+            },  # Parseable
             {"@timestamp": "2025-01-15T10:00:03Z", "@message": ""},  # Invalid
         ]
 
         results = adapter.process_raw_input(inputs)
 
         assert len(results) == 4, "Must preserve line count (4 in → 4 out)"
-        
+
         # First and third should parse successfully
         assert results[0].get("meta", {}).get("parse", {}).get("ok") is True
         assert results[2].get("meta", {}).get("parse", {}).get("ok") is True
-        
+
         # Second and fourth should have errors
         assert results[1].get("meta", {}).get("parse", {}).get("ok") is False
         assert results[3].get("meta", {}).get("parse", {}).get("ok") is False
@@ -170,10 +168,10 @@ class TestEdgeCases:
     def test_single_record(self):
         """Single record input should produce single output."""
         adapter = NormalizerAdapter()
-        
+
         inputs = [{"@timestamp": "2025-01-15T10:00:00Z", "@message": "[Model] Test"}]
         results = adapter.process_raw_input(inputs)
-        
+
         assert len(results) == 1
 
     def test_all_invalid_records(self):
@@ -189,7 +187,7 @@ class TestEdgeCases:
         results = adapter.process_raw_input(inputs)
 
         assert len(results) == 3, "All invalid records should still produce outputs"
-        
+
         # All should have error indicators
         for result in results:
             has_error = result.get("meta", {}).get("parse", {}).get("ok") is False

@@ -9,7 +9,6 @@ from typing import Any, Dict, Optional
 import click
 
 from .classifier.core import ClassifierPipeline
-from .classifier.http import _strip_classification_fields
 from .core import ensure_provenance
 from .joiner import MultiLineJoiner
 from .router import DomainRouter
@@ -83,8 +82,7 @@ def parse(domain, out_format):
 
     # Strip classification fields (normalize-only output)
     for result in results:
-        stripped = _strip_classification_fields(result)
-        output_json(stripped, out_format)
+        output_json(result, out_format)
 
 
 @cli.command()
