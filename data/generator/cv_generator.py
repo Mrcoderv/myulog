@@ -88,7 +88,7 @@ class GenerateCVLog(GenerateLog):
                 "hardware": {"accelerator": self.select_enum(self.accelerators)},
                 "outcome": self.select_enum(self.outcomes),
                 "meta": {
-                    "raw_message": self.generate_message(domain="cv", word_count=18),
+                    "raw_message": self.generate_string(200),
                     "parse": {
                         "parse_name": self.generate_string(10),
                         "parser_version": self.select_enum(["1.0.0", "1.1.0", "2.0.0"]),
@@ -97,7 +97,7 @@ class GenerateCVLog(GenerateLog):
                 },
             }
             if log["outcome"] == "failure":
-                log["error"] = {"message": self.generate_message(domain="cv", word_count=self.generate_integer(6, 24))}
+                log["error"] = {"message": self.generate_string(self.generate_integer(20, 256))}
             if self.input_params:
                 log = self.generate_option_params(log)
             logs.append(log)
