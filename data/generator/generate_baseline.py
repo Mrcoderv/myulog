@@ -17,6 +17,7 @@ Requirements:
 import argparse
 import json
 import pathlib
+import shutil
 import subprocess
 import sys
 from typing import Any
@@ -63,10 +64,10 @@ def generate_raw_logs(domain: str, count: int, seed: int) -> pathlib.Path:
     print(f"[{domain}] Generating {count} raw logs (seed={seed})...")
 
     output_name = f"{domain}_baseline"
-    cmd = [
-        "poetry",
-        "run",
-        "python",
+    # Use 'poetry run' when poetry is available; otherwise fall back to the
+    # current Python interpreter to support environments without poetry (CI/tests).
+    runner = ["poetry", "run", "python"] if shutil.which("poetry") else [sys.executable]
+    cmd = runner + [
         str(GENERATOR_DIR / "main.py"),
         "-d",
         domain,
@@ -111,6 +112,9 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
         "--format",
         "jsonl",
     ]
+    # If poetry isn't available, invoke the package via python -m ulog.cli
+    if not shutil.which("poetry"):
+        cmd = [sys.executable, "-m", "ulog.cli", "parse", "--domain", parser_domain, "--format", "jsonl"]
 
     with open(raw_file, "r", encoding="utf-8") as infile:
         with open(output_file, "w", encoding="utf-8") as outfile:
@@ -123,7 +127,26 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
                 check=False,
             )
 
+    # If the subprocess parse failed (for example 'ulog' not installed in this env),
+    # fall back to the local Python parser implementation provided in
+    # data/generator/run_generate_and_parse.py which performs the same raw->parsed
+    # conversion. This avoids requiring the CLI to be installed in test/CI.
     if result.returncode != 0:
+        stderr = (result.stderr or "")
+        if "No module named 'ulog'" in stderr or "poetry" in cmd[0] and not shutil.which("poetry"):
+            # Fallback to in-process parser
+            try:
+                from data.generator.run_generate_and_parse import parse_raw_file as local_parse
+
+                parsed_count, failed_count = local_parse(raw_file, output_file, domain)
+                if parsed_count == 0 and failed_count == 0:
+                    print(f"Fallback parse produced no records for {domain}")
+                    sys.exit(1)
+                return
+            except Exception as e:
+                print(f"Fallback parsing failed: {e}")
+                sys.exit(1)
+
         print(f"Error parsing {domain}:")
         print(result.stderr)
         sys.exit(1)
@@ -150,13 +173,17 @@ def classify_logs(parsed_file: pathlib.Path, rules_doc: dict) -> list[dict]:
                 continue
 
             label = evaluate(event, rules_doc)
+            # Emit a label record aligned with parsed JSONL order. Include record_index
+            # and top-level rule_id for easier validation and traceability.
             labels.append({
+                "record_index": line_num - 1,
                 "level": label.get("level"),
                 "category": label.get("category"),
                 "sub_category": label.get("sub_category"),
                 "outcome": label.get("outcome"),
                 "tags": label.get("tags", []),
-                "provenance": label.get("provenance", {})
+                "rule_id": label.get("provenance", {}).get("rule_id"),
+                "provenance": label.get("provenance", {}),
             })
 
     return labels
@@ -180,14 +207,14 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         domain_labels = classify_logs(parsed_file, rules_doc)
         all_labels.extend(domain_labels)
 
-        print(f"[{domain}] ✓ Complete: {count_per_domain} records")
+    print(f"[{domain}] Complete: {count_per_domain} records")
 
     labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
     with open(labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
-    print("\n✅ Baseline dataset generated successfully!")
+    print("\nBaseline dataset generated successfully!")
     print(f"   Raw logs: {RAW_DIR}")
     print(f"   Parsed logs: {BASELINE_DIR}")
     print(f"   Labels: {labels_file}")

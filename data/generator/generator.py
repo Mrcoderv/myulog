@@ -118,30 +118,62 @@ class GenerateLog:
         Domain can be used by callers to tweak content.
         """
         pool = self._build_vocab_pool()
-        # favour some domain-specific words when domain provided
-        if domain == "api":
-            extras = ["endpoint", "status", "latency", "request", "response", "auth"]
-        elif domain == "llm":
-            extras = ["tokens", "inference", "model", "prompt", "generation", "decode"]
-        elif domain == "cv":
-            extras = ["image", "fps", "accuracy", "inference", "dataset", "batch"]
-        elif domain == "agentic":
-            extras = ["plan", "tool", "step", "workflow", "action", "session"]
-        else:
-            extras = ["service", "task", "operation"]
+        # Domain-specific templating for more realistic messages
+        try:
+            if domain == "api":
+                method = self.select_enum(["GET", "POST", "PUT", "DELETE", "PATCH"])
+                endpoint = self.select_enum(["/api/v1/resource", "/api/v1/auth/login", "/api/v1/search", "/healthz"]) 
+                status = self.select_enum([200, 201, 400, 401, 403, 404, 500, 502, 503])
+                latency = self.generate_integer(1, 2000)
+                sentence = f"{method} {endpoint} returned {status} in {latency}ms"
+            elif domain == "llm":
+                model = self.select_enum(["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "mistral-7b"])
+                tokens = self.generate_integer(10, 5000)
+                ttft = self.generate_integer(1, 2000)
+                sentence = f"Model {model} processed {tokens} tokens in {ttft}ms"
+            elif domain == "cv":
+                model = self.select_enum(["ResNet50", "EfficientNetB0", "MobileNetV2"])
+                images = self.generate_integer(1, 128)
+                latency = round(self.generate_float(1, 500), 2)
+                sentence = f"Inference: {model} processed {images} images in {latency}ms"
+            elif domain == "agentic":
+                tool = self.select_enum(["web_search", "code_execution", "text_completion", "image_generation"]) 
+                step = self.generate_integer(1, 20)
+                status = self.select_enum(["success", "failed", "timeout", "retry"])
+                sentence = f"Agent step {step} used {tool} and completed with status {status}"
+            else:
+                # fallback to sentence built from vocab pool for generic domains
+                extras = ["service", "task", "operation"]
+                weighted = pool + extras * 3
+                words = [self.select_enum(weighted) for _ in range(word_count)]
+                sentence = " ".join(words).capitalize()
 
-        # create a weighted pool
-        weighted = pool + extras * 3
-        words = [self.select_enum(weighted) for _ in range(word_count)]
-        # simple rules for punctuation: make it sentence-like
-        sentence = " ".join(words).capitalize()
+        except Exception:
+            # On any error, fallback to a simple vocab-based sentence
+            weighted = pool
+            words = [self.select_enum(weighted) for _ in range(word_count)]
+            sentence = " ".join(words).capitalize()
+
+        # Ensure sentence punctuation
         if not sentence.endswith((".", "!", "?")):
             sentence = sentence.rstrip() + "."
         return sentence
 
     def generate_service_name(self) -> str:
         """Generate a plausible service name (e.g. auth-service-42)."""
-        base_candidates = ["auth", "payments", "user", "storage", "search", "ingest", "processor", "api", "frontend", "backend", "model"]
+        base_candidates = [
+            "auth",
+            "payments",
+            "user",
+            "storage",
+            "search",
+            "ingest",
+            "processor",
+            "api",
+            "frontend",
+            "backend",
+            "model",
+        ]
         pool = self._build_vocab_pool()
         # mix vocab elements into service names occasionally
         name_parts = []
