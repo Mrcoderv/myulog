@@ -80,12 +80,9 @@ def parse(domain, out_format):
     results = pipeline.process_stream(sys.stdin, input_format="raw", schema=domain)
     results = ensure_provenance(results)
 
-    # Strip classification fields (normalize-only output) 
-    from .classifier.normalizer_adapter import NormalizerAdapter
-    adapter = NormalizerAdapter()
     for result in results:
-        stripped = adapter.strip_classification_fields(result)
-        output_json(stripped, out_format)
+        output_json(result, out_format)
+
 
 
 @cli.command()
