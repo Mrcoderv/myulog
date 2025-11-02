@@ -2,9 +2,181 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Union
 
 from .vocab import canonicalize_flags, canonicalize_scalar
+
+# ------------------------------------------------------------------
+# Schema compliance constants (matches schemas/*/v0/*.schema.json)
+# In the future this can be replaced with dynamic schema loading to stop potential drift
+# ------------------------------------------------------------------
+
+# Required fields per domain (from schema "required" arrays)
+SCHEMA_REQUIRED_FIELDS = {
+    "core_api": {"timestamp", "meta", "event_type", "service", "env", "outcome"},
+    "llm": {"timestamp", "meta", "request_id", "model", "pipeline_stage", "outcome"},
+    "agentic": {"timestamp", "meta", "step_kind", "workflow_id", "outcome"},
+    "cv": {"timestamp", "meta", "phase", "model_name", "outcome"},
+}
+
+# Default values for required fields (from schema "default" keywords + env vars)
+# Priority: environment variable > hardcoded default
+SCHEMA_DEFAULTS = {
+    "core_api": {
+        "event_type": "unknown",
+        "service": lambda: os.getenv("SERVICE_NAME", "unknown-service"),
+        "env": lambda: os.getenv("ENVIRONMENT", "development"),
+        "outcome": "unknown",
+    },
+    "llm": {
+        "request_id": "unknown",
+        "model": lambda: os.getenv("MODEL_NAME", "unknown-model"),
+        "pipeline_stage": "serve",
+        "outcome": "unknown",
+    },
+    "agentic": {
+        "step_kind": "unknown",
+        "workflow_id": "unknown",
+        "outcome": "unknown",
+    },
+    "cv": {
+        "phase": "unknown",
+        "model_name": lambda: os.getenv("MODEL_NAME", "unknown-model"),
+        "outcome": "unknown",
+    },
+}
+
+# Allowed top-level fields per domain (from schema "properties" keys)
+# Fields not in this set get moved to "metadata" to satisfy additionalProperties=false
+# NOTE: Includes both schema fields AND fields that normalizer processes (duration/numeric fields)
+SCHEMA_ALLOWED_FIELDS = {
+    "core_api": {
+        # Schema fields
+        "action",
+        "category",
+        "component",
+        "duration_ms",
+        "endpoint",
+        "env",
+        "error",
+        "error_code",
+        "event_type",
+        "http_status",
+        "latency_ms",
+        "level",
+        "meta",
+        "metadata",
+        "module",
+        "outcome",
+        "request_id",
+        "safety_flags",
+        "service",
+        "sub_category",
+        "timestamp",
+        "version",
+        "unparsed_reason",
+        # Normalizer-processed fields (duration/numeric fields)
+        "latency",  # converted to ms in-place
+        "duration",  # converted to ms in-place
+        "tokens",  # numeric cleaning
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+        "status_code",  # alias for http_status
+    },
+    "llm": {
+        # Schema fields
+        "category",
+        "component",
+        "endpoint",
+        "error",
+        "finish_reason",
+        "latency_ms",
+        "level",
+        "meta",
+        "metadata",
+        "metrics",
+        "model",
+        "outcome",
+        "pipeline_stage",
+        "request_id",
+        "result",
+        "sampler",
+        "timestamp",
+        "ttft_ms",
+        "usage",
+        "unparsed_reason",
+        # Normalizer-created fields
+        "sub_category",  # created by precanonicalize
+        # Normalizer-processed fields
+        "latency",
+        "duration",
+        "ttft",  # converted to ttft_ms in-place
+        "tokens",
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+    },
+    "agentic": {
+        # Schema fields
+        "category",
+        "component",
+        "cost",
+        "duration_ms",
+        "error",
+        "input_summary",
+        "level",
+        "meta",
+        "metadata",
+        "outcome",
+        "output_summary",
+        "parent_step_id",
+        "plan_id",
+        "ranked_tools",
+        "safety_flags",
+        "status",
+        "step_id",
+        "step_kind",
+        "sub_category",
+        "tool_name",
+        "workflow_id",
+        "unparsed_reason",
+        # Normalizer-processed fields
+        "latency",
+        "duration",
+        "tokens",
+    },
+    "cv": {
+        # Schema fields
+        "batch_size",
+        "category",
+        "component",
+        "dataset_id",
+        "error",
+        "hardware",
+        "image_count",
+        "latency_ms",
+        "level",
+        "meta",
+        "metadata",
+        "metrics",
+        "model_name",
+        "outcome",
+        "phase",
+        "safety_flags",
+        "timestamp",
+        "unparsed_reason",
+        # Normalizer-created fields
+        "sub_category",  # created by precanonicalize
+        # Normalizer-processed fields
+        "latency",
+        "duration",
+        "count",
+        "size",
+        "bytes",
+    },
+}
 
 # -------------------- Shared mappings (domain-agnostic helpers) --------------------
 
@@ -106,6 +278,13 @@ class Normalizer:
         self._precanonicalize(normalized, domain)
         self._apply_vocabulary(normalized)  # keeps unparsed_reason; also records meta.parse
         self._post_by_domain(normalized, domain)
+
+        # Ensure schema-required fields (surgical addition)
+        normalized = self._ensure_required_fields(normalized, domain)
+
+        # Handle unknown fields (surgical addition)
+        normalized = self._relocate_unknown_fields(normalized, domain)
+
         return normalized
 
     # ---------------------------- Helpers ----------------------------
@@ -307,3 +486,36 @@ class Normalizer:
                 chosen = next((f for f in sf if f and f != "none"), None) or ("none" if sf else None)
                 if chosen:
                     doc["safety_flags"] = chosen
+
+    def _ensure_required_fields(self, data: Dict[str, Any], domain: str) -> Dict[str, Any]:
+        """Inject defaults for missing required fields per schema contract."""
+        required = SCHEMA_REQUIRED_FIELDS.get(domain, set())
+        defaults = SCHEMA_DEFAULTS.get(domain, {})
+
+        for field in required:
+            # Skip meta/timestamp (handled elsewhere)
+            if field in {"meta", "timestamp"}:
+                continue
+
+            # Inject default if field missing or empty
+            if field not in data or not data[field]:
+                default = defaults.get(field, "unknown")
+                # Call lambda if it's a function (for env var support)
+                data[field] = default() if callable(default) else default
+
+        return data
+
+    def _relocate_unknown_fields(self, data: Dict[str, Any], domain: str) -> Dict[str, Any]:
+        """Move top-level fields not in schema to metadata per additionalProperties=false."""
+        allowed = SCHEMA_ALLOWED_FIELDS.get(domain, set())
+
+        unknown = {}
+        for key in list(data.keys()):
+            if key not in allowed:
+                unknown[key] = data.pop(key)
+
+        # Move to metadata if any unknown fields found
+        if unknown:
+            data.setdefault("metadata", {}).update(unknown)
+
+        return data

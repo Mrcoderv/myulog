@@ -37,17 +37,22 @@ INPUT = [
 ]
 
 # Expected output - hardcoded baseline (5 input lines → 5 output lines, N→N guarantee)
+# Updated to reflect schema enforcement (required fields + unknown fields in metadata)
 EXPECTED = [
     {
         "level": "error",
         "category": "core_api",
         "event_type": "exception",
-        "message": "Traceback (most recent call last):",
         "error": {
             "type": "stacktrace",
             "message": "Traceback (most recent call last):"
         },
         "outcome": "failure",
+        "env": "development",
+        "service": "unknown-service",
+        "metadata": {
+            "message": "Traceback (most recent call last):"
+        },
         "meta": {
             "raw_message": "Traceback (most recent call last):",
             "parse": {
@@ -79,8 +84,12 @@ EXPECTED = [
         "level": "error",
         "category": "core_api",
         "event_type": "exception",
-        "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
         "outcome": "failure",
+        "env": "development",
+        "service": "unknown-service",
+        "metadata": {
+            "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        },
         "meta": {
             "raw_message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
             "parse": {
@@ -112,8 +121,12 @@ EXPECTED = [
         "level": "error",
         "category": "core_api",
         "event_type": "exception",
-        "message": 'File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
         "outcome": "failure",
+        "env": "development",
+        "service": "unknown-service",
+        "metadata": {
+            "message": 'File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
+        },
         "meta": {
             "raw_message": ' File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
             "parse": {
@@ -136,17 +149,21 @@ EXPECTED = [
     },
     {
         "level": "info",
-        "client_ip": "10.0.0.2",
-        "client_port": 35466,
         "action": "GET",
         "endpoint": "/health",
-        "http_version": "1.1",
         "http_status": 200,
-        "status_text": "OK",
         "category": "core_api",
         "event_type": "http_request",
         "outcome": "success",
         "sub_category": "tracking",
+        "env": "development",
+        "service": "unknown-service",
+        "metadata": {
+            "client_ip": "10.0.0.2",
+            "client_port": 35466,
+            "http_version": "1.1",
+            "status_text": "OK",
+        },
         "meta": {
             "raw_message": 'INFO:     10.0.0.2:35466 - "GET /health HTTP/1.1" 200 OK',
             "parse": {
@@ -167,13 +184,16 @@ EXPECTED = [
         },
     },
     {
-        "message": "Collecting fastapi==0.103.1",
         "service": "Build",
         "category": "core_api",
         "level": "info",
         "event_type": "build",
         "outcome": "success",
         "sub_category": "build",
+        "env": "development",
+        "metadata": {
+            "message": "Collecting fastapi==0.103.1",
+        },
         "meta": {
             "raw_message": "[Build] Collecting fastapi==0.103.1",
             "parse": {
