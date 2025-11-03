@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step.schema.json",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/agentic.schema.json",
   "title": "Agentic Workflow Step",
   "description": "Schema for multi-step agent workflows with metadata, traceability, and controlled vocabulary references.",
   "type": "object",
