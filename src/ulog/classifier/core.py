@@ -101,9 +101,13 @@ class ClassifierPipeline:
 
         # 1) Normalize
         if input_format == "raw":
-            normalized = self.normalizer_adapter.process_raw_input(input_data)
+            normalized = self.normalizer_adapter.process_raw_input(
+                input_data, schema
+            )
         else:  # 'json' path tolerates raw-like dicts with @message
-            normalized = self.normalizer_adapter.process_json_input(input_data)
+            normalized = self.normalizer_adapter.process_json_input(
+                input_data, schema
+            )
 
         outputs: List[Dict[str, Any]] = []
         for rec in normalized:
