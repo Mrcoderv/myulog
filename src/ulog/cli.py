@@ -17,11 +17,9 @@ from .router import DomainRouter
 
 
 def output_json(data: Dict[str, Any], output_format: str) -> None:
-    """Print data in 'jsonl' (single line) or pretty 'json'."""
-    if output_format == "jsonl":
-        print(json.dumps(data, ensure_ascii=False))
-    else:
-        print(json.dumps(data, indent=2, ensure_ascii=False))
+    """Print data in 'jsonl' or 'json' format (both single-line for valid parsing)."""
+    # Both formats output one compact JSON object per line for valid parsing
+    print(json.dumps(data, ensure_ascii=False))
 
 
 # ----------------------------- Helpers -----------------------------

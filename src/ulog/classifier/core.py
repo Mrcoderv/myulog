@@ -108,17 +108,14 @@ class ClassifierPipeline:
         outputs: List[Dict[str, Any]] = []
         for rec in normalized:
             ok_parse = bool(rec.get("meta", {}).get("parse", {}).get("ok"))
-            if not ok_parse:
-                outputs.append(rec)
-                continue
-
-            # 2) Validation (optional)
+            
+            # 2) Validation (optional) - only for successfully parsed records
             effective_schema = schema or self.infer_schema(rec)
             validation_attempted = False
             validation_ok = None
             validation_errors: Optional[List[str]] = None
 
-            if self.enable_validation and effective_schema:
+            if ok_parse and self.enable_validation and effective_schema:
                 validation_attempted = True
                 validation_ok, validation_errors = self._validate_record(rec, effective_schema)
 
@@ -131,7 +128,7 @@ class ClassifierPipeline:
             else:
                 vmeta["skipped"] = True
 
-            # 3) Classification
+            # 3) Classification - apply to ALL records (parsed and unparsed)
             classified = self._classify_record(rec, effective_schema)
             outputs.append(classified)
 

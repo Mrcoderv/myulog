@@ -8,6 +8,7 @@ This test suite validates:
 4. Line count is preserved across CLI, HTTP, and Docker
 """
 
+
 from ulog.classifier.normalizer_adapter import NormalizerAdapter
 
 
