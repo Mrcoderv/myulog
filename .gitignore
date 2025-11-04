@@ -109,6 +109,8 @@ data/synthetic/*.jsonl
 !data/synthetic/.gitkeep
 data/synthetic/raw/*.jsonl
 !data/synthetic/raw/.gitkeep
+data/synthetic/baseline/*.jsonl
+!data/synthetic/baseline/.gitkeep
 
 # Lambda build
 .lambda_build/
