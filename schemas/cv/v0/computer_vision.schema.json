@@ -6,59 +6,9 @@
   "type": "object",
   "additionalProperties": false,
 
+  "required": ["meta", "outcome", "latency_ms", "metrics", "model_name","phase", "dataset_id", "image_count", "batch_size", "hardware"],
+
   "properties": {
-    "phase": {
-      "type": "string",
-      "description": "Lifecycle phase emitting this event.",
-      "enum": ["ingest", "preprocess", "inference", "postprocess", "eval", "serve", "track", "pose"]
-    },
-
-    "model_name": { "type": "string", "minLength": 1 },
-    "dataset_id": { "type": "string", "minLength": 1 },
-    "image_count": { "type": "integer", "minimum": 1 },
-
-    "metrics": {
-      "type": "object",
-      "description": "Standardized metric set with extension bucket.",
-      "properties": {
-        "fps": { "type": "number", "minimum": 0 },
-        "map": { "type": "number", "minimum": 0, "maximum": 1 },
-        "ap": { "type": "number", "minimum": 0, "maximum": 1 },
-        "ap50": { "type": "number", "minimum": 0, "maximum": 1 },
-        "iou": { "type": "number", "minimum": 0, "maximum": 1 },
-        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
-        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
-        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
-        "f1_score": { "type": "number", "minimum": 0, "maximum": 1 },
-        "loss": { "type": "number", "minimum": 0 },
-        "extra": { "type": "object", "additionalProperties": true }
-      },
-      "additionalProperties": false,
-      "minProperties": 1
-    },
-
-    "latency_ms": { "type": "number", "minimum": 0 },
-    "batch_size": { "type": "integer", "minimum": 1 },
-
-    "hardware": {
-      "description": "Hardware descriptor. Either a free-form string or a structured object.",
-      "oneOf": [
-        { "type": "string", "minLength": 1 },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "accelerator": { "type": "string", "minLength": 1, "description": "e.g., NVIDIA A100, TPU v4, Apple M2" },
-            "runtime": { "type": "string", "description": "e.g., TensorRT 10.0, ONNX Runtime 1.18, PyTorch 2.4" },
-            "memory_gb": { "type": "number", "minimum": 0 },
-            "component": { "type": "string", "description": "e.g., GPU, CPU, TPU, NPU" },
-            "level": { "type": "string", "description": "Granularity (e.g., device, host, cluster)" }
-          },
-          "required": ["accelerator"]
-        }
-      ]
-    },
-
     "meta": {
       "type": "object",
       "description": "Provenance for parsing and original source.",
@@ -79,12 +29,20 @@
       },
       "required": ["raw_message", "parse"]
     },
-
+    "timestamp": { "type": "string", "format": "date-time" },
+    "outcome": { "$ref": "../../_common.json#/$defs/outcome" },
     "level": { "$ref": "../../_common.json#/$defs/level" },
     "category": { "$ref": "../../_common.json#/$defs/category" },
-
-    "outcome": { "$ref": "../../_common.json#/$defs/outcome" },
-
+    "component": { "type": "string", "minLength": 1 },
+    "latency_ms": { "type": "number", "minimum": 0 },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "message": { "type": "string", "minLength": 1, "maxLength": 4096 }
+      },
+      "required": ["message"]
+    },
     "safety_flags": {
       "description": "Preferred: array of safety flags; Legacy: single flag string",
       "oneOf": [
@@ -97,38 +55,58 @@
         }
       ]
     },
-
-    "error": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "message": { "type": "string", "minLength": 1, "maxLength": 4096 }
-      },
-      "required": ["message"]
-    },
-
-    "timestamp": { "type": "string", "format": "date-time" },
-    "component": { "type": "string", "minLength": 1 },
-
     "metadata": {
       "type": "object",
       "description": "Additional flexible metadata for unknown fields",
       "additionalProperties": true
-    }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Standardized metric set with extension bucket.",
+      "properties": {
+        "fps": { "type": "number", "minimum": 0 },
+        "map": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ap": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ap50": { "type": "number", "minimum": 0, "maximum": 1 },
+        "iou": { "type": "number", "minimum": 0, "maximum": 1 },
+        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "f1_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "loss": { "type": "number", "minimum": 0 },
+        "extra": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "model_name": { "type": "string", "minLength": 1 },
+    "phase": {
+      "type": "string",
+      "description": "Lifecycle phase emitting this event.",
+      "enum": ["ingest", "preprocess", "inference", "postprocess", "eval", "serve", "track", "pose"]
+    },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "image_count": { "type": "integer", "minimum": 1 },
+    "batch_size": { "type": "integer", "minimum": 1 },
+    "hardware": {
+      "description": "Hardware descriptor. Either a free-form string or a structured object.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accelerator": { "type": "string", "minLength": 1, "description": "e.g., NVIDIA A100, TPU v4, Apple M2" },
+            "runtime": { "type": "string", "description": "e.g., TensorRT 10.0, ONNX Runtime 1.18, PyTorch 2.4" },
+            "memory_gb": { "type": "number", "minimum": 0 },
+            "component": { "type": "string", "description": "e.g., GPU, CPU, TPU, NPU" },
+            "level": { "type": "string", "description": "Granularity (e.g., device, host, cluster)" }
+          },
+          "required": ["accelerator"]
+        }
+      ]
+    } 
   },
-
-  "required": [
-    "phase",
-    "model_name",
-    "dataset_id",
-    "image_count",
-    "metrics",
-    "latency_ms",
-    "batch_size",
-    "hardware",
-    "outcome",
-    "meta"
-  ],
 
   "allOf": [
     {
