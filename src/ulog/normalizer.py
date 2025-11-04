@@ -16,8 +16,29 @@ from .vocab import canonicalize_flags, canonicalize_scalar
 SCHEMA_REQUIRED_FIELDS = {
     "core_api": {"timestamp", "meta", "event_type", "service", "env", "outcome"},
     "llm": {"timestamp", "meta", "request_id", "model", "pipeline_stage", "outcome"},
-    "agentic": {"meta", "step_kind", "workflow_id", "step_id", "tool_name", "input_summary", "output_summary", "status"},
-    "cv": {"timestamp", "meta", "phase", "model_name", "dataset_id", "image_count", "metrics", "latency_ms", "batch_size", "hardware", "outcome"},
+    "agentic": {
+        "meta",
+        "step_kind",
+        "workflow_id",
+        "step_id",
+        "tool_name",
+        "input_summary",
+        "output_summary",
+        "status",
+    },
+    "cv": {
+        "timestamp",
+        "meta",
+        "phase",
+        "model_name",
+        "dataset_id",
+        "image_count",
+        "metrics",
+        "latency_ms",
+        "batch_size",
+        "hardware",
+        "outcome",
+    },
 }
 
 # Default values for required fields (from schema "default" keywords + env vars)
@@ -118,6 +139,8 @@ SCHEMA_ALLOWED_FIELDS = {
         "ttft_ms",
         "usage",
         "unparsed_reason",
+        # Normalizer created fields
+        "sub_category",  # created by precanonicalize
         # Normalizer-processed fields
         "latency",
         "duration",
@@ -176,6 +199,8 @@ SCHEMA_ALLOWED_FIELDS = {
         "safety_flags",
         "timestamp",
         "unparsed_reason",
+        # Normalizer created fields
+        "sub_category",  # created by precanonicalize
         # Normalizer-processed fields
         "latency",
         "duration",
@@ -538,7 +563,7 @@ class Normalizer:
 
     def _ensure_llm_conditional_requirements(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Ensure LLM schema conditional requirements are met.
-        
+
         If outcome is 'success', result field must be present with output_text_length.
         """
         outcome = data.get("outcome")
@@ -549,12 +574,12 @@ class Normalizer:
             elif isinstance(data["result"], dict) and "output_text_length" not in data["result"]:
                 # Add output_text_length if missing
                 data["result"]["output_text_length"] = 0
-        
+
         return data
 
     def _ensure_agentic_conditional_requirements(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Ensure agentic schema conditional requirements are met.
-        
+
         If status is 'failed' or 'timeout', error field must be present with message.
         """
         status = data.get("status")
@@ -565,12 +590,12 @@ class Normalizer:
             elif isinstance(data["error"], dict) and "message" not in data["error"]:
                 # Add message if missing
                 data["error"]["message"] = "Step failed or timed out"
-        
+
         return data
 
     def _ensure_cv_conditional_requirements(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Ensure CV schema conditional requirements are met.
-        
+
         If outcome is 'failure', error field must be present with message.
         """
         outcome = data.get("outcome")
@@ -581,5 +606,5 @@ class Normalizer:
             elif isinstance(data["error"], dict) and "message" not in data["error"]:
                 # Add message if missing
                 data["error"]["message"] = "CV operation failed"
-        
+
         return data
