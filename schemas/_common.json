@@ -45,5 +45,31 @@
       "description": "Implementation-specific error identifier.",
       "$comment": "Map to your platform's canonical error codes."
     }
+  },
+  "aliases": {
+    "@status": [
+      "outcome",
+      "status",
+      "result",
+      "response.status"
+    ],
+    "@latency": [
+      "latency_ms",
+      "duration_ms",
+      "ttft_ms"
+    ],
+    "@errorCode": [
+      "http_status",
+      "error.code",
+      "response.status_code"
+    ],
+    "@model": [
+      "model",
+      "model_name"
+    ],
+    "@failed": [
+      "failed",
+      "failure"
+    ]
   }
 }

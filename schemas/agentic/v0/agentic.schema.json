@@ -1,10 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/step.schema.json",
+  "$id": "https://github.com/OmdenaAI/ULog/schemas/agentic/v0/agentic.schema.json",
   "title": "Agentic Workflow Step",
   "description": "Schema for multi-step agent workflows with metadata, traceability, and controlled vocabulary references.",
   "type": "object",
   "additionalProperties": false,
+
+  "required": ["meta", "status", "step_kind", "workflow_id", "step_id", "tool_name", "input_summary", "output_summary"],
+
   "properties": {
     "meta": {
       "type": "object",
@@ -50,8 +53,59 @@
         }
       },
       "required": ["raw_message"]
-    }
-    ,
+    },
+    "status": {
+      "type": "string",
+      "description": "Outcome of the step execution.",
+      "enum": ["success", "retry", "timeout", "failed"]
+    },
+    "outcome": {
+      "$ref": "../../_common.json#/$defs/outcome"
+    },
+    "level": {
+      "$ref": "../../_common.json#/$defs/level"
+    },
+    "category": {
+      "$ref": "../../_common.json#/$defs/category"
+    },
+    "sub_category": {
+      "$ref": "../../_common.json#/$defs/sub_category"
+    },
+    "component": {
+      "type": "string",
+      "description": "Optional: component that generated this step"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Optional: End-to-end runtime of the step in milliseconds (non-negative).",
+      "minimum": 0
+    },
+    "error": {
+      "type": "object",
+      "description": "Error object required when status is 'failed' or 'timeout'.",
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message explaining the failure/timeout.",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": ["message"]
+    },
+    "safety_flags": {
+      "type": "array",
+      "description": "Optional: array of safety flags",
+      "items": {
+        "$ref": "../../_common.json#/$defs/safety_flag"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional flexible metadata for unknown fields",
+      "additionalProperties": true
+    },
     "step_kind": {
       "type": "string",
       "description": "Type of workflow step",
@@ -110,16 +164,6 @@
       "minLength": 1,
       "maxLength": 4096
     },
-    "status": {
-      "type": "string",
-      "description": "Outcome of the step execution.",
-      "enum": ["success", "retry", "timeout", "failed"]
-    },
-    "duration_ms": {
-      "type": "number",
-      "description": "Optional: End-to-end runtime of the step in milliseconds (non-negative).",
-      "minimum": 0
-    },
     "cost": {
       "type": "object",
       "description": "Optional: cost tracking for this step",
@@ -140,61 +184,9 @@
           "minimum": 0
         }
       }
-    },
-    "component": {
-      "type": "string",
-      "description": "Optional: component that generated this step"
-    },
-    "level": {
-      "$ref": "../../_common.json#/$defs/level"
-    },
-    "category": {
-      "$ref": "../../_common.json#/$defs/category"
-    },
-    "sub_category": {
-      "$ref": "../../_common.json#/$defs/sub_category"
-    },
-    "outcome": {
-      "$ref": "../../_common.json#/$defs/outcome"
-    },
-    "safety_flags": {
-      "type": "array",
-      "description": "Optional: array of safety flags",
-      "items": {
-        "$ref": "../../_common.json#/$defs/safety_flag"
-      }
-    },
-    "error": {
-      "type": "object",
-      "description": "Error object required when status is 'failed' or 'timeout'.",
-      "additionalProperties": false,
-      "properties": {
-        "message": {
-          "type": "string",
-          "description": "Human-readable error message explaining the failure/timeout.",
-          "minLength": 1,
-          "maxLength": 4096
-        }
-      },
-      "required": ["message"]
-    },
-
-    "metadata": {
-      "type": "object",
-      "description": "Additional flexible metadata for unknown fields",
-      "additionalProperties": true
     }
   },
-  "required": [
-    "meta",
-    "step_kind",
-    "workflow_id",
-    "step_id",
-    "tool_name",
-    "input_summary",
-    "output_summary",
-    "status"
-  ],
+  
   "allOf": [
   {
     "if": {
