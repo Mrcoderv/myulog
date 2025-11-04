@@ -109,6 +109,7 @@ class GenerateLog:
                 clean.append(w)
 
         self._vocab_pool = clean
+        
         return self._vocab_pool
 
     def generate_message(self, domain: str | None = None, word_count: int = 12) -> str:

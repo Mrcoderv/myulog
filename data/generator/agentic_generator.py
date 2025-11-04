@@ -16,14 +16,10 @@ class AgenticGenerator(GenerateLog):
         self.input_params = input_params if input_params else []
 
         self.step_kinds = [
-            "session_start",
             "plan_created",
             "tool_selected",
             "step",
-            "stream_start",
             "guardrails",
-            "cost",
-            "cache",
         ]
         self.statuses = ["success", "retry", "timeout", "failed"]
         self.messages = {
@@ -78,9 +74,7 @@ class AgenticGenerator(GenerateLog):
             log_entry = {
                 # NB: Agentic records in this seed do not include top-level timestamp;
                 # raw mirror will inject @timestamp for consistency with sample raw shape.
-                "meta": {
-                    "raw_message": self.generate_message(domain="agentic", word_count=20),
-                },
+                "meta": {},
                 "step_kind": self.select_enum(self.step_kinds),
                 "workflow_id": self.generate_unique_string(),
                 "step_id": self.generate_unique_string(),
@@ -94,6 +88,8 @@ class AgenticGenerator(GenerateLog):
                 log_entry["error"] = {"message": self.select_enum(self.messages[log_entry["status"]])}
             if self.input_params:
                 log_entry = self.generate_option_params(log_entry)
+
+            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
             logs.append(log_entry)
         return logs
 
@@ -109,7 +105,7 @@ class AgenticGenerator(GenerateLog):
                 case "plan_id":
                     log["plan_id"] = self.generate_unique_string()
                 case "duration_ms":
-                    log["duration_ms"] = self.generate_float(0.0, 500.0)
+                    log['duration_ms'] = self.generate_float(0.0, 500.0)
                 case "cost":
                     log["cost"] = {
                         "tokens_in": self.generate_integer(0, 10000),
@@ -119,11 +115,19 @@ class AgenticGenerator(GenerateLog):
                 case "level":
                     log["level"] = self.select_enum(self.param_dict["levels"])
                 case "category":
-                    log["category"] = self.select_enum(self.param_dict["categories"])
+                    log["category"] = "agentic"
+                case "sub_category":
+                    log["sub_category"] = self.select_enum(self.param_dict["sub_categories"])
                 case "safety_flag":
                     log["safety_flag"] = self.select_enum(self.param_dict["safety_flags"])
                 case "outcome":
-                    log["outcome"] = self.select_enum(self.param_dict["outcomes"])
+                    if log["status"] in ["failed","retry"]:
+                        log["outcome"] = "failure"
+                    elif log["status"] in ["success","timeout"]:
+                        log["outcome"] = log["status"]
+                    else:
+                        log["outcome"] = self.select_enum(["cancelled","running","pending"])
+
                 case "error_code":
                     log["error_code"] = self.select_enum(self.error_codes)
                 case "ranked_tools":
@@ -142,6 +146,33 @@ class AgenticGenerator(GenerateLog):
             else:
                 self.logger.warning(f"Unknown option param: {param}")
         return verified_params
+
+    def generate_raw_messages(self, log: dict) -> str:
+        message = ""
+        duration = log.get("duration_ms", self.generate_float(0.0, 500.0))
+        param_dict = self.load_param_dict(["levels","sub_categories","safety_flags"])
+
+        level = log.get("level",  self.select_enum(param_dict["levels"]))
+        match log["step_kind"]:
+            case "plan_created":
+                message =  f"{log['meta'].get('parse_timestamp',self.generate_timestamp())} {log['input_summary']}"
+            case "tool_selected":
+                message =  f"Tool selector ranked {len(log['tool_name'])} , selected {' '.join(log['tool_name'])} ({duration}ms)."
+            case "step":
+                costs = log.get("cost",{"tokens_in":self.generate_integer(0,10000),
+                                        "tokens_out":self.generate_integer(0,10000),
+                                        "est_cost_usd":self.generate_float(0.0,10.0)})
+                
+                messages = [f"[{level.upper()}] {log['input_summary']} duration {duration}ms.",
+                            f"{log.get('sub_category',self.select_enum(param_dict['sub_categories']))} inference : {duration*1000}s {costs['tokens_in']} token in ,{costs['tokens_out']} token out , cost {costs['est_cost_usd']}."]
+                message = self.select_enum(messages)
+            case "guardrails":
+                flags = log.get("safety_flag",[self.select_enum(param_dict["safety_flags"])])
+                message =  f"[{level.upper()}] , flags {' '.join(flags)} applied - {log['output_summary']}."
+            case _:
+                pass
+
+        return message
 
     def run(self) -> tuple[list[dict], list[dict]]:
         self.input_params = self.verify_input_params()

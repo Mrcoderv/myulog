@@ -74,6 +74,8 @@ class GenerateAPILog(GenerateLog):
 
             log_entry = self.generate_option_params(log_entry)
             logs.append(log_entry)
+            
+
         return logs
 
     def generate_option_params(self, log: dict) -> dict:
