@@ -79,12 +79,12 @@ class AgenticGenerator(GenerateLog):
                 # NB: Agentic records in this seed do not include top-level timestamp;
                 # raw mirror will inject @timestamp for consistency with sample raw shape.
                 "meta": {
-                    "raw_message": self.generate_string(100),
+                    "raw_message": self.generate_message(domain="agentic", word_count=20),
                 },
                 "step_kind": self.select_enum(self.step_kinds),
                 "workflow_id": self.generate_unique_string(),
                 "step_id": self.generate_unique_string(),
-                "tool_name": self.generate_string(10),
+                "tool_name": self.select_enum(self.list_of_tools),
                 "input_summary": input_output["input"],
                 "output_summary": input_output["output"],
                 "status": self.select_enum(self.statuses),

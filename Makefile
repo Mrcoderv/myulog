@@ -52,8 +52,10 @@ help: ## Show available commands
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
 	@echo "  make format-vocab       - auto-format the vocabulary JSON"
 	@echo "Synthetic Data:"
-	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
-	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate             - Generate normalized synthetic JSONL (per domain)"
+	@echo "  make data.generate.raw         - Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate.baseline    - Generate paired raw+parsed JSONL and labels (200 total; 50/domain)"
+	@echo "  make data.validate.baseline    - Validate baseline: round-trip counts, label alignment, minima"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
@@ -177,7 +179,7 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate data.generate.raw test.roundtrip
+.PHONY: data.generate data.generate.raw test.roundtrip data.generate.baseline data.validate.baseline
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python data/generator/main.py -d agentic -n log_agentic
@@ -196,3 +198,12 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 # --- Round-trip test ---
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
+
+
+# --- Baseline dataset (Ticket 2.3) ---
+
+data.generate.baseline: ## Generate paired raw+parsed JSONL and labels (200 total; 50/domain)
+	@poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+
+data.validate.baseline: ## Validate baseline integrity and alignment
+	@poetry run python data/generator/validate_baseline.py
