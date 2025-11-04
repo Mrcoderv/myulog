@@ -1,6 +1,6 @@
-import sys
-from pathlib import Path
 import importlib.util
+from pathlib import Path
+import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 

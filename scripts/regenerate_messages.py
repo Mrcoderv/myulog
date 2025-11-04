@@ -4,7 +4,6 @@ Generates N messages per domain and writes to data/synthetic/sample_messages.jso
 """
 import importlib.util
 import json
-import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
