@@ -160,14 +160,15 @@ if args.raw_mirror:
         raw_path = raw_dir / f"{name}_raw.jsonl"
         with open(raw_path, "w", encoding="utf-8") as f:
             for log in logs:
-                # Compose raw line with @timestamp and @message
-                # @message contains a compact JSON string of the normalized record,
-                # which ensures round-trip equality for this ticket.
-                raw_message = json.dumps(log, separators=(",", ":"))
+                # Use generator's timestamp if available, otherwise generate one
+                timestamp = log.get("timestamp") or generator.generate_timestamp()
+                # Extract message from meta.raw_message, or fallback
+                message = log.get("meta", {}).get("raw_message", json.dumps(log))
                 raw_record = {
-                    "@timestamp": _timestamp_for_raw(log, seed_ts),
-                    "@message": raw_message,
+                    "@timestamp": timestamp,
+                    "@message": message,
                 }
+                
                 f.write(json.dumps(raw_record) + "\n")
         print(f"✅ Raw logs written to: {raw_path}")
         return raw_path
