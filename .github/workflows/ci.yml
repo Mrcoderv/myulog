@@ -133,23 +133,6 @@ jobs:
             - name: Run round-trip test (synthetic raw ↔ normalized)
               run: make test.roundtrip
 
-            - name: Generate baseline dataset (seed=42, 50/domain)
-              run: |
-                make data.generate.baseline
-
-            - name: Validate baseline dataset (round-trip counts + label alignment)
-              run: |
-                make data.validate.baseline
-
-            - name: Upload baseline dataset artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: baseline-dataset
-                  path: |
-                    data/synthetic/raw/*_baseline_raw.jsonl
-                    data/synthetic/baseline/*_baseline_parsed.jsonl
-                    data/synthetic/baseline_labels.jsonl
-
     export-requirements:
         runs-on: ubuntu-latest
         needs: [lint-and-test]
