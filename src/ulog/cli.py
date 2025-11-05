@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 import click
 
 from .classifier.core import ClassifierPipeline
-from .core import ensure_provenance
+from .core import canonical_order, ensure_provenance
 from .joiner import MultiLineJoiner
 from .router import DomainRouter
 
@@ -18,8 +18,10 @@ from .router import DomainRouter
 
 def output_json(data: Dict[str, Any], output_format: str) -> None:
     """Print data in 'jsonl' or 'json' format (both single-line for valid parsing)."""
+    # Enforce canonical key order for consistent output
+    ordered_data = canonical_order(data)
     # Both formats output one compact JSON object per line for valid parsing
-    print(json.dumps(data, ensure_ascii=False))
+    print(json.dumps(ordered_data, ensure_ascii=False))
 
 
 # ----------------------------- Helpers -----------------------------
@@ -80,7 +82,6 @@ def parse(domain, out_format):
 
     for result in results:
         output_json(result, out_format)
-
 
 
 @cli.command()

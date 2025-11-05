@@ -44,15 +44,13 @@ class NormalizerAdapter:
         self.provenance_tracker = ProvenanceTracker()
         # ✅ NO joiner - descoped for this iteration
 
-    def process_raw_input(
-        self, input_data: List[Dict[str, Any]], schema: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    def process_raw_input(self, input_data: List[Dict[str, Any]], schema: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Process raw input records (N→N guarantee).
 
         Each input record produces exactly one output record.
         Failed parses produce unparsed envelopes.
-        
+
         Args:
             input_data: List of raw log records with @timestamp
                 and @message
@@ -93,7 +91,7 @@ class NormalizerAdapter:
         """
         Accept already-normalized records.
         If a record looks raw (has '@message'), parse+normalize it.
-        
+
         Args:
             input_data: List of normalized or raw-like records
             schema: Optional domain hint to force parser selection
@@ -107,11 +105,7 @@ class NormalizerAdapter:
 
             # Fallback: treat as raw if it has @message
             if isinstance(record, dict) and "@message" in record:
-                ts = (
-                    record.get("@timestamp")
-                    or record.get("timestamp")
-                    or ""
-                )
+                ts = record.get("@timestamp") or record.get("timestamp") or ""
                 stream = record.get("stream")
                 parsed = self._parse_and_normalize(
                     raw_message=record["@message"],
@@ -123,11 +117,7 @@ class NormalizerAdapter:
                 continue
 
             # Otherwise, keep the error envelope behavior
-            results.append(
-                self._create_error_envelope(
-                    raw_data=record, error="invalid_normalized_record"
-                )
-            )
+            results.append(self._create_error_envelope(raw_data=record, error="invalid_normalized_record"))
 
         return results
 
@@ -140,7 +130,7 @@ class NormalizerAdapter:
     ) -> Dict[str, Any]:
         """
         Parse raw message and normalize with error handling.
-        
+
         Args:
             raw_message: The raw log message to parse
             timestamp: ISO8601 timestamp
@@ -156,14 +146,10 @@ class NormalizerAdapter:
             if parse_result.success:
                 # Normalize extracted data
                 domain = parser.parser_name.replace("_parser", "")
-                normalized = self.normalizer.normalize(
-                    parse_result.data, domain
-                )
+                normalized = self.normalizer.normalize(parse_result.data, domain)
 
                 # Add provenance metadata
-                enriched = self.provenance_tracker.enrich(
-                    normalized, raw_message, parse_result, parser
-                )
+                enriched = self.provenance_tracker.enrich(normalized, raw_message, parse_result, parser)
 
                 # Add timestamp
                 enriched["timestamp"] = timestamp
@@ -199,6 +185,7 @@ class NormalizerAdapter:
 
         envelope = {
             "timestamp": timestamp,
+            "message": raw_message,
             "unparsed_reason": parse_result.error or "no_pattern_match",
             "meta": {
                 "raw_message": raw_message,
@@ -230,9 +217,7 @@ class NormalizerAdapter:
             "timestamp": timestamp,
             "unparsed_reason": error,
             "meta": {
-                "raw_message": (
-                    raw_message or str(raw_data) if raw_data else ""
-                ),
+                "raw_message": (raw_message or str(raw_data) if raw_data else ""),
                 "parse": {
                     "parser_name": "unknown",
                     "parser_version": "1.0.0",
@@ -249,9 +234,7 @@ class NormalizerAdapter:
 
         return envelope
 
-    def _add_error_defaults(
-        self, envelope: Dict[str, Any], domain: str
-    ) -> Dict[str, Any]:
+    def _add_error_defaults(self, envelope: Dict[str, Any], domain: str) -> Dict[str, Any]:
         """Add schema-required fields to error envelope."""
         defaults = ERROR_ENVELOPE_DEFAULTS.get(domain, {})
 

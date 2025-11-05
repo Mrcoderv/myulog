@@ -21,7 +21,7 @@ import sys
 from typing import List, Optional
 
 from ulog.classifier.core import ClassifierPipeline
-from ulog.core import ensure_provenance
+from ulog.core import canonical_order, ensure_provenance
 
 IN_DIR = Path(os.getenv("IN_DIR", "/in"))
 OUT_DIR = Path(os.getenv("OUT_DIR", "/out"))
@@ -108,7 +108,9 @@ def process_file(src: Path) -> None:
     written = 0
     with out_path.open("w", encoding="utf-8") as fout:
         for result in results:
-            fout.write(json.dumps(result, ensure_ascii=False) + "\n")
+            # Enforce canonical key order for consistent output
+            ordered_result = canonical_order(result)
+            fout.write(json.dumps(ordered_result, ensure_ascii=False) + "\n")
             written += 1
 
     if written:

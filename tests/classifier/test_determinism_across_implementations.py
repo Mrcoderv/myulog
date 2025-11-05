@@ -38,21 +38,20 @@ INPUT = [
 
 # Expected output - hardcoded baseline (5 input lines → 5 output lines, N→N guarantee)
 # Updated to reflect schema enforcement (required fields + unknown fields in metadata)
+# Ordered according to canonical_order() in core.py
 EXPECTED = [
     {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": "Traceback (most recent call last):",
         "level": "error",
         "category": "core_api",
         "event_type": "exception",
-        "error": {
-            "type": "stacktrace",
-            "message": "Traceback (most recent call last):"
-        },
-        "outcome": "failure",
-        "env": "development",
         "service": "unknown-service",
-        "metadata": {
-            "message": "Traceback (most recent call last):"
-        },
+        "env": "development",
+        "outcome": "failure",
+        "error": {"type": "stacktrace", "message": "Traceback (most recent call last):"},
+        "sub_category": "service",
+        "tags": ["global", "failure"],
         "meta": {
             "raw_message": "Traceback (most recent call last):",
             "parse": {
@@ -64,9 +63,6 @@ EXPECTED = [
             },
             "validation": {"schema": "core_api", "ok": True},
         },
-        "timestamp": "2025-01-01T12:00:00Z",
-        "sub_category": "service",
-        "tags": ["global", "failure"],
         "provenance": {
             "parser_rule_id": "stacktrace_header",
             "rule_version": "1.0.0",
@@ -74,6 +70,14 @@ EXPECTED = [
         },
     },
     {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "failure",
         "error": {
             "file": "/usr/local/lib/python3.8/site-packages/git/__init__.py",
             "line": 140,
@@ -81,15 +85,8 @@ EXPECTED = [
             "type": "stacktrace",
             "message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
         },
-        "level": "error",
-        "category": "core_api",
-        "event_type": "exception",
-        "outcome": "failure",
-        "env": "development",
-        "service": "unknown-service",
-        "metadata": {
-            "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
-        },
+        "sub_category": "service",
+        "tags": ["global", "failure"],
         "meta": {
             "raw_message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
             "parse": {
@@ -101,9 +98,6 @@ EXPECTED = [
             },
             "validation": {"schema": "core_api", "ok": True},
         },
-        "timestamp": "2025-01-01T12:00:00Z",
-        "sub_category": "service",
-        "tags": ["global", "failure"],
         "provenance": {
             "parser_rule_id": "stacktrace_line",
             "rule_version": "1.0.0",
@@ -111,6 +105,14 @@ EXPECTED = [
         },
     },
     {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": 'File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "failure",
         "error": {
             "file": "/usr/local/lib/python3.8/site-packages/git/cmd.py",
             "line": 456,
@@ -118,15 +120,8 @@ EXPECTED = [
             "type": "stacktrace",
             "message": ' File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
         },
-        "level": "error",
-        "category": "core_api",
-        "event_type": "exception",
-        "outcome": "failure",
-        "env": "development",
-        "service": "unknown-service",
-        "metadata": {
-            "message": 'File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
-        },
+        "sub_category": "service",
+        "tags": ["global", "failure"],
         "meta": {
             "raw_message": ' File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
             "parse": {
@@ -138,9 +133,6 @@ EXPECTED = [
             },
             "validation": {"schema": "core_api", "ok": True},
         },
-        "timestamp": "2025-01-01T12:00:00Z",
-        "sub_category": "service",
-        "tags": ["global", "failure"],
         "provenance": {
             "parser_rule_id": "stacktrace_line",
             "rule_version": "1.0.0",
@@ -148,16 +140,19 @@ EXPECTED = [
         },
     },
     {
+        "timestamp": "2025-01-01T12:00:01Z",
+        "message": 'INFO:     10.0.0.2:35466 - "GET /health HTTP/1.1" 200 OK',
         "level": "info",
+        "category": "core_api",
+        "event_type": "http_request",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "success",
         "action": "GET",
         "endpoint": "/health",
         "http_status": 200,
-        "category": "core_api",
-        "event_type": "http_request",
-        "outcome": "success",
         "sub_category": "tracking",
-        "env": "development",
-        "service": "unknown-service",
+        "tags": ["global", "missing_trace"],
         "metadata": {
             "client_ip": "10.0.0.2",
             "client_port": 35466,
@@ -175,8 +170,6 @@ EXPECTED = [
             },
             "validation": {"schema": "core_api", "ok": True},
         },
-        "timestamp": "2025-01-01T12:00:01Z",
-        "tags": ["global", "missing_trace"],
         "provenance": {
             "parser_rule_id": "http_request_uvicorn",
             "rule_version": "1.0.0",
@@ -184,16 +177,16 @@ EXPECTED = [
         },
     },
     {
-        "service": "Build",
-        "category": "core_api",
+        "timestamp": "2025-01-01T12:00:02Z",
+        "message": "Collecting fastapi==0.103.1",
         "level": "info",
+        "category": "core_api",
         "event_type": "build",
+        "service": "Build",
+        "env": "development",
         "outcome": "success",
         "sub_category": "build",
-        "env": "development",
-        "metadata": {
-            "message": "Collecting fastapi==0.103.1",
-        },
+        "tags": ["core_api", "build", "guard"],
         "meta": {
             "raw_message": "[Build] Collecting fastapi==0.103.1",
             "parse": {
@@ -205,8 +198,6 @@ EXPECTED = [
             },
             "validation": {"schema": "core_api", "ok": True},
         },
-        "timestamp": "2025-01-01T12:00:02Z",
-        "tags": ["core_api", "build", "guard"],
         "provenance": {
             "parser_rule_id": "build_event",
             "rule_version": "1.0.0",

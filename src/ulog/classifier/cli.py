@@ -4,7 +4,7 @@ from typing import Optional
 
 import click
 
-from ulog.core import ensure_provenance
+from ulog.core import canonical_order, ensure_provenance
 
 from .core import ClassifierPipeline
 
@@ -33,7 +33,9 @@ def classify(input_format: str, schema: Optional[str], stats: bool, no_validatio
         results = ensure_provenance(results)
 
         for result in results:
-            print(json.dumps(result, ensure_ascii=False))
+            # Enforce canonical key order for consistent output
+            ordered_result = canonical_order(result)
+            print(json.dumps(ordered_result, ensure_ascii=False))
 
         if stats:
             s = pipeline.get_processing_stats(results)

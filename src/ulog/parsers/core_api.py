@@ -242,6 +242,8 @@ class HTTPRequestPattern(Pattern):
             # Add category and event_type
             fields["category"] = "http"
             fields["event_type"] = "http_request"
+            # Populate message with the original text
+            fields["message"] = text
             # Default level if not present
             if not fields.get("level"):
                 fields["level"] = "info"
@@ -284,6 +286,8 @@ class SimplifiedHTTPRequestPattern(Pattern):
             fields["category"] = "http"
             fields["event_type"] = "http_request"
             fields["level"] = "info"
+            # Populate message with the original text
+            fields["message"] = text
             return fields
         return None
 
@@ -335,6 +339,8 @@ class PythonErrorPattern(Pattern):
         fields["level"] = "error"
         fields["category"] = "error"
         fields["event_type"] = "python_error"
+        # Populate message with the original text
+        fields["message"] = text
         if "error" not in fields:
             fields["error"] = {}
         fields["error"]["type"] = fields["error"].get("type") or "python_error"
@@ -508,6 +514,8 @@ class GenericErrorPattern(Pattern):
             fields["level"] = "error"
             fields["category"] = "error"
             fields["event_type"] = "error"
+            # Populate message with the original text
+            fields["message"] = text
 
             # Normalize error structure
             if "error" not in fields:

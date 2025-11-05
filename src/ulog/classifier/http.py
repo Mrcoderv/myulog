@@ -4,24 +4,53 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request
 
-from ulog.core import ensure_provenance
+from ulog.core import canonical_order, ensure_provenance
 
 from .core import ClassifierPipeline
 
 CLASSIFICATION_KEYS = {
     # generic enrichment
-    "category","event_type","service","env","level","tags",
-    "provenance","validation","component","module","endpoint","action",
-    "request_id","http_status","latency_ms","duration_ms","error",
-    "error_code","version","safety_flags","metadata","sub_category",
+    "category",
+    "event_type",
+    "service",
+    "env",
+    "level",
+    "tags",
+    "provenance",
+    "validation",
+    "component",
+    "module",
+    "endpoint",
+    "action",
+    "request_id",
+    "http_status",
+    "latency_ms",
+    "duration_ms",
+    "error",
+    "error_code",
+    "version",
+    "safety_flags",
+    "metadata",
+    "sub_category",
     "outcome",
-
     # CV-specific blocks
-    "phase","model_name","dataset_id","image_count","metrics","batch_size","hardware","result",
-
+    "phase",
+    "model_name",
+    "dataset_id",
+    "image_count",
+    "metrics",
+    "batch_size",
+    "hardware",
+    "result",
     # LLM-specific blocks
-    "pipeline_stage","model","usage","sampler","finish_reason","ttft_ms",
+    "pipeline_stage",
+    "model",
+    "usage",
+    "sampler",
+    "finish_reason",
+    "ttft_ms",
 }
+
 
 def _strip_classification_fields(ev: dict) -> dict:
     """Keep normalized core fields (timestamp, message, meta.parse/raw_message, etc).
@@ -111,6 +140,8 @@ async def parse_logs(
     results = _call_process_input(pipe, logs, "raw", schema)
     results = ensure_provenance(results)
     results = [_strip_classification_fields(r) for r in results]
+    # Enforce canonical key order for consistent output
+    results = [canonical_order(r) for r in results]
     return results
 
 
@@ -154,4 +185,6 @@ async def classify_logs(
     results = _call_process_input(pipe, logs, input_format, schema)
     # Match CLI behavior: always prefer pattern_id over classification rule_id
     results = ensure_provenance(results)
+    # Enforce canonical key order for consistent output
+    results = [canonical_order(r) for r in results]
     return results
