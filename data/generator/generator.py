@@ -7,6 +7,12 @@ from random import Random
 from typing import Any, List
 from uuid import uuid4
 
+# optional dependency for realistic text
+try:
+    from faker import Faker
+except Exception:  # pragma: no cover - fallback if Faker not installed
+    Faker = None
+
 
 class GenerateLog:
     """
@@ -35,6 +41,20 @@ class GenerateLog:
             "safety_flags",
             "error_codes",
         ]
+        # Faker instance for richer, realistic messages (seeded for reproducibility)
+        if Faker is not None:
+            self.faker = Faker()
+            # seed Faker's internal RNG for deterministic output
+            try:
+                # new Faker seed API
+                self.faker.seed_instance(self.seed)
+            except Exception:
+                try:
+                    self.faker.random.seed(self.seed)
+                except Exception:
+                    pass
+        else:
+            self.faker = None
 
     # ---------- Random helpers ----------
 
@@ -47,6 +67,87 @@ class GenerateLog:
 
     def generate_unique_string(self) -> str:
         return str(uuid4())
+
+    # -------------------- Message helpers (realistic text) --------------------
+    def generate_stacktrace(self, max_frames: int = 4) -> str:
+        """Create a small, plausible multi-line stacktrace using Faker for filenames/messages."""
+        lines = ["Traceback (most recent call last):"]
+        frame_count = self.generate_integer(1, max_frames)
+        for _ in range(frame_count):
+            filename = (
+                self.faker.file_path(depth=3) if self.faker else f"/app/module_{self.generate_integer(1,100)}.py"
+            )
+            lineno = self.generate_integer(10, 999)
+            func = self.generate_string(self.generate_integer(3, 12))
+            lines.append(f"  File \"{filename}\", line {lineno}, in {func}")
+            # optionally show source line
+            if self.faker:
+                src = self.faker.sentence(nb_words=6)
+            else:
+                src = self.generate_string(self.generate_integer(10, 40))
+            lines.append(f"    {src}")
+        # final exception message
+        exc_type = self.faker.exception().split(":", 1)[0] if self.faker else "ValueError"
+        exc_msg = self.faker.sentence(nb_words=8) if self.faker else self.generate_string(40)
+        lines.append(f"{exc_type}: {exc_msg}")
+        return "\n".join(lines)
+
+    def generate_message(self, domain: str | None = None, context: dict | None = None) -> str:
+        """Generate a realistic raw message string. Uses templates per-domain and Faker where available.
+
+        context: optional dict (e.g., generated log fields) to make messages coherent.
+        """
+        ctx = context or {}
+        domain = (domain or "").lower()
+        # short helper lookups
+        model = ctx.get("model_name") or (self.select_enum(["ResNet50", "MobileNetV2"]) if hasattr(self, "select_enum") else "model")
+        dataset = ctx.get("dataset_id") or self.select_enum(["ImageNet", "COCO"]) if hasattr(self, "select_enum") else "dataset"
+        accel = ctx.get("hardware", {}).get("accelerator") if isinstance(ctx.get("hardware"), dict) else None
+        latency = ctx.get("latency_ms")
+        outcome = ctx.get("outcome")
+
+        # templates per domain
+        templates = []
+        if domain == "cv":
+            templates = [
+                lambda: f"Processed {ctx.get('image_count', self.generate_integer(1,1000))} images from {dataset} using {model} on {accel or self.select_enum(['NVIDIA A100','Google TPU v3','NVIDIA V100'])} - avg latency {latency or round(self.generate_float(10,100),2)} ms",
+                lambda: f"Evaluated {model} on {dataset}: {', '.join([f'{k}={v}' for k,v in (ctx.get('metrics') or {}).items()])}" if ctx.get("metrics") else f"Evaluation completed for {model}",
+                lambda: f"{self.faker.sentence(nb_words=12)}" if self.faker else f"{model} processing completed",
+            ]
+        elif domain == "agentic":
+            # Templates designed to match README examples for agentic logs
+            templates = [
+                # Plan created (README Example 1)
+                lambda: f"Agent created {self.generate_integer(1,8)}-step execution plan for user query",
+                # Tool selector / tool_selected with ranking (README Example 2)
+                lambda: (
+                    f"Tool selector ranked {self.generate_integer(2,5)} options, selected {self.faker.word() if self.faker else 'tool_x'} ({self.generate_integer(10,200)}ms)"
+                ),
+                # LLM step with cost (README Example 3)
+                lambda: (
+                    f"LLM inference: {round(self.generate_float(0.1,5.0),1)}s, {self.generate_integer(1000,20000)} tokens in, {self.generate_integer(0,5000)} tokens out, cost=${round(self.generate_float(0.001,1.0),3)}"
+                ),
+                # Guardrails warn (README Example 4)
+                lambda: (
+                    f"[WARN] Safety check detected PII in output ({self.generate_integer(10,500)}ms) - email and phone number found"
+                ),
+                # Generic: use stacktrace on failures occasionally
+                lambda: (self.generate_stacktrace() if outcome == "failure" and self.random.random() < 0.7 else (self.faker.sentence(nb_words=12) if self.faker else "agentic step completed")),
+            ]
+        else:
+            templates = [
+                lambda: f"{self.faker.sentence(nb_words=10)}" if self.faker else self.generate_string(100),
+                lambda: (self.generate_stacktrace() if outcome == 'failure' and self.random.random() < 0.3 else (self.faker.sentence(nb_words=8) if self.faker else 'operation complete')),
+            ]
+
+        choice = self.select_enum(templates)
+        try:
+            return choice()
+        except Exception:
+            # final fallback
+            if self.faker:
+                return self.faker.text(max_nb_chars=200)
+            return self.generate_string(120)
 
     def generate_integer(self, min_value: int = 0, max_value: int = 100000) -> int:
         return self.random.randint(min_value, max_value)
