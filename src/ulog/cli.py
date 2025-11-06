@@ -77,7 +77,7 @@ def parse(domain, out_format):
     """Parse JSONL logs from stdin and output normalized JSON."""
     # Use ClassifierPipeline (same as HTTP/Docker)
     pipeline = ClassifierPipeline(enable_validation=False)
-    results = pipeline.process_stream(sys.stdin, input_format="raw", schema=domain)
+    results = pipeline.normalize_stream(sys.stdin, input_format="raw", schema=domain)
     results = ensure_provenance(results)
 
     for result in results:
