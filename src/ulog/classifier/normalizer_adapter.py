@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 
 # from ulog.joiner import MultiLineJoiner
 from ulog.normalizer import Normalizer
-from ulog.provenance import ProvenanceTracker
 from ulog.router import DomainRouter
 
 # Error envelope defaults per domain (matches schema requirements)
@@ -41,10 +40,10 @@ class NormalizerAdapter:
     def __init__(self):
         self.router = DomainRouter()
         self.normalizer = Normalizer()
-        self.provenance_tracker = ProvenanceTracker()
-        # ✅ NO joiner - descoped for this iteration
 
-    def process_raw_input(self, input_data: List[Dict[str, Any]], schema: Optional[str] = None) -> List[Dict[str, Any]]:
+    def process_raw_input(
+        self, input_data: List[Dict[str, Any]], schema: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Process raw input records (N→N guarantee).
 
@@ -148,13 +147,9 @@ class NormalizerAdapter:
                 domain = parser.parser_name.replace("_parser", "")
                 normalized = self.normalizer.normalize(parse_result.data, domain)
 
-                # Add provenance metadata
-                enriched = self.provenance_tracker.enrich(normalized, raw_message, parse_result, parser)
-
                 # Add timestamp
-                enriched["timestamp"] = timestamp
-
-                return enriched
+                normalized["timestamp"] = timestamp
+                return normalized
             else:
                 # Handle parse failure
                 return self._create_parse_failure_envelope(

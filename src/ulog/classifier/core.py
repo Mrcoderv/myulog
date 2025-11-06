@@ -91,28 +91,16 @@ class ClassifierPipeline:
     def process_input(
         self, input_data: List[Dict[str, Any]], input_format: str, schema: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """
-        Process records with input_format: 'auto' | 'raw' | 'json'.
-        Validation runs iff enabled AND (schema provided or inferred).
-        Classification always runs; never blocked by validation.
-        """
         if input_format == "auto":
             input_format = self._guess_format(input_data)
 
-        # 1) Normalize
-        if input_format == "raw":
-            normalized = self.normalizer_adapter.process_raw_input(
-                input_data, schema
-            )
-        else:  # 'json' path tolerates raw-like dicts with @message
-            normalized = self.normalizer_adapter.process_json_input(
-                input_data, schema
-            )
+        # 1) Normalize (shared with normalize_input/normalize_stream)
+        normalized = self.normalize_input(input_data, input_format, schema)
 
         outputs: List[Dict[str, Any]] = []
         for rec in normalized:
             ok_parse = bool(rec.get("meta", {}).get("parse", {}).get("ok"))
-            
+
             # 2) Validation (optional) - only for successfully parsed records
             effective_schema = schema or self.infer_schema(rec)
             validation_attempted = False
@@ -207,3 +195,32 @@ class ClassifierPipeline:
             "classified": classified,
             "failure_reasons": reasons,
         }
+
+    # ---------- Normalization ----------
+
+    def normalize_input(
+        self,
+        input_data: List[Dict[str, Any]],
+        input_format: str,
+        schema: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        if input_format == "auto":
+            input_format = self._guess_format(input_data)
+        if input_format == "raw":
+            return self.normalizer_adapter.process_raw_input(input_data, schema)
+        # 'json' path tolerates raw-like dicts with @message
+        return self.normalizer_adapter.process_json_input(input_data, schema)
+
+    def normalize_stream(
+        self, input_stream, input_format: str = "auto", schema: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        input_data: List[Dict[str, Any]] = []
+        for line in input_stream:
+            s = line.strip()
+            if not s:
+                continue
+            try:
+                input_data.append(json.loads(s))
+            except json.JSONDecodeError:
+                continue
+        return self.normalize_input(input_data, input_format, schema)
