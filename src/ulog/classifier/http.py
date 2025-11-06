@@ -137,7 +137,7 @@ async def parse_logs(
         raise HTTPException(status_code=422, detail=errors)
 
     pipe = _pipeline()
-    results = _call_process_input(pipe, logs, "raw", schema)
+    results = pipe.normalize_input(logs, "raw", schema)
     results = ensure_provenance(results)
     results = [_strip_classification_fields(r) for r in results]
     # Enforce canonical key order for consistent output
