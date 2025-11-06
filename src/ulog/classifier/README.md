@@ -656,6 +656,105 @@ The provided Dockerfile under `local_pipeline/classifier/Dockerfile` is for the 
 ### Lambda Deployment (Adapter Ready)
 # ULog Classifier Service
 
+# 🧠 ULog Classifier Service
+
+A lightweight FastAPI-based microservice and AWS Lambda entrypoint for log classification and normalization within the ULog pipeline.
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+```bash
+# 1. Install dependencies
+poetry install
+
+# 2. Run the HTTP service
+poetry run uvicorn ulog.classifier.http:app --host 0.0.0.0 --port 8000
+
+curl -sS http://127.0.0.1:8000/classify \
+  -H "Content-Type: application/json" \
+  --data-binary '[
+    {
+      "timestamp": "2025-10-13T12:01:22Z",
+      "request_id": "44444444-4444-4444-8444-444444444444",
+      "model": "gpt-4o-mini",
+      "pipeline_stage": "inference",
+      "outcome": "success",
+      "latency_ms": 120,
+      "result": {"output_text_length": 42},
+      "meta": {"raw_message": "synthetic"}
+    }
+  ]' | jq .
+Lambda Packaging
+To rebuild the AWS Lambda artifact:
+./scripts/package_lambda_zip.sh
+This script:
+	•	Exports Poetry dependencies to requirements.txt
+	•	Installs into a temporary build directory
+	•	Copies src/ulog, schemas/, rules/, and vocab/
+	•	Stages handler.py as the Lambda entrypoint
+	•	Builds dist/classifier_lambda.zip
+
+Verify ZIP contents:
+unzip -l dist/classifier_lambda.zip | grep -E 'handler\.py|rules/rules\.json'
+Expected output
+handler.py
+ulog/classifier/http.py
+rules/rules.json
+ Local Lambda Smoke Test
+tmpdir="$(mktemp -d)"
+unzip -q dist/classifier_lambda.zip -d "$tmpdir"
+
+HANDLER_ROOT="$tmpdir" python - <<'PY'
+import os, sys, json
+sys.path.insert(0, os.environ["HANDLER_ROOT"])
+from handler import lambda_handler
+
+event = {
+  "version": "2.0",
+  "routeKey": "GET /health",
+  "rawPath": "/health",
+  "rawQueryString": "",
+  "requestContext": {"http": {"method": "GET", "path": "/health", "sourceIp": "127.0.0.1"}},
+  "headers": {"host": "localhost"},
+  "isBase64Encoded": False
+}
+print(json.dumps(lambda_handler(event, None), indent=2))
+PY
+Expected output:
+{
+  "statusCode": 200,
+  "body": "{\"status\":\"ok\",\"service\":\"ClassifierLog\"}",
+  "headers": {"content-type": "application/json"},
+  "isBase64Encoded": false
+}
+Tests and CI
+Run all tests:
+PYTHONPATH=src poetry run pytest -q
+Key compliance test
+	•	tests/classifier/test_vocabulary_compliance.py
+Ensures all classifier outputs (level, category, sub_category, outcome) conform to enums defined in vocab/controlled_vocabulary.json.
+ Directory Structure
+ULog/
+├── src/
+│   └── ulog/classifier/
+│       ├── http.py
+│       ├── core.py
+│       ├── validator.py
+│       ├── handler.py
+│       └── rule_evaluator.py
+├── schemas/
+├── vocab/
+├── rules/
+├── scripts/package_lambda_zip.sh
+└── tests/classifier/
+Notes
+	•	rules.json is auto-bundled in the Lambda ZIP and automatically discovered by rule_evaluator.py.
+	•	You can override its path with:
+export ULOG_RULES_PATH=/path/to/rules.json
+	Compatible with both FastAPI (local) and AWS Lambda (Mangum) runtimes.
+
+
 ## Overview
 The Classifier Service provides schema validation, normalization, and classification for ULog records.  
 It runs as a FastAPI service and can also be deployed as an AWS Lambda function using the Mangum adapter.
