@@ -36,14 +36,13 @@ def test_parse_json_pretty(monkeypatch):
 
     monkeypatch.setattr(na_mod, "DomainRouter", lambda: DR())
     monkeypatch.setattr(na_mod, "Normalizer", lambda: Norm())
-    monkeypatch.setattr(na_mod, "ProvenanceTracker", lambda: Prov())
 
     runner = CliRunner()
     raw = json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "m"})
     res = runner.invoke(cli_mod.cli, ["parse", "--format", "json"], input=raw)
     assert res.exit_code == 0
     # JSON output should be valid and parseable (compact, one per line)
-    lines = [line for line in res.output.strip().split('\n') if line]
+    lines = [line for line in res.output.strip().split("\n") if line]
     assert len(lines) >= 1
     # Verify each line is valid JSON
     for line in lines:

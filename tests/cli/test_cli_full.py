@@ -72,7 +72,6 @@ def test_parse_success_jsonl(monkeypatch):
             return dict(normalized)
 
     monkeypatch.setattr(na_mod, "Normalizer", lambda: DummyNorm())
-    monkeypatch.setattr(na_mod, "ProvenanceTracker", lambda: DummyProv())
 
     # Multi-line joiner path: first line opens buffer; second (continuation) flushes
     raw = "\n".join(
@@ -120,7 +119,6 @@ def test_parse_failure_and_processing_error(monkeypatch):
 
     # Normalizer/Provenance won't be called, but keep them safe
     monkeypatch.setattr(na_mod, "Normalizer", lambda: type("N", (), {"normalize": lambda *_: {}})())
-    monkeypatch.setattr(na_mod, "ProvenanceTracker", lambda: type("P", (), {"enrich": lambda *_: {}})())
 
     raw = json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "no-match"})
     r1 = runner.invoke(cli_mod.cli, ["parse", "--format", "jsonl"], input=raw)
