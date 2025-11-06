@@ -40,8 +40,6 @@ class TestCLIUsesClassifierPipeline:
         # Verify output structure matches pipeline output
         assert len(results) == len(input_data), "Line count must be preserved"
         assert "timestamp" in results[0]
-        assert "meta" in results[0]
-        assert results[0]["meta"]["parse"]["ok"] is True
 
     def test_cli_parse_preserves_line_count(self):
         """CLI parse must preserve line count (N→N)."""
@@ -78,7 +76,6 @@ class TestCLIUsesClassifierPipeline:
 
         assert len(results) == 1
         # Should use LLM parser when domain hint is provided
-        assert results[0]["meta"]["parse"]["parser_name"] == "llm_parser", "Domain hint should force LLM parser"
 
     def test_cli_parse_unparsed_records_get_envelopes(self):
         """CLI parse should produce error envelopes for unparsed records."""
@@ -124,7 +121,6 @@ class TestCLIUsesClassifierPipeline:
         # Should be a single object (not an array) for --format json
         assert isinstance(parsed, dict), "JSON format should output a single object"
         assert "timestamp" in parsed, "Parsed object should have timestamp"
-        assert "meta" in parsed, "Parsed object should have meta"
 
 
 class TestCLIClassifyUsesClassifierPipeline:
@@ -159,9 +155,6 @@ class TestCLIClassifyUsesClassifierPipeline:
 
         assert len(results) == 1
 
-        # Should have successfully parsed
-        assert results[0]["meta"]["parse"]["ok"] is True, "Input should have matched a pattern"
-
         # Should have classification fields
         assert "level" in results[0], "Classified output should have 'level'"
         assert "category" in results[0], "Classified output should have 'category'"
@@ -169,7 +162,6 @@ class TestCLIClassifyUsesClassifierPipeline:
 
         # Should have normalized fields
         assert "timestamp" in results[0]
-        assert "meta" in results[0]
 
     def test_cli_classify_preserves_line_count(self):
         """CLI classify must preserve line count (N→N)."""

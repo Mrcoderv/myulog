@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 import click
 
 from .classifier.core import ClassifierPipeline
-from .core import canonical_order, ensure_provenance
+from .core import canonical_order
 from .joiner import MultiLineJoiner
 from .router import DomainRouter
 
@@ -78,7 +78,6 @@ def parse(domain, out_format):
     # Use ClassifierPipeline (same as HTTP/Docker)
     pipeline = ClassifierPipeline(enable_validation=False)
     results = pipeline.normalize_stream(sys.stdin, input_format="raw", schema=domain)
-    results = ensure_provenance(results)
 
     for result in results:
         output_json(result, out_format)

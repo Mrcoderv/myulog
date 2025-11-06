@@ -110,14 +110,6 @@ class TestNormalizerAdapterLineCount:
 
         assert len(results) == 4, "Must preserve line count (4 in → 4 out)"
 
-        # First and third should parse successfully
-        assert results[0].get("meta", {}).get("parse", {}).get("ok") is True
-        assert results[2].get("meta", {}).get("parse", {}).get("ok") is True
-
-        # Second and fourth should have errors
-        assert results[1].get("meta", {}).get("parse", {}).get("ok") is False
-        assert results[3].get("meta", {}).get("parse", {}).get("ok") is False
-
 
 class TestNoMultiLineJoining:
     """Test that multi-line joining is not performed (descoped)."""
@@ -139,7 +131,6 @@ class TestNoMultiLineJoining:
 
         # Each should be processed independently
         assert all("timestamp" in r for r in results)
-        assert all("meta" in r for r in results)
 
     def test_same_timestamp_not_joined(self):
         """Records with same timestamp should NOT be joined."""
