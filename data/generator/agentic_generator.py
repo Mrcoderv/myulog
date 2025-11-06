@@ -157,14 +157,17 @@ class AgenticGenerator(GenerateLog):
             case "plan_created":
                 message =  f"{log['meta'].get('parse_timestamp',self.generate_timestamp())} {log['input_summary']}"
             case "tool_selected":
-                message =  f"Tool selector ranked {len(log['tool_name'])} , selected {' '.join(log['tool_name'])} ({duration}ms)."
+                message =  f"Tool selector ranked {len(log['tool_name'])} , selected {' '.join(log['tool_name'])}\
+                      ({duration}ms)."
             case "step":
                 costs = log.get("cost",{"tokens_in":self.generate_integer(0,10000),
                                         "tokens_out":self.generate_integer(0,10000),
                                         "est_cost_usd":self.generate_float(0.0,10.0)})
                 
                 messages = [f"[{level.upper()}] {log['input_summary']} duration {duration}ms.",
-                            f"{log.get('sub_category',self.select_enum(param_dict['sub_categories']))} inference : {duration*1000}s {costs['tokens_in']} token in ,{costs['tokens_out']} token out , cost {costs['est_cost_usd']}."]
+                            f"{log.get('sub_category',self.select_enum(param_dict['sub_categories']))}\
+                              inference : {duration*1000}s {costs['tokens_in']} token in ,{costs['tokens_out']}\
+                                  token out , cost {costs['est_cost_usd']}."]
                 message = self.select_enum(messages)
             case "guardrails":
                 flags = log.get("safety_flag",[self.select_enum(param_dict["safety_flags"])])
