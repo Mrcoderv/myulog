@@ -116,7 +116,7 @@ cat input.jsonl | python -m ulog.classifier.cli > input.classified.jsonl
 The Docker pipeline (`local_pipeline/classifier/`) automatically names output files:
 
 - **Input**: `/in/logs.jsonl`
-- **Output**: `/out/logs.jsonl.classified.jsonl`
+- **Output**: `/out/logs.classified.jsonl`
 
 ### Make Targets
 ```bash
@@ -126,7 +126,7 @@ make normalize
 
 # Classify all *.jsonl files in local_pipeline/in/
 make classify  
-# Creates: local_pipeline/out/*.jsonl.classified.jsonl
+# Creates: local_pipeline/out/*.classified.jsonl
 ```
 
 **Convention**: Original filename + suffix preserves traceability.
