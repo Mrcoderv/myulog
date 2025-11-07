@@ -65,7 +65,8 @@ def guess_schema_from_filename(name: str) -> Optional[str]:
 
 def process_file(src: Path) -> None:
     """Process a file through ClassifierPipeline (stream-based, like CLI/Lambda)."""
-    out_path = OUT_DIR / f"{src.name}.classified.jsonl"
+    base = src.stem if src.suffix == ".jsonl" else src.name
+    out_path = OUT_DIR / f"{base}.classified.jsonl"
 
     # Schema priority: SCHEMA_OVERRIDE env var > filename hint > auto-detection
     schema_hint = os.getenv("SCHEMA_OVERRIDE") or guess_schema_from_filename(src.name)

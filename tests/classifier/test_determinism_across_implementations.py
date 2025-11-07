@@ -257,7 +257,7 @@ def test_pipeline_app(pipeline_env):
     pipeline_app.process_file(input_file)
 
     # Read output
-    output_file = out_dir / "test.jsonl.classified.jsonl"
+    output_file = out_dir / "test.classified.jsonl"
     assert output_file.exists(), "Output file not created"
 
     actual = []
