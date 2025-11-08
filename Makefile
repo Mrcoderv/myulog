@@ -8,7 +8,8 @@ SHELL := /bin/bash
         generate normalize classify down \
         http.up http.down http.logs http.test http.smoke \
         coverage test.determinism \
-        build build.verify package clean
+        build build.verify package clean \
+		parity.check
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -209,3 +210,7 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 # --- Round-trip test ---
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
+
+# --- Parity check: CLI vs local pipeline app ---
+parity.check: ## Compare CLI vs pipeline outputs for all files in local_pipeline/in/*.jsonl
+	@bash scripts/parity_check.sh
