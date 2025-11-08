@@ -4,7 +4,7 @@
 #   - CLI bundle (portable tar.gz)
 #   - Lambda ZIP (AWS Lambda package)
 #
-# Handler path (deployment): ulog.classifier.handler.lambda_handler
+# Handler path (deployment): ulog.lambda_adapter.handler.handler
 
 # ==============================================================================
 # Stage 1: Base builder (PEP 517)
@@ -57,6 +57,15 @@ RUN . /tmp/version.env && mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/python
 # Install app + deps into bundle
 RUN . /tmp/version.env && pip install --target /tmp/bundle/ulog-cli-${VERSION}/lib/python .
 
+# bundle runtime assets next to lib/python
+RUN . /tmp/version.env && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/rules && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/schemas && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/vocab && \
+    cp -r rules/.   /tmp/bundle/ulog-cli-${VERSION}/lib/rules/ && \
+    cp -r schemas/. /tmp/bundle/ulog-cli-${VERSION}/lib/schemas/ && \
+    cp -r vocab/.   /tmp/bundle/ulog-cli-${VERSION}/lib/vocab/
+
 # Wrapper script that runs the CLI
 RUN . /tmp/version.env && \
     mkdir -p /tmp/bundle/ulog-cli-${VERSION}/bin && \
@@ -93,8 +102,28 @@ RUN mkdir -p /lambda && pip install --no-cache-dir --target /lambda .
 
 # Include runtime data needed at execution time
 COPY schemas /lambda/schemas
-COPY vocab /lambda/vocab
-COPY rules /lambda/rules
+COPY vocab   /lambda/vocab
+COPY rules   /lambda/rules
+
+# Ensure Lambda discovers rules at cold start via sitecustomize.py
+RUN python - <<'PY'
+from pathlib import Path
+p = Path("/lambda/sitecustomize.py")
+p.write_text(
+    "import os, pathlib\n"
+    "here = pathlib.Path(__file__).resolve().parent\n"
+    "rules_dir = here / 'rules'\n"
+    "rules = rules_dir / 'rules.json'\n"
+    "os.environ.setdefault('ULOG_RULES_PATH', str(rules))\n"
+    "try:\n"
+    "    tmp_rules = pathlib.Path('/tmp') / 'rules'\n"
+    "    if not tmp_rules.exists():\n"
+    "        tmp_rules.symlink_to(rules_dir, target_is_directory=True)\n"
+    "except Exception:\n"
+    "    pass\n"
+)
+print('Wrote', p)
+PY
 
 # Deterministic ZIP
 RUN cd /lambda && \

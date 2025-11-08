@@ -46,7 +46,7 @@ tar -xzf dist/ulog-cli-*.tar.gz
 ```
 
 ### 3) Lambda ZIP
-- **Handler:** `ulog.classifier.handler.lambda_handler` (already implemented)
+- **Handler:** `ulog.lambda_adapter.handler.handler`
 - Content: code + dependencies at ZIP root (not a layer)
 - Deploy:
 ```bash
