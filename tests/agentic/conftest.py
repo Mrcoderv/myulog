@@ -43,7 +43,7 @@ def schema_validator():
         vocab_dir = repo_root / "vocab"
 
         wrapper_path = (schemas_dir / wrapper_name).resolve()
-        v0_path = (schemas_dir / "agentic" / "v0" / "step.schema.json").resolve()
+        v0_path = (schemas_dir / "agentic" / "v0" / "agentic.schema.json").resolve()
         common_path = (schemas_dir / "_common.json").resolve()
         vocab_path = (vocab_dir / "controlled_vocabulary.json").resolve()
 
@@ -70,7 +70,7 @@ def schema_validator():
         # 3) Explicit HTTP aliases (GitHub-style)
         HTTP_ROOT = "https://github.com/OmdenaAI/ULog/"
         reg = _add_resource(reg, HTTP_ROOT + "schemas/agentic.schema.json", wrapper)
-        reg = _add_resource(reg, HTTP_ROOT + "schemas/agentic/v0/step.schema.json", v0)
+        reg = _add_resource(reg, HTTP_ROOT + "schemas/agentic/v0/agentic.schema.json", v0)
         reg = _add_resource(reg, HTTP_ROOT + "schemas/_common.json", common)
         reg = _add_resource(reg, HTTP_ROOT + "vocab/controlled_vocabulary.json", vocab)
 
@@ -89,7 +89,7 @@ def schema_validator():
             HTTP_ROOT + "schemas/agentic.schema.json",
             v0.get("$id"),
             v0_path.as_uri(),
-            HTTP_ROOT + "schemas/agentic/v0/step.schema.json",
+            HTTP_ROOT + "schemas/agentic/v0/agentic.schema.json",
         ):
             reg = _add_resource(reg, urljoin(base, "../../_common.json"), common)
             reg = _add_resource(reg, urljoin(base, "../../vocab/controlled_vocabulary.json"), vocab)

@@ -59,11 +59,12 @@ def test_normalize_nested_dict_and_list_with_parse_error_provenance():
     # failed conversions keep original values
     assert out["duration"] == "bogus"
     assert out["tokens"] == "10x"
-    # good conversions:
-    assert out["child"]["duration_ms"] == 5000
-    assert out["child"]["items"][0]["latency"] == 2000
+    # good conversions (child moved to metadata since it's not a schema field):
+    child = out.get("metadata", {}).get("child", {})
+    assert child["duration_ms"] == 5000
+    assert child["items"][0]["latency"] == 2000
     # bad conversion leaves value intact in nested structure
-    assert out["child"]["items"][1]["latency"] == "bad"
+    assert child["items"][1]["latency"] == "bad"
 
     # provenance exists and ok=False due to failures
     parse = out.get("meta", {}).get("parse", {})

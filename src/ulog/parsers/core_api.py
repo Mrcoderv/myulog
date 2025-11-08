@@ -242,9 +242,52 @@ class HTTPRequestPattern(Pattern):
             # Add category and event_type
             fields["category"] = "http"
             fields["event_type"] = "http_request"
+            # Populate message with the original text
+            fields["message"] = text
             # Default level if not present
             if not fields.get("level"):
                 fields["level"] = "info"
+            return fields
+        return None
+
+
+class SimplifiedHTTPRequestPattern(Pattern):
+    """Matches simplified HTTP access logs without full uvicorn format.
+
+    Examples:
+    - GET /api/users 200 45ms
+    - POST /auth/login 401 12ms
+    - GET /health 200
+    """
+
+    pattern_id = "http_request_simplified"
+    confidence = 0.85
+
+    regex = re.compile(
+        r"^(?P<method>GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+"
+        r"(?P<endpoint>/[^\s]*)\s+"
+        r"(?P<status>\d{3})"
+        r"(?:\s+(?P<latency>\d+)ms)?$"
+    )
+
+    field_extractions = [
+        FieldExtraction("method", "action"),
+        FieldExtraction("endpoint", "endpoint"),
+        FieldExtraction("status", "http_status", transform=int),
+        FieldExtraction("latency", "response_time", transform=lambda x: int(x) if x else None),
+    ]
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        """Match simplified HTTP request pattern and extract fields."""
+        m = self.regex.search(text)
+        if m:
+            fields = self.extract_fields(m)
+            # Add category and event_type
+            fields["category"] = "http"
+            fields["event_type"] = "http_request"
+            fields["level"] = "info"
+            # Populate message with the original text
+            fields["message"] = text
             return fields
         return None
 
@@ -296,6 +339,8 @@ class PythonErrorPattern(Pattern):
         fields["level"] = "error"
         fields["category"] = "error"
         fields["event_type"] = "python_error"
+        # Populate message with the original text
+        fields["message"] = text
         if "error" not in fields:
             fields["error"] = {}
         fields["error"]["type"] = fields["error"].get("type") or "python_error"
@@ -469,6 +514,8 @@ class GenericErrorPattern(Pattern):
             fields["level"] = "error"
             fields["category"] = "error"
             fields["event_type"] = "error"
+            # Populate message with the original text
+            fields["message"] = text
 
             # Normalize error structure
             if "error" not in fields:
@@ -506,6 +553,7 @@ class CoreAPIParser(BaseParser):
             TracebackHeaderPattern(),
             # existing ones
             HTTPRequestPattern(),
+            SimplifiedHTTPRequestPattern(),
             AppRunnerPattern(),
             BuildPattern(),
             UvicornRunningSimplePattern(),

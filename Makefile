@@ -5,10 +5,11 @@ SHELL := /bin/bash
         demo.generate demo.run \
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
-        generate classify down \
+        generate normalize classify down \
         http.up http.down http.logs http.test http.smoke \
         coverage test.determinism \
-        build build.verify package clean
+        build build.verify package clean \
+		parity.check
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -33,6 +34,7 @@ help: ## Show available commands
 	@echo ""
 	@echo "Pipeline:"
 	@echo "  make generate           - create a sample log in local_pipeline/in"
+	@echo "  make normalize          - normalize/parse logs from local_pipeline/in to local_pipeline/out"
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
 	@echo ""
@@ -108,6 +110,18 @@ generate: ## Create a sample input file
 	@date > local_pipeline/in/example.log
 	@echo "hello, ulog" >> local_pipeline/in/example.log
 	@echo "Wrote local_pipeline/in/example.log"
+
+normalize: ## Normalize/parse logs from local_pipeline/in to local_pipeline/out
+	@mkdir -p local_pipeline/in local_pipeline/out
+	@for file in local_pipeline/in/*.jsonl; do \
+		if [ -f "$$file" ]; then \
+			basename=$$(basename "$$file"); \
+			echo "Normalizing $$basename..."; \
+			cat "$$file" | poetry run ulog parse > "local_pipeline/out/$${basename%.jsonl}.normalized.jsonl"; \
+			echo "  → local_pipeline/out/$${basename%.jsonl}.normalized.jsonl"; \
+		fi \
+	done
+	@echo "Normalization complete."
 
 classify: ## Run local pipeline (docker compose)
 	@cd local_pipeline && docker compose up --build --abort-on-container-exit
@@ -196,3 +210,7 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 # --- Round-trip test ---
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
+
+# --- Parity check: CLI vs local pipeline app ---
+parity.check: ## Compare CLI vs pipeline outputs for all files in local_pipeline/in/*.jsonl
+	@bash scripts/parity_check.sh
