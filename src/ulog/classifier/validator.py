@@ -66,7 +66,7 @@ class SchemaValidator:
         mapping = {
             "core_api": self.schemas_dir / "core_api" / "v0" / "core_api.schema.json",
             "llm": self.schemas_dir / "llm" / "v0" / "llm.schema.json",
-            "agentic": self.schemas_dir / "agentic" / "v0" / "step.schema.json",
+            "agentic": self.schemas_dir / "agentic" / "v0" / "agentic.schema.json",
             "cv": self.schemas_dir / "cv" / "v0" / "computer_vision.schema.json",
             "default": None,
         }

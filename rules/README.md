@@ -110,9 +110,11 @@ Aliases enable cross-schema field mapping for common patterns:
 ```json
 {
   "aliases": {
-    "@status": ["outcome", "status", "result"],
+    "@status": ["outcome", "status", "result", "response.status"],
     "@latency": ["latency_ms", "duration_ms", "ttft_ms"],
-    "@errorCode": ["http_status", "error.code", "response.status"]
+    "@errorCode": ["http_status", "error.code", "response.status_code"],
+    "@model": ["model", "model_name"],
+    "@failed": ["failed", "failure"]
   }
 }
 ```
