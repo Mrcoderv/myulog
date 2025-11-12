@@ -154,6 +154,23 @@ http.smoke: ## Start service and run smoke tests
 http.screens: ## Capture fresh screenshots into docs/screenshots/
 	@./scripts/capture_screenshots.sh
 	
+# E2E validation targets (Ticket 2.5)
+e2e: ## Run E2E validation against synthetic baseline (Ticket 2.5)
+	@mkdir -p tests/reports
+	@poetry run python tests/e2e/run_local_e2e.py \
+		--data-dir data/synthetic/baseline \
+		--labels-file data/synthetic/baseline_labels.jsonl \
+		--parsed-file data/synthetic/baseline_parsed.jsonl \
+		--report-dir tests/reports
+
+e2e.http: ## Run E2E validation using HTTP classifier service
+	@mkdir -p tests/reports
+	@poetry run python tests/e2e/run_local_e2e.py \
+		--use-http \
+		--http-host localhost \
+		--http-port 8000 \
+		--report-dir tests/reports
+
 # --- Build & Packaging ---
 build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
 	@./scripts/build.sh
