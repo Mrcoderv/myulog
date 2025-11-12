@@ -41,4 +41,6 @@ name = "ulog"
 version = "0.1.0"
 description = ""
 authors = ["Eunice Koid <koid.ernli@gmail.com>"]
+
+[tool.poetry.dependencies]
 python = ">=3.12,<3.13"
