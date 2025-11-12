@@ -1,9 +1,10 @@
 name: E2E Validation
 
+# Run on-demand (manual) and on a scheduled nightly job to avoid heavy runs on every PR.
 on:
-  pull_request:
-  push:
-    branches: [ main ]
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 2 * * *'  # daily at 02:00 UTC
 
 jobs:
   e2e:
