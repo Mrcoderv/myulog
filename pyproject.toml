@@ -35,3 +35,9 @@ uvicorn = ">=0.30"
 [tool.poetry.scripts]
 ulog = "ulog.cli:cli"
 classify = "ulog.classifier.cli:classify"
+
+[tool.poetry]
+name = "ulog"
+version = "0.1.0"
+description = ""
+authors = ["Eunice Koid <koid.ernli@gmail.com>"]
