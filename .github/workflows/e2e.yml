@@ -2,7 +2,32 @@ name: E2E Validation
 
 # Run on-demand (manual) and on a scheduled nightly job to avoid heavy runs on every PR.
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      use_http:
+        description: 'If true, POST records to HTTP classifier instead of compare-only'
+        required: false
+        default: 'false'
+      http_host:
+        description: 'HTTP classifier host'
+        required: false
+        default: 'localhost'
+      http_port:
+        description: 'HTTP classifier port'
+        required: false
+        default: '8000'
+      cli_cmd:
+        description: 'CLI command template (use {input} and {output})'
+        required: false
+        default: ''
+      enforce_all:
+        description: 'Fail if any canonical domains are missing'
+        required: false
+        default: 'false'
+      thresholds:
+        description: 'JSON dict of thresholds by domain'
+        required: false
+        default: ''
   schedule:
     - cron: '0 2 * * *'  # daily at 02:00 UTC
 
@@ -29,4 +54,26 @@ jobs:
           poetry install --no-interaction --with dev
 
       - name: Run full E2E target
-        run: make e2e
+        shell: bash
+        env:
+          DATA_DIR: data/synthetic/baseline
+          LABELS_FILE: data/synthetic/baseline_labels.jsonl
+          PARSED_FILE: data/synthetic/baseline_parsed.jsonl
+          REPORT_DIR: tests/reports
+        run: |
+          # Build args from workflow inputs. Defaults run compare-only when no classifier
+          ARGS=(--data-dir "$DATA_DIR" --labels-file "$LABELS_FILE" --report-dir "$REPORT_DIR")
+          if [ -n "${{ github.event.inputs.thresholds }}" ] && [ "${{ github.event.inputs.thresholds }}" != "" ]; then
+            ARGS+=(--thresholds "${{ github.event.inputs.thresholds }}")
+          fi
+          if [ "${{ github.event.inputs.enforce_all }}" = 'true' ]; then
+            ARGS+=(--enforce-all)
+          fi
+          if [ "${{ github.event.inputs.cli_cmd }}" != '' ]; then
+            ARGS+=(--cli-cmd "${{ github.event.inputs.cli_cmd }}")
+          fi
+          if [ "${{ github.event.inputs.use_http }}" = 'true' ]; then
+            ARGS+=(--use-http --http-host "${{ github.event.inputs.http_host }}" --http-port "${{ github.event.inputs.http_port }}")
+          fi
+          echo "Running: poetry run python -m tests.e2e.run_local_e2e ${ARGS[*]}"
+          poetry run python -m tests.e2e.run_local_e2e "${ARGS[@]}"

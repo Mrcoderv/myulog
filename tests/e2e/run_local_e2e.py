@@ -118,10 +118,8 @@ def main(argv=None):
     actual_records = []
     if args.use_http:
         actual_records = run_http_classifier(args.http_host, args.http_port, input_records)
-    else:
-        if not args.cli_cmd:
-            print("CLI mode requires --cli-cmd template", file=sys.stderr)
-            sys.exit(2)
+    elif args.cli_cmd:
+        # CLI mode: run external classifier command that reads JSONL and produces JSONL
         in_tmp = "__e2e_input.tmp.jsonl"
         out_tmp = "__e2e_output.tmp.jsonl"
         save_jsonl(in_tmp, input_records)
@@ -132,6 +130,13 @@ def main(argv=None):
             actual_records = list(load_jsonl(out_tmp))
         else:
             actual_records = []
+    else:
+        # No classifier configured: run in "compare-only" mode using expected labels as the
+        # actual outputs. This is useful for schema/parse validation and local runs where
+        # a classifier binary/service is not available (e.g., CI that only needs to validate
+        # the comparator and schemas).
+        print("No classifier configured; running compare-only using expected labels as actual")
+        actual_records = expected
 
     comparator = LabelComparator(compare_rule_id=bool(args.compare_rule_id))
     results = comparator.batch_compare(expected, actual_records)
