@@ -10,7 +10,7 @@ from llm_generator import GenerateLLMLog
 
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
-parser = argparse.ArgumentParser(description="ULog synthetic data generator")
+parser = argparse.ArgumentParser(description="ULog deterministic synthetic logs generator")
 
 parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
 parser.add_argument("-c", "--count", type=int, default=10, help="Number of samples")
@@ -161,7 +161,7 @@ if args.raw_mirror:
         with open(raw_path, "w", encoding="utf-8") as f:
             for log in logs:
                 # Use generator's timestamp if available, otherwise generate one
-                timestamp = log.get("timestamp") or generator.generate_timestamp()
+                timestamp = log.get("timestamp") or seed_ts
                 # Extract message from meta.raw_message, or fallback
                 message = log.get("meta", {}).get("raw_message", json.dumps(log))
                 raw_record = {
