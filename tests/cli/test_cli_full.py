@@ -4,6 +4,7 @@ import json
 
 from click.testing import CliRunner
 
+import ulog.classifier.normalizer_adapter as na_mod
 import ulog.cli as cli_mod
 
 
@@ -17,6 +18,7 @@ class FakeParserSuccess:
             error = None
             # Minimal data the Normalizer will pass through once we stub it
             data = {"category": "core_api", "event_type": "startup"}
+
         return R()
 
 
@@ -29,6 +31,8 @@ class FakeParserFail:
             success = False
             error = "no_pattern_match"
             data = None
+            confidence = 0.0
+
         return R()
 
 
@@ -43,10 +47,18 @@ class FakeParserBoom:
 def test_parse_success_jsonl(monkeypatch):
     runner = CliRunner()
 
-    # Route always returns our success parser
-    monkeypatch.setattr(cli_mod, "DomainRouter", lambda: type("R", (), {
-        "route": lambda self, msg, domain_hint=None: FakeParserSuccess(),
-    })())
+    # Patch DomainRouter in normalizer_adapter where it's used
+    monkeypatch.setattr(
+        na_mod,
+        "DomainRouter",
+        lambda: type(
+            "R",
+            (),
+            {
+                "route": lambda self, msg, domain_hint=None: FakeParserSuccess(),
+            },
+        )(),
+    )
 
     # Make Normalizer + Provenance trivial & deterministic
     class DummyNorm:
@@ -59,27 +71,31 @@ def test_parse_success_jsonl(monkeypatch):
             assert raw == "joined line"
             return dict(normalized)
 
-    monkeypatch.setattr(cli_mod, "Normalizer", lambda: DummyNorm())
-    monkeypatch.setattr(cli_mod, "ProvenanceTracker", lambda: DummyProv())
+    monkeypatch.setattr(na_mod, "Normalizer", lambda: DummyNorm())
 
     # Multi-line joiner path: first line opens buffer; second (continuation) flushes
-    raw = '\n'.join([
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "joined"}),
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": " line"}),  # not cont
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "  cont"}),  # continuation
-    ])
+    raw = "\n".join(
+        [
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "joined"}),
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": " line"}),  # not cont
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "  cont"}),  # continuation
+        ]
+    )
 
-    # We’ll make it “look joined” inside parse() by monkeypatching the join handling slightly:
+    # We'll make it "look joined" inside parse() by monkeypatching the join handling slightly:
     # The CLI already joins with "\n" between lines; feed a minimal pair that results in a single flush.
-    raw = '\n'.join([
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "joined line"}),
-    ])
+    raw = "\n".join(
+        [
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "joined line"}),
+        ]
+    )
 
     result = runner.invoke(cli_mod.cli, ["parse", "--format", "jsonl"], input=raw)
     assert result.exit_code == 0
     out = [json.loads(line) for line in result.output.strip().splitlines()]
     assert len(out) == 1
-    assert out[0]["category"] == "core_api"
+    # Note: _strip_classification_fields removes "category" and "event_type"
+    # Check for "normalized" field and timestamp instead
     assert out[0]["normalized"] is True
     # the CLI adds "timestamp"
     assert out[0]["timestamp"] == "2025-01-01T00:00:00Z"
@@ -89,13 +105,20 @@ def test_parse_failure_and_processing_error(monkeypatch):
     runner = CliRunner()
 
     # 1) Failure path: R.success=False
-    monkeypatch.setattr(cli_mod, "DomainRouter", lambda: type("R", (), {
-        "route": lambda self, msg, domain_hint=None: FakeParserFail(),
-    })())
+    monkeypatch.setattr(
+        na_mod,
+        "DomainRouter",
+        lambda: type(
+            "R",
+            (),
+            {
+                "route": lambda self, msg, domain_hint=None: FakeParserFail(),
+            },
+        )(),
+    )
 
     # Normalizer/Provenance won't be called, but keep them safe
-    monkeypatch.setattr(cli_mod, "Normalizer", lambda: type("N", (), {"normalize": lambda *_: {}})())
-    monkeypatch.setattr(cli_mod, "ProvenanceTracker", lambda: type("P", (), {"enrich": lambda *_: {}})())
+    monkeypatch.setattr(na_mod, "Normalizer", lambda: type("N", (), {"normalize": lambda *_: {}})())
 
     raw = json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "no-match"})
     r1 = runner.invoke(cli_mod.cli, ["parse", "--format", "jsonl"], input=raw)
@@ -105,33 +128,58 @@ def test_parse_failure_and_processing_error(monkeypatch):
     assert o1["meta"]["parse"]["ok"] is False
 
     # 2) Exception path: parser raises -> "processing_error"
-    monkeypatch.setattr(cli_mod, "DomainRouter", lambda: type("R", (), {
-        "route": lambda self, msg, domain_hint=None: FakeParserBoom(),
-    })())
+    monkeypatch.setattr(
+        na_mod,
+        "DomainRouter",
+        lambda: type(
+            "R",
+            (),
+            {
+                "route": lambda self, msg, domain_hint=None: FakeParserBoom(),
+            },
+        )(),
+    )
     r2 = runner.invoke(cli_mod.cli, ["parse", "--format", "jsonl"], input=raw)
     assert r2.exit_code == 0
     o2 = json.loads(r2.output.strip())
-    assert o2["unparsed_reason"] == "processing_error"
+    assert o2["unparsed_reason"].startswith("processing_error")
     assert o2["meta"]["parse"]["ok"] is False
-    assert "boom" in o2["meta"]["parse"]["error"]
+    assert "boom" in o2["unparsed_reason"]
 
 
 def test_parse_ignores_bad_json_and_missing_fields(monkeypatch):
     runner = CliRunner()
 
-    # Router is harmless; it should never be called because we’ll filter lines
-    monkeypatch.setattr(cli_mod, "DomainRouter", lambda: type("R", (), {
-        "route": lambda self, msg, domain_hint=None: FakeParserSuccess(),
-    })())
+    # Router is harmless; it should never be called because we'll filter lines
+    monkeypatch.setattr(
+        cli_mod,
+        "DomainRouter",
+        lambda: type(
+            "R",
+            (),
+            {
+                "route": lambda self, msg, domain_hint=None: FakeParserSuccess(),
+            },
+        )(),
+    )
 
-    # These two lines should be ignored by CLI:
+    # Test two types of malformed input:
     bad_lines = [
-        "NOT JSON",  # json decode error
-        json.dumps({"@message": "no timestamp"}),  # missing @timestamp
+        "NOT JSON",  # json decode error → silently dropped
+        json.dumps({"@message": "no timestamp"}),  # missing @timestamp → error envelope
     ]
     result = runner.invoke(cli_mod.cli, ["parse", "--format", "jsonl"], input="\n".join(bad_lines))
     assert result.exit_code == 0
-    assert result.output.strip() == ""  # no output
+
+    # NEW BEHAVIOR: Missing required fields produces an error envelope (not silent drop)
+    # Non-JSON lines are still silently dropped
+    output_lines = [line for line in result.output.strip().split("\n") if line.strip()]
+    assert len(output_lines) == 1, "Expected 1 output line (error envelope for missing @timestamp)"
+
+    output_obj = json.loads(output_lines[0])
+    assert output_obj.get("unparsed_reason") == "missing_required_fields"
+    assert output_obj.get("meta", {}).get("parse", {}).get("ok") is False
+    assert output_obj.get("meta", {}).get("parse", {}).get("error") == "missing_required_fields"
 
 
 def test_stats_table_and_json_and_thresholds(monkeypatch):
@@ -141,15 +189,18 @@ def test_stats_table_and_json_and_thresholds(monkeypatch):
     class DR:
         def detect_domain(self, msg: str):
             return "core_api"
+
         def route(self, msg: str, domain_hint=None):
             return FakeParserFail()
 
     monkeypatch.setattr(cli_mod, "DomainRouter", lambda: DR())
     # Raw stream, two records
-    raw = "\n".join([
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "S", "@message": "x"}),
-        json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "S", "@message": "y"}),
-    ])
+    raw = "\n".join(
+        [
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "S", "@message": "x"}),
+            json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "S", "@message": "y"}),
+        ]
+    )
 
     # 1) Table format (default) — thresholds: core_api default 70%, will FAIL with 0% => exit code 1
     r1 = runner.invoke(cli_mod.cli, ["stats"], input=raw)
@@ -170,10 +221,12 @@ def test_stats_handles_normalized_input(monkeypatch):
     runner = CliRunner()
 
     # A normalized record with category=llm and no failure reason should count as parsed
-    normalized = json.dumps({
-        "category": "llm",
-        "pipeline_stage": "inference",
-    })
+    normalized = json.dumps(
+        {
+            "category": "llm",
+            "pipeline_stage": "inference",
+        }
+    )
     r = runner.invoke(cli_mod.cli, ["stats"], input=normalized)
     assert r.exit_code == 0
     assert "llm" in r.output
@@ -186,6 +239,7 @@ def test_stats_keyboard_interrupt_branch(monkeypatch):
     class DR:
         def detect_domain(self, msg: str):
             return "core_api"
+
         def route(self, msg: str, domain_hint=None):
             return FakeParserFail()  # already defined earlier in the file
 
@@ -198,11 +252,7 @@ def test_stats_keyboard_interrupt_branch(monkeypatch):
     monkeypatch.setattr(cli_mod.MultiLineJoiner, "drain", _drain_raises, raising=True)
 
     # Provide a single valid line so the loop runs once
-    line = json.dumps({
-        "@timestamp": "2025-01-01T00:00:00Z",
-        "source": "S",
-        "@message": "x"
-    }) + "\n"
+    line = json.dumps({"@timestamp": "2025-01-01T00:00:00Z", "source": "S", "@message": "x"}) + "\n"
 
     runner = CliRunner()
     res = runner.invoke(cli_mod.cli, ["stats"], input=line)

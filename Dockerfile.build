@@ -1,0 +1,145 @@
+# Multi-stage Dockerfile for reproducible ULog artifact builds
+# Produces:
+#   - Python wheel
+#   - CLI bundle (portable tar.gz)
+#   - Lambda ZIP (AWS Lambda package)
+#
+# Handler path (deployment): ulog.lambda_adapter.handler.handler
+
+# ==============================================================================
+# Stage 1: Base builder (PEP 517)
+# ==============================================================================
+FROM python:3.12.7-slim-bookworm@sha256:60d9996b6a8a3689d36db740b49f4327be3be09a21122bd02fb8895abb38b50d AS base
+
+ARG SOURCE_DATE_EPOCH
+ARG PYTHONHASHSEED=0
+
+ENV SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}
+ENV PYTHONHASHSEED=${PYTHONHASHSEED}
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN pip install --no-cache-dir build
+
+WORKDIR /build
+
+# Copy project metadata and README (poetry-core build backend)
+COPY pyproject.toml poetry.lock* README.md ./
+
+# Copy source and runtime data
+COPY src ./src
+COPY schemas ./schemas
+COPY vocab ./vocab
+COPY rules ./rules
+
+# ==============================================================================
+# Stage 2: Wheel builder
+# ==============================================================================
+FROM base AS wheel-builder
+RUN python -m build --wheel --outdir /tmp/dist/
+RUN cp /tmp/dist/*.whl /
+
+FROM scratch AS wheel-export
+COPY --from=wheel-builder /tmp/dist/*.whl /
+
+# ==============================================================================
+# Stage 3: CLI bundle builder (portable tar.gz)
+# ==============================================================================
+FROM base AS cli-builder
+
+# Extract version from pyproject ([project].version)
+RUN VERSION=$(grep '^version' pyproject.toml | head -1 | cut -d'"' -f2) && echo "VERSION=${VERSION}" > /tmp/version.env
+
+RUN . /tmp/version.env && mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/python
+# Install app + deps into bundle
+RUN . /tmp/version.env && pip install --target /tmp/bundle/ulog-cli-${VERSION}/lib/python .
+
+# bundle runtime assets next to lib/python
+RUN . /tmp/version.env && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/rules && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/schemas && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/lib/vocab && \
+    cp -r rules/.   /tmp/bundle/ulog-cli-${VERSION}/lib/rules/ && \
+    cp -r schemas/. /tmp/bundle/ulog-cli-${VERSION}/lib/schemas/ && \
+    cp -r vocab/.   /tmp/bundle/ulog-cli-${VERSION}/lib/vocab/
+
+# Wrapper script that runs the CLI
+RUN . /tmp/version.env && \
+    mkdir -p /tmp/bundle/ulog-cli-${VERSION}/bin && \
+    cat > /tmp/bundle/ulog-cli-${VERSION}/bin/ulog <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="${SCRIPT_DIR}/../lib/python:${PYTHONPATH:-}"
+exec python3 -m ulog.cli "$@"
+EOF
+RUN . /tmp/version.env && chmod +x /tmp/bundle/ulog-cli-${VERSION}/bin/ulog
+
+# Deterministic tar.gz
+RUN . /tmp/version.env && \
+    tar --sort=name \
+        --mtime="@${SOURCE_DATE_EPOCH:-0}" \
+        --owner=0 --group=0 --numeric-owner \
+        -czf /ulog-cli-${VERSION}.tar.gz \
+        -C /tmp/bundle \
+        ulog-cli-${VERSION}
+
+FROM scratch AS cli-export
+COPY --from=cli-builder /ulog-cli-*.tar.gz /
+
+# ==============================================================================
+# Stage 4: Lambda package builder (ZIP)
+# ==============================================================================
+FROM base AS lambda-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
+
+# Install all runtime deps + our wheel into /lambda (function package layout)
+RUN mkdir -p /lambda && pip install --no-cache-dir --target /lambda .
+
+# Include runtime data needed at execution time
+COPY schemas /lambda/schemas
+COPY vocab   /lambda/vocab
+COPY rules   /lambda/rules
+
+# Ensure Lambda discovers rules at cold start via sitecustomize.py
+RUN python - <<'PY'
+from pathlib import Path
+p = Path("/lambda/sitecustomize.py")
+p.write_text(
+    "import os, pathlib\n"
+    "here = pathlib.Path(__file__).resolve().parent\n"
+    "rules_dir = here / 'rules'\n"
+    "rules = rules_dir / 'rules.json'\n"
+    "os.environ.setdefault('ULOG_RULES_PATH', str(rules))\n"
+    "try:\n"
+    "    tmp_rules = pathlib.Path('/tmp') / 'rules'\n"
+    "    if not tmp_rules.exists():\n"
+    "        tmp_rules.symlink_to(rules_dir, target_is_directory=True)\n"
+    "except Exception:\n"
+    "    pass\n"
+)
+print('Wrote', p)
+PY
+
+# Deterministic ZIP
+RUN cd /lambda && \
+    find . -type f -exec chmod 0644 {} \; && \
+    find . -type d -exec chmod 0755 {} \; && \
+    find . -print | sort | TZ=UTC zip -q -X -@ /classifier_lambda.zip && \
+    chmod 0644 /classifier_lambda.zip
+
+# Hard safety: enforce uncompressed size < 50MB
+RUN echo "Lambda ZIP size:" && ls -lh /classifier_lambda.zip && \
+    UNCOMPRESSED_SIZE=$(unzip -l /classifier_lambda.zip | tail -1 | awk '{print $1}') && \
+    echo "Uncompressed size: ${UNCOMPRESSED_SIZE} bytes" && \
+    if [ "${UNCOMPRESSED_SIZE}" -gt 52428800 ]; then \
+        echo "ERROR: Lambda ZIP exceeds 50MB uncompressed limit"; \
+        exit 1; \
+    fi
+
+FROM scratch AS lambda-export
+COPY --from=lambda-builder /classifier_lambda.zip /

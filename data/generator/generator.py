@@ -17,9 +17,7 @@ class GenerateLog:
     - Small helpers to build strings, timestamps, numbers
     """
 
-    def __init__(
-        self, fields: list[str], size: int, seed: int, valid_params: List[str] | None
-    ) -> None:
+    def __init__(self, fields: list[str], size: int, seed: int, valid_params: List[str] | None) -> None:
         self.fields = fields
         self.size = size
         self.seed = seed

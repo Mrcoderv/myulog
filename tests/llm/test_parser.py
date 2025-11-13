@@ -1,4 +1,5 @@
 """Tests for LLM parser."""
+
 from ulog.parsers.llm import LLMParser
 
 

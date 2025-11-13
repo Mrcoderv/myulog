@@ -1,0 +1,11 @@
+{
+  "level": "error",
+  "category": "llm",
+  "sub_category": "rate_limit",
+  "outcome": "failure",
+  "tags": ["llm", "rate_limited"],
+  "provenance": {
+    "rule_id": "llm-rate-limited",
+    "rule_index": 15
+  }
+}

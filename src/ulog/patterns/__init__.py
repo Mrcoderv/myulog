@@ -2,4 +2,4 @@
 
 from .base import FieldExtraction, Pattern
 
-__all__ = ['Pattern', 'FieldExtraction']
+__all__ = ["Pattern", "FieldExtraction"]

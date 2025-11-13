@@ -1,0 +1,6 @@
+{
+  "schema_id": "llm",
+  "pipeline_stage": "inference",
+  "ttft_ms": 1800,
+  "outcome": "success"
+}

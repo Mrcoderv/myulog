@@ -24,7 +24,7 @@ class UvicornInfoPattern(Pattern):
     confidence = 0.85
 
     # NOTE: deliberately excludes ERROR so generic_error can own plain ERROR lines.
-    regex = re.compile(r'^(?P<level>INFO|WARNING|DEBUG):\s+(?P<message>.+)$')
+    regex = re.compile(r"^(?P<level>INFO|WARNING|DEBUG):\s+(?P<message>.+)$")
 
     field_extractions = [
         FieldExtraction("level", "level", transform=lambda x: x.lower() if x else None),
@@ -90,10 +90,7 @@ class HealthCheckPattern(Pattern):
     pattern_id = "health_check"
     confidence = 0.90
 
-    regex = re.compile(
-        r'^(?P<message>(?:Health|Readiness|Liveness) check.*|Performing health check.*)$',
-        re.IGNORECASE
-    )
+    regex = re.compile(r"^(?P<message>(?:Health|Readiness|Liveness) check.*|Performing health check.*)$", re.IGNORECASE)
 
     field_extractions = [
         FieldExtraction("message", "message"),
@@ -141,10 +138,10 @@ class CLIUsagePattern(Pattern):
     pattern_id = "cli_usage"
     confidence = 0.85
 
-    usage_re = re.compile(r'^Usage:\s+(?P<command>\S[^\s]*)', re.IGNORECASE)
+    usage_re = re.compile(r"^Usage:\s+(?P<command>\S[^\s]*)", re.IGNORECASE)
     try_re = re.compile(r"^Try\s+'(?P<command>[^']+)'\s+for help\.", re.IGNORECASE)
     # IMPORTANT: case-sensitive on purpose; do NOT match all-caps 'ERROR:' which should be generic_error.
-    err_re = re.compile(r'^Error:\s+(?P<errmsg>.+)$')  # case-sensitive
+    err_re = re.compile(r"^Error:\s+(?P<errmsg>.+)$")  # case-sensitive
 
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         # Never claim uppercase 'ERROR:' lines; they belong to generic_error.
@@ -188,7 +185,7 @@ class TracebackHeaderPattern(Pattern):
     pattern_id = "stacktrace_header"
     confidence = 0.80
 
-    regex = re.compile(r'^Traceback\s+\(most recent call last\):$')
+    regex = re.compile(r"^Traceback\s+\(most recent call last\):$")
 
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         if not self.regex.search(text):
@@ -207,25 +204,25 @@ class TracebackHeaderPattern(Pattern):
 
 class HTTPRequestPattern(Pattern):
     """Matches uvicorn HTTP request logs.
-    
+
     Examples:
     - INFO:     10.0.0.2:35466 - "GET /endpoint HTTP/1.1" 200 OK
     - 127.0.0.1:48342 - "GET / HTTP/1.1" 200 OK
     """
-    
+
     pattern_id = "http_request_uvicorn"
     confidence = 0.95
-    
+
     regex = re.compile(
-        r'(?:(?P<level>INFO|WARNING|ERROR|DEBUG):\s+)?'
-        r'(?P<ip>[\d.]+):(?P<port>\d+)\s+-\s+'
+        r"(?:(?P<level>INFO|WARNING|ERROR|DEBUG):\s+)?"
+        r"(?P<ip>[\d.]+):(?P<port>\d+)\s+-\s+"
         r'"(?P<method>GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+'
-        r'(?P<endpoint>[^\s]+)\s+'
+        r"(?P<endpoint>[^\s]+)\s+"
         r'HTTP/(?P<http_version>[\d.]+)"\s+'
-        r'(?P<status>\d{3})\s*'
-        r'(?P<status_text>.*)?'
+        r"(?P<status>\d{3})\s*"
+        r"(?P<status_text>.*)?"
     )
-    
+
     field_extractions = [
         FieldExtraction("level", "level", transform=lambda x: x.lower() if x else None),
         FieldExtraction("ip", "client_ip"),
@@ -236,7 +233,7 @@ class HTTPRequestPattern(Pattern):
         FieldExtraction("status", "http_status", transform=int),
         FieldExtraction("status_text", "status_text"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match HTTP request pattern and extract fields."""
         m = self.regex.search(text)
@@ -245,9 +242,52 @@ class HTTPRequestPattern(Pattern):
             # Add category and event_type
             fields["category"] = "http"
             fields["event_type"] = "http_request"
+            # Populate message with the original text
+            fields["message"] = text
             # Default level if not present
             if not fields.get("level"):
                 fields["level"] = "info"
+            return fields
+        return None
+
+
+class SimplifiedHTTPRequestPattern(Pattern):
+    """Matches simplified HTTP access logs without full uvicorn format.
+
+    Examples:
+    - GET /api/users 200 45ms
+    - POST /auth/login 401 12ms
+    - GET /health 200
+    """
+
+    pattern_id = "http_request_simplified"
+    confidence = 0.85
+
+    regex = re.compile(
+        r"^(?P<method>GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+"
+        r"(?P<endpoint>/[^\s]*)\s+"
+        r"(?P<status>\d{3})"
+        r"(?:\s+(?P<latency>\d+)ms)?$"
+    )
+
+    field_extractions = [
+        FieldExtraction("method", "action"),
+        FieldExtraction("endpoint", "endpoint"),
+        FieldExtraction("status", "http_status", transform=int),
+        FieldExtraction("latency", "response_time", transform=lambda x: int(x) if x else None),
+    ]
+
+    def match(self, text: str) -> Optional[Dict[str, Any]]:
+        """Match simplified HTTP request pattern and extract fields."""
+        m = self.regex.search(text)
+        if m:
+            fields = self.extract_fields(m)
+            # Add category and event_type
+            fields["category"] = "http"
+            fields["event_type"] = "http_request"
+            fields["level"] = "info"
+            # Populate message with the original text
+            fields["message"] = text
             return fields
         return None
 
@@ -258,9 +298,7 @@ class UvicornRunningSimplePattern(Pattern):
     pattern_id = "uvicorn_running_simple"
     confidence = 0.90
 
-    regex = re.compile(
-        r'^Uvicorn running on http://(?P<host>[^:]+):(?P<port>\d+)\b.*', re.IGNORECASE
-    )
+    regex = re.compile(r"^Uvicorn running on http://(?P<host>[^:]+):(?P<port>\d+)\b.*", re.IGNORECASE)
 
     field_extractions = [
         FieldExtraction("host", "host"),
@@ -286,9 +324,7 @@ class PythonErrorPattern(Pattern):
     pattern_id = "python_error"
     confidence = 0.80
 
-    regex = re.compile(
-        r'^(?P<python_path>/[^:]+python[0-9.]*)\s*:\s*(?P<error>.+)$'
-    )
+    regex = re.compile(r"^(?P<python_path>/[^:]+python[0-9.]*)\s*:\s*(?P<error>.+)$")
 
     field_extractions = [
         FieldExtraction("python_path", "python_path"),
@@ -303,6 +339,8 @@ class PythonErrorPattern(Pattern):
         fields["level"] = "error"
         fields["category"] = "error"
         fields["event_type"] = "python_error"
+        # Populate message with the original text
+        fields["message"] = text
         if "error" not in fields:
             fields["error"] = {}
         fields["error"]["type"] = fields["error"].get("type") or "python_error"
@@ -315,9 +353,7 @@ class StacktraceLinePattern(Pattern):
     pattern_id = "stacktrace_line"
     confidence = 0.75
 
-    regex = re.compile(
-        r'^\s*File\s+"(?P<file>[^"]+)",\s+line\s+(?P<line>\d+),\s+in\s+(?P<function>.+)$'
-    )
+    regex = re.compile(r'^\s*File\s+"(?P<file>[^"]+)",\s+line\s+(?P<line>\d+),\s+in\s+(?P<function>.+)$')
 
     field_extractions = [
         FieldExtraction("file", "error.file"),
@@ -343,19 +379,19 @@ class StacktraceLinePattern(Pattern):
 
 class AppRunnerPattern(Pattern):
     """Matches AWS AppRunner service logs.
-    
+
     Example: [AppRunner] Deployment Artifact: [Repo Type: Source], [Repository: ...]
     """
-    
+
     pattern_id = "apprunner_event"
     confidence = 0.90
-    
-    regex = re.compile(r'\[AppRunner\]\s+(?P<message>.+)')
-    
+
+    regex = re.compile(r"\[AppRunner\]\s+(?P<message>.+)")
+
     field_extractions = [
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match AppRunner pattern and extract fields."""
         m = self.regex.search(text)
@@ -363,7 +399,7 @@ class AppRunnerPattern(Pattern):
             fields = self.extract_fields(m)
             fields["service"] = "AppRunner"
             fields["category"] = "service"
-            
+
             # Determine event type from message content
             message = fields["message"]
             if "Deployment Artifact" in message:
@@ -375,14 +411,14 @@ class AppRunnerPattern(Pattern):
             elif "stopped or failed to start" in message:
                 fields["event_type"] = "service_failure"
                 # Extract exit code if present
-                exit_code_match = re.search(r'exit code:\s*(\d+)', message)
+                exit_code_match = re.search(r"exit code:\s*(\d+)", message)
                 if exit_code_match:
                     fields["exit_code"] = int(exit_code_match.group(1))
             elif "pipeline" in message.lower():
                 fields["event_type"] = "pipeline_event"
             else:
                 fields["event_type"] = "apprunner_event"
-            
+
             # Determine level based on content
             if "failed" in message.lower() or "error" in message.lower():
                 fields["level"] = "error"
@@ -390,26 +426,26 @@ class AppRunnerPattern(Pattern):
                 fields["level"] = "warning"
             else:
                 fields["level"] = "info"
-            
+
             return fields
         return None
 
 
 class BuildPattern(Pattern):
     """Matches build/dependency installation logs.
-    
+
     Example: [Build] Downloading uvicorn-0.23.2-py3-none-any.whl (59 kB)
     """
-    
+
     pattern_id = "build_event"
     confidence = 0.90
-    
-    regex = re.compile(r'\[Build\]\s+(?P<message>.+)')
-    
+
+    regex = re.compile(r"\[Build\]\s+(?P<message>.+)")
+
     field_extractions = [
         FieldExtraction("message", "message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match Build pattern and extract fields."""
         m = self.regex.search(text)
@@ -417,9 +453,9 @@ class BuildPattern(Pattern):
             fields = self.extract_fields(m)
             fields["service"] = "Build"
             fields["category"] = "build"
-            
+
             message = fields["message"]
-            
+
             # Determine level from message content
             if "ERROR" in message:
                 fields["level"] = "error"
@@ -429,47 +465,47 @@ class BuildPattern(Pattern):
                 fields["event_type"] = "build_warning"
             else:
                 fields["level"] = "info"
-                
+
                 # Determine event type
                 if "Downloading" in message:
                     fields["event_type"] = "dependency_download"
                     # Extract package name (before version number)
-                    pkg_match = re.search(r'Downloading\s+([\w\-]+?)(?:-\d|\s)', message)
+                    pkg_match = re.search(r"Downloading\s+([\w\-]+?)(?:-\d|\s)", message)
                     if pkg_match:
                         fields["package_name"] = pkg_match.group(1)
                 elif "Installing" in message:
                     fields["event_type"] = "dependency_install"
                 else:
                     fields["event_type"] = "build_event"
-            
+
             return fields
         return None
 
 
 class GenericErrorPattern(Pattern):
     """Matches generic error messages.
-    
+
     Examples:
     - ERROR: No matching distribution found for orjson
     - SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
     """
-    
+
     pattern_id = "generic_error"
     confidence = 0.70
-    
+
     # Match various error formats
     regex = re.compile(
-        r'(?:(?P<error_type>\w+Error|ERROR|Exception):\s*(?P<error_message>.+)|'
-        r'(?P<plain_error>.+(?:error|failed|exception).+))',
-        re.IGNORECASE
+        r"(?:(?P<error_type>\w+Error|ERROR|Exception):\s*(?P<error_message>.+)|"
+        r"(?P<plain_error>.+(?:error|failed|exception).+))",
+        re.IGNORECASE,
     )
-    
+
     field_extractions = [
         FieldExtraction("error_type", "error.type"),
         FieldExtraction("error_message", "error.message"),
         FieldExtraction("plain_error", "error.message"),
     ]
-    
+
     def match(self, text: str) -> Optional[Dict[str, Any]]:
         """Match error pattern and extract fields."""
         m = self.regex.search(text)
@@ -478,33 +514,35 @@ class GenericErrorPattern(Pattern):
             fields["level"] = "error"
             fields["category"] = "error"
             fields["event_type"] = "error"
-            
+            # Populate message with the original text
+            fields["message"] = text
+
             # Normalize error structure
             if "error" not in fields:
                 fields["error"] = {}
-            
+
             # Ensure error.type is set
             if not fields["error"].get("type"):
                 fields["error"]["type"] = "generic_error"
-            
+
             # Ensure error.message is set (use plain_error if error_message is None)
             if not fields["error"].get("message"):
                 # If we have plain_error, use the full text
                 fields["error"]["message"] = text
-            
+
             return fields
         return None
 
 
 class CoreAPIParser(BaseParser):
     """Parser for Core/API domain logs.
-    
+
     Handles HTTP requests, AppRunner events, Build logs, and generic errors.
     """
-    
+
     parser_name = "core_api_parser"
     parser_version = "1.0.0"
-    
+
     def __init__(self):
         """Initialize parser with patterns."""
         self.patterns: List[Pattern] = [
@@ -513,9 +551,9 @@ class CoreAPIParser(BaseParser):
             HealthCheckPattern(),
             CLIUsagePattern(),
             TracebackHeaderPattern(),
-
             # existing ones
             HTTPRequestPattern(),
+            SimplifiedHTTPRequestPattern(),
             AppRunnerPattern(),
             BuildPattern(),
             UvicornRunningSimplePattern(),
@@ -523,13 +561,13 @@ class CoreAPIParser(BaseParser):
             StacktraceLinePattern(),
             GenericErrorPattern(),
         ]
-    
+
     def parse(self, raw_message: str) -> ParseResult:
         """Parse a Core/API log message.
-        
+
         Args:
             raw_message: Raw log message text
-            
+
         Returns:
             ParseResult with extracted data or error
         """
@@ -537,7 +575,7 @@ class CoreAPIParser(BaseParser):
         best_match = None
         best_confidence = 0.0
         best_pattern_id = None
-        
+
         for pattern in self.patterns:
             result = pattern.match(raw_message)
             if result is not None:
@@ -545,7 +583,7 @@ class CoreAPIParser(BaseParser):
                     best_match = result
                     best_confidence = pattern.confidence
                     best_pattern_id = pattern.pattern_id
-        
+
         if best_match is not None:
             return ParseResult(
                 success=True,
@@ -553,7 +591,7 @@ class CoreAPIParser(BaseParser):
                 pattern_id=best_pattern_id,
                 confidence=best_confidence,
                 error=None,
-                unparsed_reason=None
+                unparsed_reason=None,
             )
         else:
             return ParseResult(
@@ -562,9 +600,9 @@ class CoreAPIParser(BaseParser):
                 pattern_id=None,
                 confidence=0.0,
                 error="no_pattern_match",
-                unparsed_reason="no_pattern_match"
+                unparsed_reason="no_pattern_match",
             )
-    
+
     def get_patterns(self) -> List[Pattern]:
         """
         Return only the 4 canonical patterns expected by the tests.

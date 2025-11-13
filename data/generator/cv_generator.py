@@ -50,8 +50,7 @@ class GenerateCVLog(GenerateLog):
         metrics["f1_score"] = round(2 * p * r / (p + r + 1e-6), 4)
         metrics["iou"] = round(
             min(
-                (metrics["f1_score"] + metrics["recall"]) / 2
-                + self.generate_float(-0.05, 0.05),
+                (metrics["f1_score"] + metrics["recall"]) / 2 + self.generate_float(-0.05, 0.05),
                 1,
             ),
             4,
@@ -62,8 +61,7 @@ class GenerateCVLog(GenerateLog):
         )
         metrics["ap"] = round(
             min(
-                (metrics["precision"] + metrics["recall"]) / 2
-                + self.generate_float(-0.05, 0.05),
+                (metrics["precision"] + metrics["recall"]) / 2 + self.generate_float(-0.05, 0.05),
                 1,
             ),
             4,

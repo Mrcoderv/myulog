@@ -5,8 +5,11 @@ SHELL := /bin/bash
         demo.generate demo.run \
         lint-vocab format-vocab \
         rules.validate rules.test rules.check \
-        generate classify down \
-        coverage test.determinism
+        generate normalize classify down \
+        http.up http.down http.logs http.test http.smoke \
+        coverage test.determinism \
+        build build.verify package clean \
+		parity.check
 
 help: ## Show available commands
 	@echo "Common commands:"
@@ -32,8 +35,21 @@ help: ## Show available commands
 	@echo ""
 	@echo "Pipeline:"
 	@echo "  make generate           - create a sample log in local_pipeline/in"
+	@echo "  make normalize          - normalize/parse logs from local_pipeline/in to local_pipeline/out"
 	@echo "  make classify           - run docker-compose pipeline (in -> out)"
 	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo ""
+	@echo "HTTP Service:"
+	@echo "  make http.up            - start HTTP classifier service"
+	@echo "  make http.down          - stop HTTP classifier service"
+	@echo "  make http.logs          - view HTTP service logs"
+	@echo "  make http.test          - run smoke tests against HTTP service"
+	@echo "  make http.smoke         - start service and run smoke tests"
+	@echo "Build & Packaging:"
+	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
+	@echo "  make package            - alias for 'make build' (produces dist/* + SHA256SUMS)"
+	@echo "  make clean              - remove ./dist (no Docker pruning)"
 	@echo ""
 	@echo "Vocabulary:"
 	@echo "  make lint-vocab         - lint the controlled vocabulary"
@@ -102,11 +118,60 @@ generate: ## Create a sample input file
 	@echo "hello, ulog" >> local_pipeline/in/example.log
 	@echo "Wrote local_pipeline/in/example.log"
 
+normalize: ## Normalize/parse logs from local_pipeline/in to local_pipeline/out
+	@mkdir -p local_pipeline/in local_pipeline/out
+	@for file in local_pipeline/in/*.jsonl; do \
+		if [ -f "$$file" ]; then \
+			basename=$$(basename "$$file"); \
+			echo "Normalizing $$basename..."; \
+			cat "$$file" | poetry run ulog parse > "local_pipeline/out/$${basename%.jsonl}.normalized.jsonl"; \
+			echo "  → local_pipeline/out/$${basename%.jsonl}.normalized.jsonl"; \
+		fi \
+	done
+	@echo "Normalization complete."
+
 classify: ## Run local pipeline (docker compose)
 	@cd local_pipeline && docker compose up --build --abort-on-container-exit
 
 down: ## Stop services and remove containers
 	@cd local_pipeline && docker compose down --remove-orphans
+
+# --- HTTP Service ---
+http.up: ## Start HTTP classifier service
+	@cd local_pipeline && docker compose up -d classifier-http
+	@echo "HTTP service starting at http://localhost:$${PORT:-8080}"
+	@echo "Health: curl http://localhost:$${PORT:-8080}/health"
+
+http.down: ## Stop HTTP classifier service
+	@cd local_pipeline && (docker compose stop classifier-http || true)
+	@cd local_pipeline && (docker compose rm -f classifier-http || true)
+
+http.logs: ## View HTTP service logs
+	@cd local_pipeline && docker compose logs -f classifier-http
+
+http.test: ## Run smoke tests against HTTP service
+	@./scripts/smoke_http.sh "http://localhost:$${PORT:-8080}"
+
+http.smoke: ## Start service and run smoke tests
+	@$(MAKE) http.up
+	@echo "Waiting for service..."
+	@bash -c 'for i in $$(seq 1 30); do curl -fsS http://localhost:$${PORT:-8080}/health >/dev/null && exit 0; sleep 1; done; exit 1'
+	@$(MAKE) http.test
+
+http.screens: ## Capture fresh screenshots into docs/screenshots/
+	@./scripts/capture_screenshots.sh
+	
+# --- Build & Packaging ---
+build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)
+	@./scripts/build.sh
+
+build.verify: ## Verify build reproducibility (two clean builds → identical checksums)
+	@./scripts/verify_reproducible_build.sh
+
+package: build ## Alias for build (produces dist/* + SHA256SUMS)
+
+clean: ## Remove local build artifacts
+	@rm -rf dist/
 
 # --- Vocabulary helpers ---
 lint-vocab:
@@ -121,7 +186,10 @@ rules.validate: ## Validate rules.json against rules.schema.json
 
 rules.test: ## Run unit tests for rules examples
 	@echo "Testing rules against examples..."
+	# Legacy location (may be empty)
 	@poetry run pytest -q tests/rules/test_rules_examples.py
+	# New acceptance tests for Ticket 2.1 (structure + rules/examples)
+	@poetry run pytest -q tests/rules/test_rules.py
 
 rules.check: ## Run both rules validation and tests
 	@$(MAKE) rules.validate
@@ -149,3 +217,7 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 # --- Round-trip test ---
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
+
+# --- Parity check: CLI vs local pipeline app ---
+parity.check: ## Compare CLI vs pipeline outputs for all files in local_pipeline/in/*.jsonl
+	@bash scripts/parity_check.sh

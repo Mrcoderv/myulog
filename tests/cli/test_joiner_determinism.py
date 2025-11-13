@@ -3,9 +3,9 @@ from ulog.cli import MultiLineJoiner
 
 def test_joiner_deduplicates_and_orders_by_stream_key():
     j = MultiLineJoiner()
-    a = {"@timestamp":"2025-01-01T00:00:00Z","source":"A","@message":"line1"}
-    b = {"@timestamp":"2025-01-01T00:00:00Z","source":"A","@message":"  cont"}
-    c = {"@timestamp":"2025-01-01T00:00:00Z","source":"B","@message":"x"}
+    a = {"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "line1"}
+    b = {"@timestamp": "2025-01-01T00:00:00Z", "source": "A", "@message": "  cont"}
+    c = {"@timestamp": "2025-01-01T00:00:00Z", "source": "B", "@message": "x"}
     # feed mixed order
     assert j.feed(a)[0] is None
     assert j.feed(c)[0] is None

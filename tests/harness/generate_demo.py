@@ -44,9 +44,7 @@ def write(path: Path, content: str, force: bool = False):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate demo schema, examples, and raw inputs for the test harness"
-    )
+    parser = argparse.ArgumentParser(description="Generate demo schema, examples, and raw inputs for the test harness")
     parser.add_argument(
         "--force",
         action="store_true",
@@ -111,10 +109,7 @@ def main():
         sys.exit(1)
 
     if files_written > 0:
-        print(
-            "Demo schema and examples generated under schemas/demo, "
-            "tests/examples/demo and tests/raw/demo"
-        )
+        print("Demo schema and examples generated under schemas/demo, tests/examples/demo and tests/raw/demo")
     else:
         print("All files already exist. Use --force to overwrite.")
 

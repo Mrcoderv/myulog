@@ -91,9 +91,7 @@ class AgenticGenerator(GenerateLog):
             }
 
             if log_entry["status"] in ["failed", "timeout"]:
-                log_entry["error"] = {
-                    "message": self.select_enum(self.messages[log_entry["status"]])
-                }
+                log_entry["error"] = {"message": self.select_enum(self.messages[log_entry["status"]])}
             if self.input_params:
                 log_entry = self.generate_option_params(log_entry)
             logs.append(log_entry)
