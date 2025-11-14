@@ -96,7 +96,6 @@ test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) test.schemas.json
 	@$(MAKE) test.determinism
 	@$(MAKE) test.determinism.golden
-	@$(MAKE) test.determinism.golden
 
 coverage: ## Run tests with coverage and generate docs/coverage.svg
 	@mkdir -p docs

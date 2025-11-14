@@ -27,6 +27,23 @@ make test.determinism
 
 The test runs the full pipeline twice on the golden set and performs byte-level comparison of all outputs.
 
+### Regenerating Golden Outputs
+
+If you need to regenerate the golden outputs (e.g., after fixing a parser or updating the pipeline):
+
+```bash
+# Run the regeneration script
+python tests/determinism/regenerate_golden_outputs.py
+```
+
+This script:
+
+1. Runs the full pipeline twice on the golden raw events
+2. Verifies that both runs produce byte-identical outputs
+3. Saves the output to `tests/determinism/outputs/golden_parsed_outputs.jsonl`
+
+**Important**: Only regenerate golden outputs when intentionally updating the pipeline behavior. The golden set should remain stable for regression testing.
+
 ## Common Nondeterminism Causes
 
 ### 1. Dictionary Ordering

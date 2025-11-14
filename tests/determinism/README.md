@@ -14,6 +14,7 @@ tests/determinism/
 ├── TROUBLESHOOTING.md                  # Common nondeterminism issues
 ├── test_golden_determinism.py          # Two-pass determinism test
 ├── comparator.py                       # ByteComparator for diff analysis
+├── regenerate_golden_outputs.py        # Rebuilds golden outputs (two-pass determinism check)
 ├── verify_golden_set.py                # Golden set validation
 ├── inputs/
 │   └── golden_raw_events.jsonl         # 134 raw events
@@ -56,7 +57,7 @@ Raw JSONL events with `@timestamp` and `@message` fields. This is the input to t
 
 ### outputs/golden_parsed_outputs.jsonl
 
-Parsed and normalized output from `ulog parse`. Contains 131 events (5 parse failures expected).
+Full pipeline output (parse → validate → classify). Includes validation metadata and classification/provenance fields. The event count should match what the regeneration script prints (e.g., 131).
 
 **Format:**
 
@@ -76,9 +77,10 @@ Parsed and normalized output from `ulog parse`. Contains 131 events (5 parse fai
 ### Generating Golden Outputs
 
 ```bash
-# Parse raw inputs (already done)
-poetry run python -m ulog.cli parse < tests/determinism/inputs/golden_raw_events.jsonl > tests/determinism/outputs/golden_parsed_outputs.jsonl
+poetry run python tests/determinism/regenerate_golden_outputs.py
 ```
+
+This runs the full pipeline twice, verifies byte-identical outputs, and writes the golden file to tests/determinism/outputsgolden_parsed_outputs.jsonl.
 
 ### Verifying Golden Set Integrity
 
