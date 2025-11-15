@@ -148,6 +148,11 @@ jobs:
               with:
                   name: rules-unit-test-results
                   path: tests/reports/rules_unit_results.*
+            
+            # --- Determinism test ---
+
+            - name: Run golden set determinism test
+              run: make test.determinism.golden
 
     export-requirements:
         runs-on: ubuntu-latest

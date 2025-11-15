@@ -22,6 +22,7 @@ help: ## Show available commands
 	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
 	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
 	@echo "  make test.determinism - run determinism tests for data generators"
+	@echo "  make test.determinism.golden - run golden set determinism tests"
 	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
@@ -93,6 +94,10 @@ test.schemas.json: ## Run JSON Schema test harness with two-phase flow (writes J
 test.determinism: ## Run determinism tests for data generators
 	@poetry run pytest -q data/generator/test_determinism.py
 
+test.determinism.golden: ## Run golden set determinism tests
+	@echo "Running golden set determinism tests..."
+	@poetry run pytest tests/determinism/test_golden_determinism.py -v
+
 
 test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) lint
@@ -101,6 +106,7 @@ test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) test.schemas
 	@$(MAKE) test.schemas.json
 	@$(MAKE) test.determinism
+	@$(MAKE) test.determinism.golden
 
 coverage: ## Run tests with coverage and generate docs/coverage.svg
 	@mkdir -p docs

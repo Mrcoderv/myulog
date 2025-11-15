@@ -1029,6 +1029,64 @@ uvicorn ulog.classifier.http:app --ssl-keyfile key.pem --ssl-certfile cert.pem
    - Use multiple workers with uvicorn: `--workers 4`
    - Consider batch processing for large volumes
 
+## Determinism & Non-Determinism
+
+The ULog classifier is designed to produce **byte-identical outputs** for identical inputs across multiple runs. Deterministic behavior is critical for reproducible testing, reliable debugging, and stable golden sets.
+
+### Why Determinism Matters
+
+- **Reproducible Testing**: Tests must pass or fail consistently
+- **Debugging**: Issues must be reproducible to diagnose and fix
+- **Reliability**: Production systems must behave predictably
+- **Validation**: Golden sets must remain stable for regression testing
+
+### Common Sources of Non-Determinism
+
+The classifier guards against these common sources of non-deterministic behavior:
+
+1. **Dictionary Ordering**: All JSON output uses `sort_keys=True` for consistent field ordering
+2. **Floating-Point Formatting**: Numeric values use consistent precision formatting
+3. **Timestamp Generation**: No `datetime.now()` or `time.time()` calls during processing; only input timestamps are used
+4. **Unordered Iteration**: All dict/set iterations are sorted before processing
+5. **Random/UUID Generation**: No random values or UUIDs generated during processing; IDs are deterministic based on content
+6. **Rule Evaluation Order**: Rules are evaluated in explicit priority order with first-match-wins semantics
+
+### Testing Determinism
+
+The determinism test suite validates that the complete pipeline (raw → parse → validate → classify) produces identical outputs:
+
+```bash
+# Run determinism tests
+pytest tests/determinism/test_golden_determinism.py -v
+
+# Or use make target
+make test.determinism.golden
+```
+
+### Troubleshooting Non-Determinism
+
+If you encounter non-deterministic behavior or the determinism tests fail, consult the detailed troubleshooting guide:
+
+**[tests/determinism/TROUBLESHOOTING.md](../../../tests/determinism/TROUBLESHOOTING.md)**
+
+This guide provides:
+
+- Detailed explanations of each non-determinism cause
+- Code examples showing problems and fixes
+- Step-by-step debugging workflow
+- Best practices for maintaining determinism
+
+### Design Guidelines
+
+When adding new features to the classifier:
+
+- **Use deterministic data structures**: Sort collections before iteration
+- **Avoid timestamp generation**: Use only input timestamps
+- **No random values**: Generate IDs deterministically from content
+- **Consistent formatting**: Use explicit precision for floats
+- **Explicit ordering**: Document and enforce rule evaluation order
+- **Test early**: Run determinism tests during development
+
 ## Contributing
 
 When contributing to the classifier:
@@ -1037,7 +1095,7 @@ When contributing to the classifier:
 2. **Add tests**: Include unit tests for new features
 3. **Update documentation**: Keep README and examples current
 4. **Preserve provenance**: Ensure `meta.parse.pattern_id` and `provenance.parser_rule_id` are maintained
-5. **Test determinism**: Verify same input produces same output
+5. **Test determinism**: Verify same input produces same output (see Determinism section above)
 
 ## License
 
