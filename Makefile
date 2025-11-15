@@ -17,6 +17,7 @@ help: ## Show available commands
 	@echo "Testing:"
 	@echo "  make lint        - run ruff lint locally (poetry run)"
 	@echo "  make test        - run pytest locally (poetry run)"
+	@echo "  make test.unit   - run unit tests for rules and provenance"
 	@echo "  make coverage    - run tests with coverage and write docs/coverage.svg"
 	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
 	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
@@ -75,6 +76,15 @@ lint: ## Lint with ruff
 test: ## Run tests
 	@poetry run pytest -q
 
+test.unit: ## Run unit tests for rules and provenance
+	@mkdir -p tests/reports
+	@poetry run pytest tests/unit/ -v --tb=short \
+	--junit-xml=tests/reports/rules_unit_results.xml \
+	--json-report \
+	--json-report-file=tests/reports/rules_unit_results.json \
+	--json-report-indent=2
+	@echo "Unit test results: tests/reports/rules_unit_results.xml and tests/reports/rules_unit_results.json"
+
 test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit XML to tests/reports/)
 	@poetry run python tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
 
@@ -92,6 +102,7 @@ test.determinism.golden: ## Run golden set determinism tests
 test.all: ## Run all checks: lint, unit tests, and schema harness (CI parity)
 	@$(MAKE) lint
 	@$(MAKE) test
+	@$(MAKE) test.unit
 	@$(MAKE) test.schemas
 	@$(MAKE) test.schemas.json
 	@$(MAKE) test.determinism
