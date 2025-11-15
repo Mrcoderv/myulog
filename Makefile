@@ -78,11 +78,11 @@ test: ## Run tests
 test.unit: ## Run unit tests for rules and provenance
 	@mkdir -p tests/reports
 	@poetry run pytest tests/unit/ -v --tb=short \
-		--junit-xml=tests/reports/rules_unit_results.xml \
-		--json-report --json-report-file=tests/reports/rules_unit_results.json \
-        --json-report-indent=2
-
-	@echo "Unit test results: tests/reports/rules_unit_results.xml and .json"
+	--junit-xml=tests/reports/rules_unit_results.xml \
+	--json-report \
+	--json-report-file=tests/reports/rules_unit_results.json \
+	--json-report-indent=2
+	@echo "Unit test results: tests/reports/rules_unit_results.xml and tests/reports/rules_unit_results.json"
 
 test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit XML to tests/reports/)
 	@poetry run python tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
