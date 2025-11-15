@@ -132,6 +132,11 @@ jobs:
             - name: Run round-trip test (synthetic raw ↔ normalized)
               run: make test.roundtrip
 
+            # --- Determinism test ---
+
+            - name: Run golden set determinism test
+              run: make test.determinism.golden
+
     export-requirements:
         runs-on: ubuntu-latest
         needs: [lint-and-test]
