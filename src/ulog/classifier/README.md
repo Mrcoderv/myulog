@@ -1067,7 +1067,7 @@ make test.determinism.golden
 
 If you encounter non-deterministic behavior or the determinism tests fail, consult the detailed troubleshooting guide:
 
-**[tests/determinism/TROUBLESHOOTING.md](../../tests/determinism/TROUBLESHOOTING.md)**
+**[tests/determinism/TROUBLESHOOTING.md](../../../tests/determinism/TROUBLESHOOTING.md)**
 
 This guide provides:
 
