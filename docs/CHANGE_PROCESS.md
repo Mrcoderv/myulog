@@ -32,6 +32,23 @@ Applies to changes under `/schemas`, `/rules`, `/vocab`, and related docs.
   - Update `/docs/DECISIONS_LOG.md` with the decision ID (PR number).
   - When ready to publish a batch, create a tag (e.g., `schemas-v1.2.0`) and draft release notes using `/docs/RELEASE_NOTES_TEMPLATE.md`.
 
+## Contracts release checklist (v1.x)
+
+For schema and vocabulary freezes (e.g., `contracts-v1.0.0`), follow the dedicated checklist:
+
+- See [`docs/RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md) for the step-by-step process:
+  - Pre-flight and CI checks
+  - Contract verification across schemas and `_common.json`
+  - Documentation and release notes
+  - Sign-offs and decision log updates
+  - Tagging and announcements
+
+Any contracts release **must**:
+
+1. Keep `main` green (schema harness + vocab lint).
+2. Record a decision in `docs/DECISIONS_LOG.md`.
+3. Create or update a tag following `docs/VERSIONING.md` (e.g., `contracts-v1.0.0`).
+
 ### Example (schema addition)
 
 - Intent: Add optional `client_version` to LLM schema to help debug.
