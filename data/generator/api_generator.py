@@ -20,6 +20,7 @@ class GenerateAPILog(GenerateLog):
         self.outcomes = self.load_from_vocab(["outcomes"])[0]
 
         # --- API definitions ---
+        self.param_dict = {}
         self.actions = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "INTERNAL"]
         self.statuses = ["success", "error", "timeout", "rejected", "throttled"]
         self.env = ["production", "staging", "development", "test", "local"]
@@ -52,8 +53,14 @@ class GenerateAPILog(GenerateLog):
             "/api/v1/resource/2/action",
             "/api/v1/auth/login",
             "/api/v1/auth/logout",
+            "/login",
+            "/logout",
+            "/checkout",
+            "/update",
+            "/get",
+            "/query",
+            "/action",
         ]
-        self.dict_params = {}
 
         # --- AppRunner templates ---
         self.repo_types = ["Source", "ECR"]
@@ -95,6 +102,9 @@ class GenerateAPILog(GenerateLog):
         logs = []
         i = 0  # iteration counter for timestamp offsets
 
+        # Keep track of messages to prevent duplicates
+        used_messages = set()
+
         while len(logs) < self.size:
             # Randomly decide: API-style log or AppRunner-style
             mode = self.select_enum(["apprunner", "build", "traceback", "http"])
@@ -104,18 +114,15 @@ class GenerateAPILog(GenerateLog):
 
             # Determine group size dynamically
             if mode == "apprunner":
-                group_size = random.randint(3, 6)
+                group_size = self.random.randint(3, 6)
             elif mode == "build":
-                group_size = random.randint(2, 5)
+                group_size = self.random.randint(2, 5)
             elif mode == "traceback":
-                group_size = random.randint(3, 6)
+                group_size = self.random.randint(3, 6)
             else:
                 group_size = 1
 
             ts_group = self.generate_timestamp_group(base_ts, group_size)
-
-            # Keep track of messages to prevent duplicates
-            used_messages = set()
 
             def unique_message(template_func):
                 # Generate a unique message, retry if duplicate
@@ -138,7 +145,7 @@ class GenerateAPILog(GenerateLog):
                 event_type = self.select_enum(self.app_event_types)
                 exit_code = self.generate_integer(0, 137)
 
-                templates = random.sample(self.app_events, k=len(self.app_events))  # unique templates
+                templates = self.random.sample(self.app_events, k=len(self.app_events))  # unique templates
                 for t in ts_group:
                     # Pick a template function to generate a message
                     def tpl_func(template=templates.pop(0)):
@@ -178,7 +185,7 @@ class GenerateAPILog(GenerateLog):
                         version = f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 10)}\
                             .{self.generate_integer(0, 5)}"
                         size_kb = self.generate_integer(50, 400)
-                        template = random.choice(self.build_templates)
+                        template = self.random.choice(self.build_templates)
                         return template.format(package=pkg, version=version, size=size_kb)
 
                     message = unique_message(tpl_func)
@@ -195,35 +202,54 @@ class GenerateAPILog(GenerateLog):
                         )
                     )
 
-            # --- Traceback group ---
+            # --- Realistic Traceback group ---
             elif mode == "traceback":
+                # Pre-generate shared traceback context
                 pyver = self.generate_integer(8, 11)
-                module = self.select_enum(["git", "click", "app", "server"])
+                module = self.select_enum(["git", "click", "app", "server", "service", "db"])
                 submodule = self.select_enum(["core", "cmd", "init", "main"])
-                func = self.select_enum(["refresh", "run", "load_config"])
-                errtype = self.select_enum(["ModuleNotFoundError", "ImportError", "RuntimeError"])
+                func = self.select_enum(["refresh", "run", "load_config", "<module>"])
+                errtype = self.select_enum(["ModuleNotFoundError", "ImportError", "RuntimeError", "ValueError"])
+                submodule = self.select_enum(["core", "cmd", "init", "main", "tasks", "loader"])
+                func = self.select_enum(["refresh", "run", "load_config", "start", "execute"])
+                line = self.generate_integer(50, 900)
                 errmsg = self.select_enum(
-                    ["No module named uvicorn", "Failed to connect to DB", "Invalid import", "Unhandled exception"]
+                    [
+                        "No module named 'uvicorn'",
+                        "Failed to connect to DB",
+                        "Invalid import path",
+                        "Invalid configuration",
+                        "Unhandled exception occurred",
+                    ]
                 )
-                line = self.generate_integer(50, 500)
-                line2 = self.generate_integer(60, 550)
 
-                for t in ts_group:
+                # Generate 2–4 realistic stack frames
+                frame_count = self.random.randint(2, 4)
+                frames = []
+                for _ in range(frame_count):
+                    frame = (
+                        f'  File "/usr/local/lib/python3.{pyver}/site-packages/{module}/{submodule}.py", '
+                        f"line {line}, in {func}"
+                    )
+                    frame = frame.format(
+                        pyver=pyver,
+                        module=module,
+                        submodule=submodule,
+                        func=func,
+                        line=line,
+                    )
+                    frames.append(frame)
 
-                    def tpl_func():
-                        template = random.choice(self.traceback_templates)
-                        return template.format(
-                            pyver=pyver,
-                            module=module,
-                            submodule=submodule,
-                            func=func,
-                            errtype=errtype,
-                            errmsg=errmsg,
-                            line=line,
-                            line2=line2,
-                        )
+                # Build complete traceback lines
+                traceback_lines = ["Traceback (most recent call last):"] + frames + [f"{errtype}: {errmsg}"]
+                # Emit one traceback line per timestamp in the group
+                for index, t in enumerate(ts_group):
+                    # Clamp index so we don't overflow traceback_lines
+                    line_index = index if index < len(traceback_lines) else len(traceback_lines) - 1
+                    message = traceback_lines[line_index]
 
-                    message = unique_message(tpl_func)
+                    message = unique_message(lambda m=message: m)
+
                     group_logs.append(
                         self.generate_option_params(
                             {
@@ -241,7 +267,7 @@ class GenerateAPILog(GenerateLog):
 
             # --- HTTP / API default ---
             else:
-
+                # Generate realistic message
                 def tpl_func():
                     return self.generate_message(domain="api", word_count=20)
 
@@ -257,12 +283,14 @@ class GenerateAPILog(GenerateLog):
                 if log_entry["event_type"] in ["http_request", "http_response"]:
                     log_entry["endpoint"] = self.select_enum(self.endpoints)
                     log_entry["action"] = self.select_enum(self.actions)
+
+                # Add error on failures
                 if log_entry.get("outcome") == "failure":
                     err_type = self.select_enum(self.errors)
                     choice_1 = {"type": err_type, "message": self.error_messages[err_type]}
                     choice_2 = {"type": err_type}
                     log_entry["error"] = self.select_enum([choice_1, choice_2])
-                # --- optional params ---
+                # --- Optional custom params ---
                 group_logs.append(self.generate_option_params(log_entry))
 
             # Add group logs but do not exceed requested size
@@ -282,19 +310,19 @@ class GenerateAPILog(GenerateLog):
                     log["meta"]["pattern_id"] = self.generate_unique_string()
                     log["meta"]["confidence"] = self.generate_float(0, 1)
                 case "level":
-                    log["level"] = self.select_enum(self.dict_params.get("levels", ["info", "warn", "error"]))
+                    log["level"] = self.select_enum(self.param_dict.get("levels", ["info", "warn", "error"]))
                 case "category":
-                    log["category"] = self.select_enum(self.dict_params.get("categories", ["system", "api"]))
+                    log["category"] = self.select_enum(self.param_dict.get("categories", ["system", "api"]))
                 case "sub_category":
-                    log["sub_category"] = self.select_enum(self.dict_params.get("sub_categories", ["auth", "build"]))
+                    log["sub_category"] = self.select_enum(self.param_dict.get("sub_categories", ["auth", "build"]))
                 case "component":
                     log["component"] = self.generate_string(self.generate_integer(4, 15))
                 case "module":
                     log["module"] = self.generate_string(self.generate_integer(4, 20))
                 case "safety_flag":
-                    log["safety_flag"] = self.select_enum(self.dict_params.get("safety_flags", ["ok", "warning"]))
+                    log["safety_flag"] = self.select_enum(self.param_dict.get("safety_flags", ["ok", "warning"]))
                 case "error_code":
-                    log["error_code"] = self.select_enum(self.dict_params.get("error_codes", ["E001", "E002"]))
+                    log["error_code"] = self.select_enum(self.param_dict.get("error_codes", ["E001", "E002"]))
                 case "version":
                     major = self.generate_integer(0, 5)
                     minor = self.generate_integer(0, 10)
@@ -302,14 +330,16 @@ class GenerateAPILog(GenerateLog):
                     log["version"] = f"{major}.{minor}.{patch}"
                 case "stack" if "error" in log:
                     log["error"]["stack"] = self.generate_string(200)
+                case "stack":
+                    log["stack_trace"] = self.generate_stacktrace()
                 case "request_id":
                     log["request_id"] = self.generate_unique_string()
                 case "http_status":
                     log["http_status"] = self.generate_integer(100, 599)
                 case "latency_ms":
-                    log["latency_ms"] = self.generate_integer(0, 5000)
+                    log["latency_ms"] = self.generate_float(0, 5000)
                 case "duration_ms":
-                    log["duration_ms"] = self.generate_integer(0, 5000)
+                    log["duration_ms"] = self.generate_float(0, 5000)
                 case _:
                     continue
         return log
@@ -325,7 +355,7 @@ class GenerateAPILog(GenerateLog):
 
     def run(self):
         self.input_params = self.verify_input_params()
-        self.dict_params = self.load_param_dict(self.input_params)
+        self.param_dict = self.load_param_dict(self.input_params)
 
         valid_logs = self.generate_log_entry()
         invalid_logs = self.generate_log_entry()
