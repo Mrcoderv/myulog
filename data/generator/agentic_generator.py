@@ -148,32 +148,43 @@ class AgenticGenerator(GenerateLog):
         return verified_params
 
     def generate_raw_messages(self, log: dict) -> str:
+        events = ["langchain","tool_calling","graph_state","components","session"]
+        event = self.select_enum(events)
         message = ""
+        
+        
         duration = log.get("duration_ms", self.generate_float(0.0, 500.0))
         param_dict = self.load_param_dict(["levels","sub_categories","safety_flags"])
 
-        level = log.get("level",  self.select_enum(param_dict["levels"]))
-        match log["step_kind"]:
-            case "plan_created":
-                message =  f"{log['meta'].get('parse_timestamp',self.generate_timestamp())} {log['input_summary']}"
-            case "tool_selected":
-                message =  f"Tool selector ranked {len(log['tool_name'])} , selected {' '.join(log['tool_name'])}\
-                      ({duration}ms)."
-            case "step":
-                costs = log.get("cost",{"tokens_in":self.generate_integer(0,10000),
-                                        "tokens_out":self.generate_integer(0,10000),
-                                        "est_cost_usd":self.generate_float(0.0,10.0)})
-                
-                messages = [f"[{level.upper()}] {log['input_summary']} duration {duration}ms.",
-                            f"{log.get('sub_category',self.select_enum(param_dict['sub_categories']))}\
-                              inference : {duration*1000}s {costs['tokens_in']} token in ,{costs['tokens_out']}\
-                                  token out , cost {costs['est_cost_usd']}."]
-                message = self.select_enum(messages)
-            case "guardrails":
-                flags = log.get("safety_flag",[self.select_enum(param_dict["safety_flags"])])
-                message =  f"[{level.upper()}] , flags {' '.join(flags)} applied - {log['output_summary']}."
-            case _:
-                pass
+        match event:
+            case "langchain":
+                message = (
+                    f"[LangChain] [Level: {self.select_enum(param_dict['levels'])}] "
+                    f"Workflow {log['workflow_id']} executed step {log['step_id']} "
+                    f"with tool {log['tool_name']} in {duration:.2f} ms."
+                )
+            case "tool_calling":
+                message = (
+                    f"[ToolCalling] [Category: {self.select_enum(param_dict['sub_categories'])}] "
+                    f"Tool {log['tool_name']} called in step {log['step_id']} "
+                    f"of workflow {log['workflow_id']}. Status: {log['status']}."
+                )
+            case "graph_state":
+                message = (
+                    f"[GraphState] [SafetyFlag: {self.select_enum(param_dict['safety_flags'])}] "
+                    f"Step {log['step_id']} in workflow {log['workflow_id']} "
+                    f"updated graph state after executing tool {log['tool_name']}."
+                )
+            case "components":
+                message = (
+                    f"[Components] Component for tool {log['tool_name']} "
+                    f"in step {log['step_id']} of workflow {log['workflow_id']} "
+                    f"completed with status {log['status']}."
+                )
+            case "session":
+                message = (
+                    f"[Agent] session_start id={log['workflow_id']} model={log['']}"
+                )
 
         return message
 

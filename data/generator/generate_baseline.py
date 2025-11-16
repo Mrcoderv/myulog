@@ -207,7 +207,7 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         domain_labels = classify_logs(parsed_file, rules_doc)
         all_labels.extend(domain_labels)
 
-    print(f"[{domain}] Complete: {count_per_domain} records")
+        print(f"[{domain}] Complete: {count_per_domain} records")
 
     labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
     with open(labels_file, "w", encoding="utf-8") as f:
