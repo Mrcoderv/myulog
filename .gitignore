@@ -60,6 +60,9 @@ tests/reports/*
 
 tests/perf_artifacts/
 
+# Determinism test diffs (generated on failure)
+tests/determinism/diffs/
+
 # OS junk
 .DS_Store
 .DS_Store?

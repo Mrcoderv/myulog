@@ -1,0 +1,135 @@
+{"@timestamp": "2025-10-09T09:15:00.101Z", "@message": "[Agent] session_start id=agnt-6f21f req_id=4a2c.. model=llm-7b-instruct locale=es-ES tz=Europe/Madrid"}
+{"@timestamp": "2025-10-09T09:15:00.112Z", "@message": "[Policies] guardrails loaded: safety.yaml (allow_tools=8 denylist=2 pii_redaction=on)"}
+{"@timestamp": "2025-10-09T09:15:00.123Z", "@message": "[Registry] tools registered=['web_search','web_fetch','code_exec','shell_sandbox','vector_search','email_send','calendar_read','github_pr']"}
+{"@timestamp": "2025-10-09T09:15:00.134Z", "@message": "[Capabilities] structured_output=json_schema, tool_calling=True, streaming=True"}
+{"@timestamp": "2025-10-09T09:15:00.145Z", "@message": "[Input] user_goal='Compare Python logging libs and propose a PR with sample config' context_len=392"}
+{"@timestamp": "2025-10-09T09:15:00.156Z", "@message": "[Extractor] intents=['research','codegen','version_control'] entities=['python','logging','github']"}
+{"@timestamp": "2025-10-09T09:15:00.167Z", "@message": "[Memory] read scope=session k=5 hit=2 keys=['last_repo','preferred_style']"}
+{"@timestamp": "2025-10-09T09:15:00.178Z", "@message": "[Planner] plan_created plan_id=pln-0a91 steps=7 plan_hash=2d1f7e.. (redacted)"}
+{"@timestamp": "2025-10-09T09:15:00.189Z", "@message": "[Graph] state=PLAN -> ACT reason='ready_to_execute_first_tool'"}
+{"@timestamp": "2025-10-09T09:15:00.301Z", "@message": "[Selector] ranked_tools=[('web_search',0.91),('vector_search',0.67),('web_fetch',0.61)] chosen='web_search'"}
+{"@timestamp": "2025-10-09T09:15:00.412Z", "@message": "[Tool] call web_search args={'q':'python logging library comparison 2024 site:docs','k':5} timeout=6000ms"}
+{"@timestamp": "2025-10-09T09:15:00.523Z", "@message": "[Tool][INFO] web_search result_count=5 latency=211ms"}
+{"@timestamp": "2025-10-09T09:15:00.634Z", "@message": "[Tool] call web_fetch args={'urls':[\"https://docs.python.org/3/library/logging.html\",\"https://structlog.org/en/stable/\"]} timeout=8000ms"}
+{"@timestamp": "2025-10-09T09:15:01.045Z", "@message": "[Observe] fetched_docs=2 chars=18432 contaminated=False"}
+{"@timestamp": "2025-10-09T09:15:01.156Z", "@message": "[Verifier] citation_check passed=2/2 policy=exact_url_and_title"}
+{"@timestamp": "2025-10-09T09:15:01.267Z", "@message": "[RAG] vector_search top_k=6 query='python structured logging' hits=4 store='team-knowledge' latency=34ms"}
+{"@timestamp": "2025-10-09T09:15:01.378Z", "@message": "[RAG][WARN] low_recall threshold=0.3 actual=0.18 -> fallback='hybrid' (bm25+dense)"}
+{"@timestamp": "2025-10-09T09:15:01.489Z", "@message": "[Graph] state=ACT -> OBSERVE reason='tool_outputs_ready'"}
+{"@timestamp": "2025-10-09T09:15:01.600Z", "@message": "[Aggregator] summary_tokens=142 salience_score=0.82 sections=['stdlib','structlog','loguru']"}
+{"@timestamp": "2025-10-09T09:15:01.711Z", "@message": "[Guard] jailbreak_check=clean prompt_injection=none url_injection=none"}
+{"@timestamp": "2025-10-09T09:15:01.822Z", "@message": "[Coder] template_selected='logging_config_yaml' lint=flake8 style=black"}
+{"@timestamp": "2025-10-09T09:15:01.933Z", "@message": "[Tool] call code_exec args={'cmd':'python - <<PY\\n...\\nPY'} sandbox='seccompv2' timeout=5000ms"}
+{"@timestamp": "2025-10-09T09:15:02.044Z", "@message": "[Tool][ERROR] code_exec exit_code=1 stderr='ModuleNotFoundError: No module named \"structlog\"'"}
+{"@timestamp": "2025-10-09T09:15:02.155Z", "@message": "[SelfHeal] action='add_dependency' target='structlog' channel='requirements' step=install_simulate"}
+{"@timestamp": "2025-10-09T09:15:02.266Z", "@message": "[Planner] replan plan_id=pln-0a91 delta_steps=+2 reason='missing_dependency' plan_hash=9b7c5a.."}
+{"@timestamp": "2024-03-12T13:37:17.816Z", "@message": "Traceback (most recent call last):"}
+{"@timestamp": "2024-03-12T13:37:17.816Z", "@message": " File \"/usr/local/lib/python3.8/site-packages/git/__init__.py\", line 140, in <module>"}
+{"@timestamp": "2024-03-12T13:37:17.816Z", "@message": " File \"/usr/local/lib/python3.8/site-packages/git/__init__.py\", line 127, in refresh"}
+{"@timestamp": "2024-03-12T13:37:17.816Z", "@message": " File \"/usr/local/lib/python3.8/site-packages/git/cmd.py\", line 456, in refresh"}
+{"@timestamp": "2024-03-12T13:36:16.014Z", "@message": "[Build] [91mWARNING: The candidate selected for download or install is a yanked version: 'apscheduler' candidate (version 3.9.1 at https://files.pythonhosted.org/packages/e4/9f/c3937d4babe62504b874d4bf2c0d85aa69c7f59fa84cf6050f3b9dc5d83e/APScheduler-3.9.1-py2.py3-none-any.whl (from https://pypi.org/simple/apscheduler/) (requires-python:>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4))"}
+{"@timestamp": "2024-03-12T13:36:16.014Z", "@message": "[Build] Downloading uvicorn-0.23.2-py3-none-any.whl (59 kB)"}
+{"@timestamp": "2024-03-12T13:36:16.014Z", "@message": "[Build] Downloading pydantic-2.4.2-py3-none-any.whl (395 kB)"}
+{"@timestamp": "2025-06-29T15:18:26.350Z", "@message": "[AppRunner] Deployment Artifact: [Repo Type: Source], [Repository: https://github.com/ExampleOrg/website_chatbot], [Branch: main], [SourceDirectory: /]"}
+{"@timestamp": "2025-06-29T15:18:26.967Z", "@message": "[AppRunner] Pulling source code from GITHUB Repository ( https://github.com/ExampleOrg/website_chatbot )."}
+{"@timestamp": "2025-06-29T15:18:37.604Z", "@message": "[AppRunner] Successfully pulled your application source code."}
+{"@timestamp": "2025-10-07T19:16:40.638Z", "@message": "INFO:     10.0.0.2:35466 - \"GET /process_colab_request/?query=assistant%20says%3A%20How%20may%20I%20assist%20you%3F%20I%20can%20also%20raise%20a%20support%20ticket%20on%20your%20behalf.%2Cuser%20says%3A%20How%20do%20i%20apply%20for%20projects%20in%20Example%20AI%20innovation%3F&name=Jane%20Doe&email=jane.doe%40example.com HTTP/1.1\" 200 OK"}
+{"@timestamp": "2024-05-08T14:46:53.602Z", "@message": "[AppRunner] Service deletion started."}
+{"@timestamp": "2024-05-05T09:07:46.007Z", "@message": "INFO:     Waiting for application shutdown."}
+{"@timestamp": "2025-10-08T13:25:53.405Z", "@message": "[AppRunner] Deployment Artifact: [Repo Type: ECR], [Image URL: 123456789012.dkr.ecr.us-east-2.amazonaws.com/projects-agents], [Image Tag: latest]"}
+{"@timestamp": "2025-10-08T13:26:03.039Z", "@message": "[AppRunner] Successfully pulled your application image from ECR."}
+{"@timestamp": "2025-10-08T13:27:33.037Z", "@message": "[AppRunner] Your application stopped or failed to start. See logs for more information.  Container exit code: 1"}
+{"@timestamp": "2025-10-08T13:38:54.777Z", "@message": " File \"/usr/local/lib/python3.11/site-packages/click/core.py\", line 1462, in __call__"}
+{"@timestamp": "2025-10-08T13:38:54.778Z", "@message": "   return self.main(*args, **kwargs)"}
+{"@timestamp": "2025-06-09T08:35:54.135Z", "@message": "[AppRunner] Deployment Artifact: [Repo Type: Source], [Repository: https://github.com/ExampleOrg/profile-pulse], [Branch: main], [SourceDirectory: /]"}
+{"@timestamp": "2025-06-09T08:36:43.449Z", "@message": "[AppRunner] Successfully created pipeline for automatic deployments."}
+{"@timestamp": "2025-06-09T08:36:44.481Z", "@message": "[AppRunner] Pulling source code from GITHUB Repository ( https://github.com/ExampleOrg/profile-pulse )."}
+{"@timestamp": "2025-06-09T08:35:54.012Z", "@message": "[AppRunner] Deployment with ID : 39b43c3c0a1944b9b8a42161d6a0e805 started. Triggering event : SERVICE_UPDATE"}
+{"@timestamp": "2025-06-08T16:04:49.346Z", "@message": "/usr/local/bin/python3: No module named uvicorn"}
+{"@timestamp": "2025-09-30T13:39:20.914Z", "@message": "[AppRunner] Deployment Artifact: [Repo Type: ECR], [Image URL: 123456789012.dkr.ecr.us-east-2.amazonaws.com/nexus-consultant], [Image Tag: latest]"}
+{"@timestamp": "2025-09-30T13:39:20.794Z", "@message": "[AppRunner] Deployment with ID : bd42f65bdd7b44d68269904573cdac0b started. Triggering event : SERVICE_DEPLOY"}
+{"@timestamp": "2025-09-30T13:40:44.703Z", "@message": "[AppRunner] Health check is successful. Routing traffic to application."}
+{"@timestamp": "2025-09-30T13:50:09.159Z", "@message": "INFO:     Finished server process [1]"}
+{"@timestamp": "2025-09-30T13:50:09.160Z", "@message": "Shutting down trace provider"}
+{"@timestamp": "2024-11-29T15:24:09.757Z", "@message": "[AppRunner] Deployment with ID : 233a591fc9e648fb9b08376dfc99dc0e started. Triggering event : SERVICE_CREATE"}
+{"@timestamp": "2024-11-29T15:24:09.871Z", "@message": "[AppRunner] Deployment Artifact: [Repo Type: Source], [Repository: https://github.com/ExampleOrg/LMS_AI_AGENT], [Branch: main], [SourceDirectory: /]"}
+{"@timestamp": "2024-11-29T15:24:58.109Z", "@message": "[AppRunner] Pulling source code from GITHUB Repository ( https://github.com/ExampleOrg/LMS_AI_AGENT )."}
+{"@timestamp": "2024-11-29T15:25:01.351Z", "@message": "[AppRunner] Successfully validate configuration file."}
+{"@timestamp": "2024-11-29T16:46:18.226Z", "@message": "INFO:     Will watch for changes in these directories: ['/app']"}
+{"@timestamp": "2024-11-29T16:46:18.226Z", "@message": "INFO:     Uvicorn running on http://10.0.0.1:8080 (Press CTRL+C to quit)"}
+{"@timestamp": "2024-11-29T16:46:18.226Z", "@message": "INFO:     Started reloader process [1] using StatReload"}
+{"@timestamp": "2025-09-26T03:14:35.096Z", "@message": "INFO:     Started server process [1]"}
+{"@timestamp": "2025-09-26T03:14:35.096Z", "@message": "INFO:     Waiting for application startup."}
+
+{"@timestamp": "2024-03-12T13:36:16.214Z", "@message": "[Build] Collecting fastapi==0.103.1"}
+{"@timestamp": "2024-03-12T13:36:16.515Z", "@message": "[Build] Using cached fastapi-0.103.1-py3-none-any.whl (65 kB)"}
+{"@timestamp": "2024-03-12T13:36:16.721Z", "@message": "[Build] Collecting orjson==3.9.10"}
+{"@timestamp": "2024-03-12T13:36:16.904Z", "@message": "[Build] Preparing metadata (pyproject.toml) for 'orjson' ... error"}
+{"@timestamp": "2024-03-12T13:36:16.905Z", "@message": "[Build] ERROR: Could not build wheels for orjson, which is required to install pyproject.toml-based projects"}
+{"@timestamp": "2024-03-12T13:36:16.914Z", "@message": "[Build] Installing collected packages: uvicorn, pydantic, fastapi"}
+{"@timestamp": "2024-03-12T13:36:17.005Z", "@message": "[Build] Successfully installed fastapi-0.103.1 pydantic-2.4.2 uvicorn-0.23.2"}
+{"@timestamp": "2024-03-12T13:36:17.115Z", "@message": "[Build] WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError(\"HTTPSConnectionPool(host='pypi.org', port=443): Read timed out.\")': /simple/orjson/"}
+{"@timestamp": "2024-03-12T13:37:17.817Z", "@message": " File \"/usr/local/lib/python3.8/site-packages/git/cmd.py\", line 1094, in __init__"}
+{"@timestamp": "2024-03-12T13:37:17.818Z", "@message": "git.exc.GitCommandNotFound: The 'git' command is not available in the PATH."}
+{"@timestamp": "2024-03-12T13:37:17.819Z", "@message": "git.exc.InvalidGitRepositoryError: /workspace/project"}
+{"@timestamp": "2024-05-05T09:07:46.108Z", "@message": "INFO:     Application startup complete."}
+{"@timestamp": "2025-10-09T07:58:00.101Z", "@message": "[Data] Opening video source: file:///data/videos/store_cam_01.mp4"}
+{"@timestamp": "2025-10-09T07:58:00.112Z", "@message": "[Data] Opened stream 1920x1080 @ 29.97fps (H.264, yuv420p)"}
+{"@timestamp": "2025-10-09T07:58:00.214Z", "@message": "[Data][WARNING] Non-monotonous DTS in output stream 0:1; frame drop may occur"}
+{"@timestamp": "2025-10-09T07:58:00.315Z", "@message": "[Data] RTSP connect rtsp://10.0.0.50/stream1 ... failed: timeout (attempt 1/5, backoff 2s)"}
+{"@timestamp": "2025-10-09T07:58:02.419Z", "@message": "[Data] RTSP connected: 1280x720 @ 25fps (H.265)"}
+{"@timestamp": "2025-10-09T07:58:02.520Z", "@message": "[Data][WARNING] Unknown fourcc 'xvid' — falling back to software decoder"}
+{"@timestamp": "2025-10-09T07:58:02.621Z", "@message": "[Data][ERROR] Could not open image '/data/frames/000123.png': No such file or directory"}
+{"@timestamp": "2025-10-09T07:58:02.722Z", "@message": "[Data][INFO] EXIF orientation=6 detected; rotating image 90° CW"}
+{"@timestamp": "2025-10-09T07:58:02.823Z", "@message": "[Data][WARNING] Color space mismatch detected (BGR input) — converting to RGB"}
+{"@timestamp": "2025-10-09T07:58:03.005Z", "@message": "[Preproc] Letterbox resize 1920x1080 -> 640x640 (pad: 0x160 top/bottom)"}
+{"@timestamp": "2025-10-09T07:58:03.106Z", "@message": "[Preproc][WARNING] Non-contiguous array; making contiguous copy (HWC->CHW)"}
+{"@timestamp": "2025-10-09T07:58:03.207Z", "@message": "[Preproc] Normalizing to [0,1], dtype float32"}
+{"@timestamp": "2025-10-09T07:58:03.308Z", "@message": "[Preproc][ERROR] Invalid image shape: expected 3 channels, got 1 (grayscale)"}
+{"@timestamp": "2025-10-09T07:58:03.409Z", "@message": "[Preproc][WARNING] NaN values found after standardization — replacing with 0.0"}
+{"@timestamp": "2025-10-09T07:58:03.510Z", "@message": "[Aug] Applied transforms: RandomFlip(p=0.5), ColorJitter(bright=0.2,contrast=0.2), Mosaic(p=0.2)"}
+{"@timestamp": "2025-10-09T07:58:04.001Z", "@message": "[Model] Loading PyTorch weights: /models/yolov8s.pt (anchors auto)"}
+{"@timestamp": "2025-10-09T07:58:04.102Z", "@message": "[Model] Device selected: cuda:0 (NVIDIA RTX A5000, 24GB) — CUDA 12.2, cuDNN 9.0"}
+{"@timestamp": "2025-10-09T07:58:04.203Z", "@message": "[Model][WARNING] Missing keys in state_dict: model.head.cls_conv.2.weight ... (3 more); unexpected keys: model.neck.upsample.bias"}
+{"@timestamp": "2025-10-09T07:58:04.304Z", "@message": "[Model] Converting PyTorch -> ONNX opset=13 dynamic_axes=[batch,h,w]"}
+{"@timestamp": "2025-10-09T07:58:04.405Z", "@message": "[Model][INFO] Exported ONNX graph: 168 layers, 8.1 GFLOPs @640x640"}
+{"@timestamp": "2025-10-09T07:58:04.506Z", "@message": "[ONNXRuntime] Providers requested: ['TensorrtExecutionProvider','CUDAExecutionProvider','CPUExecutionProvider']"}
+{"@timestamp": "2025-10-09T07:58:04.607Z", "@message": "[ONNXRuntime][WARNING] Falling back from TensorRT EP: unsupported op 'NonMaxSuppressionV5'"}
+{"@timestamp": "2025-10-09T07:58:04.708Z", "@message": "[TensorRT] Building engine (FP16) maxWorkspace=4096MB, tactic sources: +CUBLAS,+CUDNN"}
+{"@timestamp": "2025-10-09T07:58:05.009Z", "@message": "[TensorRT][INFO] INT8 calibration cache not found; switching to FP16 (no calibrator provided)"}
+{"@timestamp": "2025-10-09T07:58:05.110Z", "@message": "[OpenVINO] Core version: 2024.4.0 — CPU plugin loaded (AVX2), GPU plugin not available"}
+{"@timestamp": "2025-10-09T09:00:00.101Z", "@message": "[Serve] Starting LLM HTTP server on 10.0.0.1:8081 (workers=4, backlog=512, keepalive=75s)"}
+{"@timestamp": "2025-10-09T09:00:00.112Z", "@message": "[Router][INFO] Default model=llm-7b-instruct, fallback=llm-3b, long_context=llm-32k"}
+{"@timestamp": "2025-10-09T09:00:00.203Z", "@message": "[Auth][INFO] Loaded 3 API keys (RBAC: tier=pro/standard/internal)"}
+{"@timestamp": "2025-10-09T09:00:00.304Z", "@message": "[Tokenizer] Loading tokenizer from /models/llm-7b-instruct (fast=True)"}
+{"@timestamp": "2025-10-09T09:00:00.405Z", "@message": "[Tokenizer][WARNING] Added 2 missing special tokens: pad_token, bos_token"}
+{"@timestamp": "2025-10-09T09:00:00.506Z", "@message": "[Tokenizer][ERROR] Detected incompatible merges file: expected bpe ranks > 0, got -1 — falling back to slow tokenizer"}
+{"@timestamp": "2025-10-09T09:00:00.607Z", "@message": "[Model] Loading model weights /models/llm-7b-instruct in dtype=bfloat16, attn=flash-attn-2"}
+{"@timestamp": "2025-10-09T09:00:00.708Z", "@message": "[Model][INFO] device_map=auto — shards spread across 2 GPUs (tp_size=2, pp_size=1)"}
+{"@timestamp": "2025-10-09T09:00:00.809Z", "@message": "[Loader][INFO] Using safetensors (memory_mapped=True), low_cpu_mem_usage=True"}
+{"@timestamp": "2025-10-09T09:00:00.910Z", "@message": "[Quant][INFO] Loading 4-bit quantization (bnb-nf4) with double quant — compute_dtype=bfloat16"}
+{"@timestamp": "2025-10-09T09:00:01.011Z", "@message": "[Quant][WARNING] bitsandbytes CUDA extension not found; falling back to 8-bit (LLM.int8())"}
+{"@timestamp": "2025-10-09T09:00:01.112Z", "@message": "[Quant][ERROR] AWQ/GPTQ weights detected but incompatible with current architecture — please re-export"}
+{"@timestamp": "2025-10-09T09:00:01.213Z", "@message": "[KVCache][INFO] Paged KV enabled: max_kv_tokens=3,276,800, offload=CPU threshold=85%"}
+{"@timestamp": "2025-10-09T09:00:01.314Z", "@message": "[KVCache][WARNING] Eviction triggered: 2 sequences spilled to host (pressure=0.91)"}
+{"@timestamp": "2025-10-09T09:00:01.415Z", "@message": "[Config][INFO] generation: max_tokens=1024, temperature=0.7, top_p=0.95, top_k=0, repetition_penalty=1.05"}
+{"@timestamp": "2025-10-09T09:00:01.516Z", "@message": "[Context][INFO] sliding_window=4096, rope_scaling=dynamic (factor=1.2)"}
+{"@timestamp": "2025-10-09T09:00:01.617Z", "@message": "[vLLM][INFO] Scheduler: max_batch_tokens=32768, max_requests=64, chunked_prefill=True"}
+{"@timestamp": "2025-10-09T09:00:01.718Z", "@message": "[Batcher][WARNING] Queue depth high (len=128) — enabling aggressive batching (target_latency=40ms)"}
+{"@timestamp": "2025-10-09T09:00:01.819Z", "@message": "[Speculative][INFO] Enabled with draft_model=llm-1.3b — acceptance_rate(p50)=0.63"}
+{"@timestamp": "2025-10-09T09:00:01.920Z", "@message": "[Speculative][ERROR] Draft/target vocab mismatch — disabling speculative decoding for this request"}
+{"@timestamp": "2025-10-09T09:00:02.021Z", "@message": "[HTTP] POST /v1/chat/completions 200 OK — ttft=72ms, output_tokens=214, tps=82.6"}
+{"@timestamp": "2025-10-09T09:00:02.122Z", "@message": "[Stream][INFO] SSE /v1/chat/completions — client=10.0.0.10 started"}
+{"@timestamp": "2025-10-09T09:00:02.223Z", "@message": "[Stream][WARNING] client=10.0.0.10 closed connection early (broken pipe)"}
+{"@timestamp": "2025-10-09T09:00:02.324Z", "@message": "[JSON][INFO] response_format=json_schema (strict=True)"}
+{"@timestamp": "2025-10-09T09:00:02.425Z", "@message": "[JSON][ERROR] Schema validation failed at '$.items[0].price': expected number, got string — repairing output"}
+{"@timestamp": "2025-10-09T09:00:02.526Z", "@message": "[ToolCall][INFO] Tool requested: 'get_weather' args={'city':'Madrid','units':'metric'}"}
+{"@timestamp": "2025-10-09T09:00:02.627Z", "@message": "[ToolCall][WARNING] Tool timeout after 2000ms — returning partial answer"}
+{"@timestamp": "2025-10-09T09:00:02.728Z", "@message": "[ToolCall][ERROR] Function 'get_weather' not found in registry"}
+{"@timestamp": "2025-10-09T09:00:02.829Z", "@message": "[Safety][INFO] Running moderation: categories=toxicity, self_harm, sexual_minors, pii"}
+{"@timestamp": "2025-10-09T09:00:02.930Z", "@message": "[Safety][WARNING] Prompt injection pattern detected (override system) — sanitized prompt applied"}
+{"@timestamp": "2025-10-09T09:00:03.031Z", "@message": "[Safety][ERROR] Output blocked by policy: sexual_minors — returning refusal template"}
+{"@timestamp": "2025-10-09T09:00:03.132Z", "@message": "[PII][INFO] Redacted PII entities: EMAIL(2), PHONE(1), IBAN(1)"}
+{"@timestamp": "2025-10-09T09:00:03.233Z", "@message": "[RateLimit][WARNING] key=sk-pro-abc... exceeded 120 rpm — backoff=3s"}
+{"@timestamp": "2025-10-09T09:00:03.334Z", "@message": "[RateLimit][ERROR] 429 Too Many Requests — quota exhausted for tier=standard"}
+{"@timestamp": "2025-10-09T09:00:03.435Z", "@message": "[Auth][ERROR] Invalid API key 'sk-live-xyz...' — HMAC signature verification failed"}

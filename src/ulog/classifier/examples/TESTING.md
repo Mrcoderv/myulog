@@ -26,11 +26,55 @@ pytest
 # Run classifier-specific tests
 pytest tests/classifier/
 
+# Run unit tests for rules and provenance
+pytest tests/unit/ -v
+
+# Or use the Makefile target
+make test.unit
+
 # Run with coverage
 pytest --cov=ulog.classifier tests/classifier/
 
 # Run with verbose output
 pytest -v tests/classifier/
+```
+
+### Unit Tests for Rules & Provenance
+
+The `tests/unit/` directory contains comprehensive tests for:
+
+1. **Parser Tests** (`test_parser_*.py`): Raw log → JSON parsing tests
+   - `test_parser_core_api.py`: ≥12 tests for core_api domain
+   - `test_parser_llm.py`: ≥10 tests for llm domain
+   - `test_parser_agentic.py`: ≥10 tests for agentic domain
+   - `test_parser_cv.py`: ≥10 tests for cv domain
+
+2. **Rule Tests** (`test_rules_provenance.py`): Normalized JSON → classification with rule_id assertions
+   - Tests for all major rules across domains
+   - Verifies `provenance.parser_rule_id` is set correctly
+   - Validates rule matching logic and first-match-wins semantics
+
+3. **Integration Tests** (`test_integration_pipeline.py`): Full pipeline tests
+   - Raw → parse → classify → provenance
+   - Batch processing tests
+   - Unparsed log handling
+
+Run specific test categories:
+```bash
+# Parser tests only
+pytest tests/unit/test_parser_*.py -v
+
+# Rule tests only
+pytest tests/unit/test_rules_provenance.py -v
+
+# Integration tests only
+pytest tests/unit/test_integration_pipeline.py -v
+
+# Generate JUnit XML and JSON reports (for CI)
+pytest tests/unit/ -v --tb=short \
+  --junit-xml=tests/reports/rules_unit_results.xml \
+  --json-report --json-report-file=tests/reports/rules_unit_results.json \
+  --json-report-indent=2
 ```
 
 ## Manual Testing
@@ -257,9 +301,18 @@ The classifier is tested in CI via:
 - Linting: `ruff check .`
 - Type checking: `mypy src/`
 - Unit tests: `pytest`
+- Rules & provenance unit tests: `pytest tests/unit/`
 - Schema validation: `make test.schemas`
 
 Run all CI checks locally:
 ```bash
 make test.all
 ```
+
+### CI Artifacts
+
+The CI pipeline generates test artifacts for rules and provenance tests:
+- **JUnit XML**: `tests/reports/rules_unit_results.xml` - for CI integration
+- **JSON Report**: `tests/reports/rules_unit_results.json` - for detailed analysis
+
+These artifacts are uploaded to GitHub Actions and can be downloaded from the workflow run page.
