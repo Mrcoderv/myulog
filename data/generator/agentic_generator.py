@@ -147,47 +147,110 @@ class AgenticGenerator(GenerateLog):
                 self.logger.warning(f"Unknown option param: {param}")
         return verified_params
 
+
+    # generate raw message
     def generate_raw_messages(self, log: dict) -> str:
-        events = ["langchain","tool_calling","graph_state","components","session"]
-        event = self.select_enum(events)
-        message = ""
+        events = {
+            "langchain": self._gen_langchain_event,
+            "tool_calling": self._gen_tool_call_event,
+            "graph_state": self._gen_graph_state_event,
+            "components": self._gen_component_event,
+            "session": self._gen_session_event,
+        }
+
+        event_key = self.select_enum(list(events.keys()))
+        return events[event_key](log)
+    # generate langchain event
+    def _gen_langchain_event(self, log: dict) -> str:
+        chain_name = self.select_enum(["AgentExecutor", "RouterChain", "ReActChain"])
+
+        return f"> {log['step_kind']} {log.get('level','info')} {chain_name} chain {log['output_summary']}"
+    
+    # generate tool calling event
+    def _gen_tool_call_event(self, log: dict) -> str:
+        tool = log.get("tool_name", "web_search")
+        action = self.select_enum(["call", "result"])
+        args = {"q": "python example", "k": 5}
+
+        if action == "call":
+            return (
+                f"[Tool] call {tool} "
+                f"args={args} "
+                f"timeout={log.get('duration_ms', 100)}ms"
+            )
+
+        else:
+            return f"[Tool] result {tool} outcome={log.get('outcome', 'success')} latency={log.get('duration_ms', 100)}ms"
         
-        
-        duration = log.get("duration_ms", self.generate_float(0.0, 500.0))
-        param_dict = self.load_param_dict(["levels","sub_categories","safety_flags"])
+    # generate graph state event
+    def _gen_graph_state_event(self, log: dict) -> str:
+        from_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
+        to_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
+        reason = self.select_enum([
+            "ready_to_execute_first_tool",
+            "no_more_steps",
+            "waiting_for_human_input",
+            "tool_execution_completed",
+        ])
 
-        match event:
-            case "langchain":
-                message = (
-                    f"[LangChain] [Level: {self.select_enum(param_dict['levels'])}] "
-                    f"Workflow {log['workflow_id']} executed step {log['step_id']} "
-                    f"with tool {log['tool_name']} in {duration:.2f} ms."
-                )
-            case "tool_calling":
-                message = (
-                    f"[ToolCalling] [Category: {self.select_enum(param_dict['sub_categories'])}] "
-                    f"Tool {log['tool_name']} called in step {log['step_id']} "
-                    f"of workflow {log['workflow_id']}. Status: {log['status']}."
-                )
-            case "graph_state":
-                message = (
-                    f"[GraphState] [SafetyFlag: {self.select_enum(param_dict['safety_flags'])}] "
-                    f"Step {log['step_id']} in workflow {log['workflow_id']} "
-                    f"updated graph state after executing tool {log['tool_name']}."
-                )
-            case "components":
-                message = (
-                    f"[Components] Component for tool {log['tool_name']} "
-                    f"in step {log['step_id']} of workflow {log['workflow_id']} "
-                    f"completed with status {log['status']}."
-                )
-            case "session":
-                message = (
-                    f"[Agent] session_start id={log['workflow_id']} model={log['']}"
-                )
+        return (
+            f"[Graph] state={from_state} -> {to_state} reason='{reason}' message={log['output_summary']} level={log.get('level','info')}"
+        )
+    
+    # generate component event
+    def _gen_component_event(self, log: dict) -> str:
+        component = self.select_enum([
+            "Planner", "Selector", "Memory", "Guard",
+            "RAG", "Verifier", "Coder", "Reviewer",
+            "SelfHeal", "Handoff", "RateLimit", "Metrics"
+        ])
 
-        return message
+        def kv(key, val):
+            return f"{key}={val} "
 
+        extras = []
+        if component == "Planner":
+            extras.append(kv("plan_id", log.get("plan_id", self.generate_unique_string())))
+            extras.append(kv("steps", self.generate_integer(3, 12)))
+            extras.append(kv("plan_hash", log.get('step_id')))
+        elif component == "Selector":
+            extras.append(kv("candidates", self.generate_integer(3, 10)))
+        elif component == "Memory":
+            extras.append(kv("hits", self.generate_integer(0, 5)))
+            extras.append(kv("misses", self.generate_integer(0, 5)))
+        elif component == "Guard":
+            extras.append(kv("policy", "default-safety"))
+        elif component == "Verifier":
+            extras.append(kv("checks", self.generate_integer(1, 3)))
+        elif component == "Coder":
+            tokens = log.get("cost", {}).get("tokens_out", self.generate_integer(100, 1000))
+            extras.append(kv("tokens", tokens))
+        elif component == "Handoff":
+            extras.append(kv("target_agent", self.generate_unique_string()))
+
+        extras_str = "".join(extras).strip()
+
+        return f"[{component}] {log['step_kind']} level={log.get('level','info')} {extras_str}"
+    
+    # generate session event
+    def _gen_session_event(self, log: dict) -> str:
+        session_type = self.select_enum(["session_start", "session_end"])
+        req_id = self.generate_unique_string()[:8]
+        model = self.select_enum(["llm-7b-instruct", "llm-70b-chat", "llama3-8b"])
+        locale = self.select_enum(["en-US", "es-ES", "fr-FR"])
+        tz = self.select_enum(["Europe/Madrid", "America/New_York", "UTC"])
+
+        return (
+            f"[Agent] {session_type} "
+            f"id={log['step_id']} "
+            f"req_id={req_id} "
+            f"model={model} "
+            f"locale={locale} "
+            f"tz={tz}"
+        )
+
+
+    # run all
     def run(self) -> tuple[list[dict], list[dict]]:
         self.input_params = self.verify_input_params()
         self.param_dict = self.load_param_dict(self.input_params)
