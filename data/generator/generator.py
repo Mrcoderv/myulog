@@ -264,8 +264,10 @@ class GenerateLog:
                 sentence = f"Model {model} processed {tokens} tokens in {ttft}ms"
                 # Realistic templates
                 templates = [
-                    lambda: f"[LLM] Model={model} | phase={phase} | tokens={tokens} | ttft={ttft}ms | latency={latency}ms.",
-                    lambda: f"[LLM] Request {req_id}: {model} processed {tokens} tokens in {latency}ms (TTFT {ttft}ms).",
+                    lambda: f"""[LLM] Model={model} | phase={phase} | tokens={tokens} | ttft={ttft}ms | 
+                    latency={latency}ms.""",
+                    lambda: f"""[LLM] Request {req_id}: {model} processed {tokens} tokens in 
+                    {latency}ms (TTFT {ttft}ms).""",
                     lambda: f"Inference completed on {model} (phase={phase}) — total tokens={tokens}, ttft={ttft}ms.",
                     lambda: f"{model} executed '{phase}' phase; {tokens} tokens processed.",
                     lambda: f"{model} inference request {req_id}: {tokens} tokens.",
@@ -310,7 +312,7 @@ class GenerateLog:
                     lambda: f"Agent executing {ctx.get('step_kind', 'plan')}\
                           step using {ctx.get('tool_name', 'tool_x')}.",
                     lambda: f"Workflow {ctx.get('workflow_id', self.generate_unique_string())} step completed.",
-                    lambda: f"Plan created for user request.",
+                    lambda: "Plan created for user request.",
                     lambda: self.generate_stacktrace() if status == "failed" else fk_sentence(10),
                     # Plan created
                     lambda: f"Agent created {step}-step execution plan for user query",

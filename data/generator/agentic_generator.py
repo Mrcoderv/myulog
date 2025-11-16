@@ -180,7 +180,8 @@ class AgenticGenerator(GenerateLog):
             )
 
         else:
-            return f"[Tool] result {tool} outcome={log.get('outcome', 'success')} latency={log.get('duration_ms', 100)}ms"
+            return f"""[Tool] result {tool} outcome={log.get('outcome', 'success')} 
+            latency={log.get('duration_ms', 100)}ms"""
         
     # generate graph state event
     def _gen_graph_state_event(self, log: dict) -> str:
@@ -194,7 +195,8 @@ class AgenticGenerator(GenerateLog):
         ])
 
         return (
-            f"[Graph] state={from_state} -> {to_state} reason='{reason}' message={log['output_summary']} level={log.get('level','info')}"
+            f"""[Graph] state={from_state} -> {to_state} reason='{reason}' 
+            message={log['output_summary']} level={log.get('level','info')}"""
         )
     
     # generate component event
