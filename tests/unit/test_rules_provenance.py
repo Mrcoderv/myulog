@@ -366,14 +366,13 @@ class TestGlobalRules:
         """Test default action when no rules match (or global rule matches)."""
         evaluator = RuleEvaluator()
         record = {
-            "http_status": 200,
-            "endpoint": "/api/success",
-            "event_type": "http_request"
+          "timestamp": "2024-03-15T10:30:00Z",
+          "message": "Generic log message with no domain signals"
         }
         
         result = evaluator.classify(record)
         
         # May match missing-trace-identifier or default action
-        assert result["provenance"]["parser_rule_id"] in ["default", "missing-trace-identifier"]
+        assert result["provenance"]["parser_rule_id"] == "default"
         assert result["level"] == "info"
         assert result["outcome"] == "success"
