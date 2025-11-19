@@ -150,6 +150,28 @@ jobs:
                     data/synthetic/baseline/*_baseline_parsed.jsonl
                     data/synthetic/baseline_labels.jsonl
 
+            # --- Unit tests for rules & provenance ---
+
+            - name: Run unit tests for rules and provenance
+              run: |
+                mkdir -p tests/reports
+                poetry run pytest tests/unit/ -v --tb=short \
+                  --junit-xml=tests/reports/rules_unit_results.xml \
+                  --json-report --json-report-file=tests/reports/rules_unit_results.json \
+                  --json-report-indent=2
+
+            - name: Upload rules unit test results
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: rules-unit-test-results
+                  path: tests/reports/rules_unit_results.*
+            
+            # --- Determinism test ---
+
+            - name: Run golden set determinism test
+              run: make test.determinism.golden
+
     export-requirements:
         runs-on: ubuntu-latest
         needs: [lint-and-test]
