@@ -74,7 +74,9 @@ class AgenticGenerator(GenerateLog):
             log_entry = {
                 # NB: Agentic records in this seed do not include top-level timestamp;
                 # raw mirror will inject @timestamp for consistency with sample raw shape.
-                "meta": {},
+                "meta": {
+                    "raw_message": None,
+                },
                 "step_kind": self.select_enum(self.step_kinds),
                 "workflow_id": self.generate_unique_string(),
                 "step_id": self.generate_unique_string(),
@@ -84,12 +86,12 @@ class AgenticGenerator(GenerateLog):
                 "status": self.select_enum(self.statuses),
             }
 
+            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
+
             if log_entry["status"] in ["failed", "timeout"]:
                 log_entry["error"] = {"message": self.select_enum(self.messages[log_entry["status"]])}
             if self.input_params:
                 log_entry = self.generate_option_params(log_entry)
-
-            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
             logs.append(log_entry)
         return logs
 

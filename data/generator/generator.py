@@ -52,12 +52,12 @@ class GenerateLog:
         # Prevent duplicates
         self._seen_messages = set()
 
-        # Faker instance (deterministic)
-        self.faker = None
+        # Faker instance for richer, realistic messages (seeded for reproducibility)
         if Faker is not None:
+            self.faker = Faker()
+            # seed Faker's internal RNG for deterministic output
             try:
-                self.faker = Faker()
-                # seed Faker's internal RNG for deterministic output
+                # new Faker seed API
                 self.faker.seed_instance(self.seed)
             except Exception:
                 try:
@@ -66,7 +66,6 @@ class GenerateLog:
                     pass
         else:
             self.faker = None
-            
 
     # ---------- Random helpers ----------
 
@@ -107,7 +106,7 @@ class GenerateLog:
         return group
 
     # ---------- Grouping utilities ----------
-    def maybe_group_logs(
+    def _grouped_logs(
         self, log_entry: dict, domain: str, group_prob: float = 0.2, group_size: int | None = None
     ) -> list[dict]:
         """
@@ -444,7 +443,10 @@ class GenerateLog:
             func = self.generate_string(self.generate_integer(3, 12))
             lines.append(f'  File \"{filename}\", line {lineno}, in {func}')
             # optionally show source line
-            src = self.faker.sentence(nb_words=6) if self.faker else self.generate_string(self.generate_integer(10, 40))
+            if self.faker:
+                src = self.faker.sentence(nb_words=6)
+            else:
+                src = self.generate_string(self.generate_integer(10, 40))
             lines.append(f"    {src}")
         # final exception message
         # exc_type = self.faker.catch_phrase() if self.faker else "ValueError"
@@ -453,7 +455,7 @@ class GenerateLog:
         lines.append(f"{exc_type}: {exc_msg}")
         return "\n".join(lines)
 
-    # ---------- Vocab & param helpers ----------
+    # ---------- Vocab helpers ----------
 
     def load_from_vocab(self, keys: List[str]) -> List[Any]:
         values = []
@@ -475,6 +477,9 @@ class GenerateLog:
         return param in params
 
     def load_param_dict(self, params: List[str]) -> dict[str, Any]:
-        params_to_load = [k for k in self.common_params if self.verify_option_params(k, params)]
+        params_to_load = []
+        for key in self.common_params:
+            if self.verify_option_params(key, params):
+                params_to_load.append(key)
         loaded_params = self.load_from_vocab(params_to_load)
         return dict(zip(params_to_load, loaded_params))

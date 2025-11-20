@@ -10,7 +10,7 @@ from llm_generator import GenerateLLMLog
 
 DEFAULT_OUTPUT_DIR = os.path.join(pathlib.Path(__file__).parent.parent, "synthetic")
 
-parser = argparse.ArgumentParser(description="ULog deterministic synthetic logs generator")
+parser = argparse.ArgumentParser(description="ULog synthetic data generator")
 
 parser.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
 parser.add_argument("-c", "--count", type=int, default=10, help="Number of samples")
@@ -160,15 +160,22 @@ if args.raw_mirror:
         raw_path = raw_dir / f"{name}_raw.jsonl"
         with open(raw_path, "w", encoding="utf-8") as f:
             for log in logs:
-                # Use generator's timestamp if available, otherwise generate one
-                timestamp = log.get("timestamp") or seed_ts
-                # Extract message from meta.raw_message, or fallback
-                message = log.get("meta", {}).get("raw_message", json.dumps(log))
+                # Compose raw line with @timestamp and @message
+                # @message should contain the original raw text that would be sent to
+                # parsers (not the entire normalized JSON). Use meta.raw_message when
+                # available; fall back to the compact JSON string if not.
+                raw_msg_text = None
+                try:
+                    raw_msg_text = log.get("meta", {}).get("raw_message")
+                except Exception:
+                    raw_msg_text = None
+                if raw_msg_text is None:
+                    raw_msg_text = json.dumps(log, separators=(",", ":"))
+
                 raw_record = {
-                    "@timestamp": timestamp,
-                    "@message": message,
+                    "@timestamp": _timestamp_for_raw(log, seed_ts),
+                    "@message": raw_msg_text,
                 }
-                
                 f.write(json.dumps(raw_record) + "\n")
         print(f"✅ Raw logs written to: {raw_path}")
         return raw_path
