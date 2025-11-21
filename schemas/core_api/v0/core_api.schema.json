@@ -160,7 +160,8 @@
         "build",
         "dependency_install",
         "exception",
-        "health_check"
+        "health_check",
+        "apprunner_event"
       ]
     },
     "service": {
