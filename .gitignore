@@ -60,6 +60,9 @@ tests/reports/*
 
 tests/perf_artifacts/
 
+# Determinism test diffs (generated on failure)
+tests/determinism/diffs/
+
 # OS junk
 .DS_Store
 .DS_Store?
@@ -105,10 +108,10 @@ local_pipeline/in/*
 sample_logs/
 
 # Synthetic artifacts produced locally
-data/synthetic/*.jsonl
+data/synthetic/
 !data/synthetic/.gitkeep
-data/synthetic/raw/*.jsonl
 !data/synthetic/raw/.gitkeep
+!data/synthetic/baseline/.gitkeep
 
 # Lambda build
 .lambda_build/

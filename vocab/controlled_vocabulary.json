@@ -1,10 +1,11 @@
 {
-  "metadata": {
+    "metadata": {
     "name": "ULog Controlled Vocabulary",
-    "version": "v0.9",
-    "updated_at": "2025-10-15",
-    "notes": "Baseline vocabulary drafted from common log patterns in data pipelines, ML systems, and API services."
+    "version": "v1.0.0",
+    "updated_at": "2025-11-15",
+    "notes": "Vocabulary frozen for ULog contracts v1.0.0; see docs/RELEASE_NOTES.md for scope."
   },
+
   "vocabulary": {
     "levels": {
       "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
