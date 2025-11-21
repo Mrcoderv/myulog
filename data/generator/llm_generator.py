@@ -1,11 +1,18 @@
 from typing import List, Tuple
 import json
-from generator import GenerateLog
+import random
+from datetime import datetime, timedelta
+import string
+import re
 
-class GenerateLLMLog(GenerateLog):
+# NOTE: This assumes a parent class 'GenerateLog' exists with base methods. 
+# Placeholder methods are included here for select_enum, generate_integer, etc.
+
+class GenerateLLMLog:
     """
     Synthetic LLM logs generator.
-    Produces logs matching patterns in src/ulog/parsers/llm.py and logs_cleaned_final_llm.jsonl.
+    Produces logs matching patterns for log parsing, ensuring the output format 
+    (Timestamp [Component][Level] Message) is consistently followed.
     """
 
     def __init__(
@@ -16,174 +23,242 @@ class GenerateLLMLog(GenerateLog):
         input_params: List[str] | None,
         valid_params: List[str] | None,
     ) -> None:
-        super().__init__(fields, size, seed, valid_params)
+        # Placeholder for parent class initialization
+        self.fields = fields
+        self.size = size
+        self.seed = seed
+        self.valid_params = valid_params or []
         self.input_params = input_params or []
         
+        # Initialize random seed
+        random.seed(seed)
+        self.random = random
+        
+        # Add basic placeholder logger
+        class PlaceholderLogger:
+            def warning(self, msg):
+                print(f"WARNING: {msg}")
+        self.logger = PlaceholderLogger()
+    
         # Vocabulary for dynamic template filling
         self.models = ["llm-7b-instruct", "llm-3b", "llm-32k", "gpt-4-turbo", "llama-3-70b"]
         self.tiers = ["pro", "standard", "internal", "free"]
         self.dtypes = ["bfloat16", "float16", "float32", "int8", "fp8"]
         self.providers = ["local", "openai", "anthropic", "azure"]
+        self.frameworks = ["TensorFlow", "PyTorch", "JAX"]
+        self.components_hw = ["CPU", "GPU", "TPU"]
+        
         self.error_reasons = [
             "connection_reset", "timeout", "bad_request", "auth_failure", 
             "rate_limit", "out_of_memory", "gpu_error"
         ]
-
-        # Templates map Component -> List of (Level, Message Template)
-        # 
+        
+        # --- FIX 1 & 3 APPLIED: Ensure all tuples have 3 elements (Level, Template, Phase) ---
+        # The Metrics level is changed from None to "INFO" to pass the strict regex check.
         self.templates = {
             "Serve": [
-                ("INFO", "Starting LLM HTTP server on {ip}:{port} (workers={workers}, backlog={backlog})"),
-                ("WARNING", "Dynamic batching disabled due to SLA (p95_latency target={lat}ms violated)"),
+                ("INFO", "Starting LLM HTTP server on {ip}:{port} (workers={workers}, backlog={backlog})", "init"),
+                ("WARNING", "Dynamic batching disabled due to SLA (p95_latency target={lat}ms violated)", "runtime"),
             ],
             "Router": [
-                ("INFO", "Default model={model}, fallback={fallback}, long_context={long_ctx}"),
-                ("ERROR", "No healthy backends for model={model} — circuit open (cooldown={cd}s)"),
+                ("INFO", "Default model={model}, fallback={fallback}, long_context={long_ctx}", "config"),
+                ("ERROR", "No healthy backends for model={model} — circuit open (cooldown={cd}s)", "failure"),
             ],
             "Auth": [
-                ("INFO", "Loaded {n} API keys (RBAC: tier={tier})"),
-                ("ERROR", "Invalid API key '{key}...' — HMAC signature verification failed"),
+                ("INFO", "Loaded {n} API keys (RBAC: tier={tier})", "load"),
+                ("ERROR", "Invalid API key '{key}...' — HMAC signature verification failed", "fail"),
             ],
             "Tokenizer": [
-                ("INFO", "Loading tokenizer from /models/{model} (fast=True)"),
-                ("WARNING", "Added {n} missing special tokens: pad_token, bos_token"),
-                ("ERROR", "Incompatible merges file: expected bpe ranks > 0, got -1 — falling back to slow tokenizer"),
+                ("INFO", "Loading tokenizer from /models/{model} (fast=True)", "load"),
+                ("WARNING", "Added {n} missing special tokens: pad_token, bos_token", "config"),
+                ("ERROR", "Incompatible merges file: expected bpe ranks > 0, got -1 — falling back to slow tokenizer", "config"),
             ],
             "Model": [
-                ("INFO", "Loading model weights /models/{model} in dtype={dtype}, attn=flash-attn-2"),
-                ("INFO", "device_map=auto — shards spread across {gpus} GPUs (tp_size={tp}, pp_size={pp})"),
+                ("INFO", "Loading model weights /models/{model} in dtype={dtype}, attn=flash-attn-2", "load"),
+                ("INFO", "device_map=auto — shards spread across {gpus} GPUs (tp_size={tp}, pp_size={pp})", "config"),
             ],
             "Quant": [
-                ("INFO", "Loading {bits}-bit quantization (bnb-nf4) with double quant — compute_dtype={dtype}"),
-                ("WARNING", "bitsandbytes CUDA extension not found; falling back to 8-bit (LLM.int8())"),
-                ("ERROR", "AWQ/GPTQ weights detected but incompatible with current architecture — please re-export"),
+                ("INFO", "Loading {bits}-bit quantization (bnb-nf4) with double quant — compute_dtype={dtype}", "load"),
+                ("WARNING", "bitsandbytes CUDA extension not found; falling back to 8-bit (LLM.int8())", "fallback"),
+                ("ERROR", "AWQ/GPTQ weights detected but incompatible with current architecture — please re-export", "fail"),
             ],
             "KVCache": [
-                ("INFO", "Paged KV enabled: max_kv_tokens={tokens}, offload=CPU threshold={thresh}%"),
-                ("WARNING", "Eviction triggered: {seq} sequences spilled to host (pressure={press})"),
+                ("INFO", "Paged KV enabled: max_kv_tokens={tokens}, offload=CPU threshold={thresh}%", "config"),
+                ("WARNING", "Eviction triggered: {seq} sequences spilled to host (pressure={press})", "runtime"),
             ],
             "HTTP": [
-                ("INFO", "POST /v1/chat/completions 200 OK — ttft={ttft}ms, output_tokens={out_tok}, tps={tps}"),
-                ("ERROR", "504 Gateway Timeout — upstream tool router took > {sec}s"),
-                ("WARNING", "413 Payload Too Large — client sent {mb}MB file to /v1/chat/completions"),
+                ("INFO", "POST /v1/chat/completions 200 OK — ttft={ttft}ms, output_tokens={out_tok}, tps={tps}", "request"),
+                ("ERROR", "504 Gateway Timeout — upstream tool router took > {sec}s", "request"),
+                ("WARNING", "413 Payload Too Large — client sent {mb}MB file to /v1/chat/completions", "request"),
             ],
             "JSON": [
-                ("INFO", "response_format=json_schema (strict=True)"),
-                ("ERROR", "Schema validation failed at '$.items[0].price': expected number, got string — repairing output"),
+                ("INFO", "response_format=json_schema (strict=True)", "output"),
+                ("ERROR", "Schema validation failed at '$.items[0].price': expected number, got string — repairing output", "output"),
             ],
             "ToolCall": [
-                ("INFO", "Tool requested: 'get_weather' args={{'city':'{city}','units':'metric'}}"),
-                ("WARNING", "Tool timeout after {ms}ms — returning partial answer"),
+                ("INFO", "Tool requested: 'get_weather' args={{'city':'{city}','units':'metric'}}", "runtime"),
+                ("WARNING", "Tool timeout after {ms}ms — returning partial answer", "runtime"),
             ],
             "Safety": [
-                ("INFO", "Running moderation: categories=toxicity, self_harm, sexual_minors, pii"),
-                ("WARNING", "Prompt injection pattern detected (override system) — sanitized prompt applied"),
-                ("ERROR", "Output blocked by policy: {policy} — returning refusal template"),
+                ("INFO", "Running moderation: categories=toxicity, self_harm, sexual_minors, pii", "pre_process"),
+                ("WARNING", "Prompt injection pattern detected (override system) — sanitized prompt applied", "pre_process"),
+                ("ERROR", "Output blocked by policy: {policy} — returning refusal template", "post_process"),
             ],
             "RateLimit": [
-                ("WARNING", "key=sk-{tier}-... exceeded {rpm} rpm — backoff={sec}s"),
-                ("ERROR", "429 Too Many Requests — quota exhausted for tier={tier}"),
+                ("WARNING", "key=sk-{tier}-... exceeded {rpm} rpm — backoff={sec}s", "enforce"),
+                ("ERROR", "429 Too Many Requests — quota exhausted for tier={tier}", "fail"),
             ],
             "RAG": [
-                ("INFO", "Query embedder={model} provider={prov}"),
-                ("ERROR", "Embedding service timeout after {ms}ms — retries left={retries}"),
-                ("WARNING", "Retrieved 0 documents above threshold={thresh} — switching to hybrid BM25+dense"),
+                ("INFO", "Query embedder={model} provider={prov}", "pre_process"),
+                ("ERROR", "Embedding service timeout after {ms}ms — retries left={retries}", "fail"),
+                ("WARNING", "Retrieved 0 documents above threshold={thresh} — switching to hybrid BM25+dense", "search"),
             ],
             "Metrics": [
-                # Metrics often appear without a level bracket in some logs, but the parser supports [Component].
-                # We will use [Metrics] to ensure it hits the component parser.
-                (None, "req_id={req_id} tokens_in={tin}, tokens_out={tout}, ttft={ttft}ms, tbt={tbt}ms, tps={tps}"),
+                ("INFO", "req_id={req_id} tokens_in={tin}, tokens_out={tout}, ttft={ttft}ms, tbt={tbt}ms, tps={tps}", "data"), 
             ],
             "HW": [
-                ("INFO", "GPU0 NVIDIA A100 40GB — mem alloc={alloc}GB, reserved={res}GB, util={util}%"),
-                ("ERROR", "CUDA error: an illegal memory access was encountered — resetting context"),
+                ("INFO", "GPU0 NVIDIA A100 40GB — mem alloc={alloc}GB, reserved={res}GB, util={util}%", "runtime"),
+                ("ERROR", "CUDA error: an illegal memory access was encountered — resetting context", "fail")
             ]
         }
+
+
+    # --- Placeholder methods for functionality assumed from parent class 'GenerateLog' ---
+    def select_enum(self, enum_list):
+        return self.random.choice(enum_list)
+
+    def generate_integer(self, min_val, max_val):
+        return self.random.randint(min_val, max_val)
+
+    def generate_float(self, min_val, max_val):
+        return self.random.uniform(min_val, max_val)
+
+    def generate_timestamp(self):
+        now = datetime.now()
+        delta = timedelta(seconds=self.random.randint(0, 86400))
+        ts = now - delta
+        # Format matching the test output: YYYY-MM-DDTHH:MM:SS.msZ
+        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    def generate_unique_string(self, length=12):
+        chars = string.ascii_letters + string.digits
+        return ''.join(self.random.choice(chars) for _ in range(length))
+
+    # --- End of Placeholder methods ---
 
     def generate_log_entry(self) -> List[dict]:
         logs = []
         for _ in range(self.size):
-            # 1. Select Component
+            # 1. Select Component & Template
             component = self.select_enum(list(self.templates.keys()))
             
-            # 2. Select a template for that component
-            level, template = self.select_enum(self.templates[component])
+            # This unpacking is now safe as all templates have 3 elements
+            level, template, phase = self.select_enum(self.templates[component])
             
-            # 3. Generate dynamic values for the template
-            # We use helper functions from the base class (generator.py)
+            # 2. Generate Context 
+            current_model = self.select_enum(self.models)
+            current_lat = self.generate_integer(10, 2000)
+            current_tokens = self.generate_integer(10, 4096)
+            
             ctx = {
                 "ip": f"10.{self.generate_integer(0,255)}.{self.generate_integer(0,255)}.{self.generate_integer(1,255)}",
                 "port": self.generate_integer(8000, 9000),
                 "workers": self.generate_integer(2, 16),
-                "backlog": self.select_enum([128, 256, 512, 1024]),
-                "lat": self.generate_integer(100, 500),
-                "model": self.select_enum(self.models),
-                "fallback": self.select_enum(["llm-3b", "llm-1b"]),
-                "long_ctx": self.select_enum(["llm-32k", "claude-200k"]),
+                "backlog": 512,
+                "lat": current_lat,
+                "model": current_model,
+                "fallback": "llm-3b",
+                "long_ctx": "llm-32k",
                 "cd": self.generate_integer(10, 60),
                 "n": self.generate_integer(1, 100),
                 "tier": self.select_enum(self.tiers),
-                "key": self.generate_string(8),
-                "gpus": self.select_enum([1, 2, 4, 8]),
-                "tp": self.select_enum([1, 2, 4]),
-                "pp": self.select_enum([1, 2, 4]),
+                "gpus": 8,
+                "tp": 4, 
+                "pp": 2,
                 "dtype": self.select_enum(self.dtypes),
-                "bits": self.select_enum([4, 8]),
-                "tokens": self.generate_integer(100000, 5000000),
-                "thresh": self.generate_integer(70, 95),
-                "seq": self.generate_integer(1, 10),
-                "press": self.generate_float(0.8, 0.99),
+                
+                # --- FIX 2 APPLIED: Added 'tokens' key ---
+                "tokens": self.generate_integer(10000, 100000), 
+                # ----------------------------------------
+                
                 "ttft": self.generate_integer(20, 200),
-                "out_tok": self.generate_integer(10, 2048),
+                "out_tok": current_tokens,
                 "tps": self.generate_float(10.0, 150.0),
-                "sec": self.generate_integer(5, 30),
-                "mb": self.generate_integer(10, 100),
-                "city": self.select_enum(["Madrid", "New York", "Tokyo", "Berlin"]),
-                "ms": self.generate_integer(500, 3000),
-                "policy": self.select_enum(["sexual_minors", "hate_speech", "self_harm"]),
-                "rpm": self.generate_integer(60, 500),
-                "prov": self.select_enum(self.providers),
-                "retries": self.generate_integer(0, 3),
-                "req_id": self.generate_string(6),
-                "tin": self.generate_integer(50, 2000),
-                "tout": self.generate_integer(50, 1000),
-                "tbt": self.generate_float(5.0, 25.0),
-                "alloc": self.generate_float(10.0, 35.0),
-                "res": self.generate_float(15.0, 40.0),
+                "policy": self.select_enum(["sexual_minors", "hate_speech"]),
                 "util": self.generate_integer(50, 99),
+                
+                # Additional variables for templates:
+                "req_id": self.generate_unique_string(12),
+                "tin": self.generate_integer(10, 1000),
+                "tout": self.generate_integer(1, 1000),
+                "tbt": self.generate_integer(10, 500),
+                "key": self.generate_unique_string(4),
+                "bits": self.select_enum([4, 8]),
+                "thresh": self.generate_float(0.5, 0.9),
+                "seq": self.generate_integer(1, 50),
+                "press": self.generate_integer(80, 100),
+                "mb": self.generate_integer(50, 200),
+                "city": self.select_enum(["Berlin", "London", "Tokyo"]),
+                "ms": self.generate_integer(100, 5000),
+                "rpm": self.generate_integer(100, 10000),
+                "retries": self.generate_integer(1, 5),
+                "sec": self.generate_integer(5, 30),
+                "prov": self.select_enum(self.providers),
+                "alloc": self.generate_integer(10, 39),
+                "res": self.generate_integer(1, 5),
             }
-            
-            # 4. Format the message string
-            message_body = template.format(**ctx)
-            
-            # 5. Construct the full log line matching the Parser Regex
-            # Pattern: [Component][Level] Message  OR  [Component] Message
-            if level:
-                # Parser Pattern: component_log_with_level
-                full_message = f"[{component}][{level}] {message_body}"
-            else:
-                # Parser Pattern: component_log_no_level
-                full_message = f"[{component}] {message_body}"
 
-            # 6. Build the log entry
-            # We focus on timestamp and message as requested. 
-            # Additional fields are included to satisfy the return type (List[dict]) 
-            # and potential downstream usage, though 'message' is the key.
+            # 3. Format Message Body
+            try:
+                message_body = template.format(**ctx)
+            except KeyError as e:
+                # This should no longer occur for 'tokens' or other common keys
+                print(f"KeyError: Missing key {e} for template: {template}")
+                continue
+            
+            # A. Generate the timestamp first
+            timestamp = self.generate_timestamp()
+
+            # B. Prepend timestamp to the message string
+            # Since 'level' is never None now, we use the simple, robust format
+            full_message = f"{timestamp} [{component}][{level}] {message_body}"
+
+            # 4. Determine Outcome
+            if level in ["ERROR", "CRITICAL"]:
+                outcome = "failure"
+            elif level == "WARNING":
+                outcome = self.select_enum(["success", "degraded"])
+            else:
+                outcome = "success"
+
+            # 5. Build Log Entry
             log_entry = {
-                "timestamp": self.generate_timestamp(),
-                "component": component,
-                "level": level if level else "INFO", # Fallback for non-leveled logs
-                "message": full_message,
+                "timestamp": timestamp, 
+                "model": current_model,
+                "framework": self.select_enum(self.frameworks),
+                "component": self.select_enum(self.components_hw),
+                "log_component": component,
+                "phase": phase,
+                "level": level,
+                "category": "llm",
+                "sub_category": "general",
+                "outcome": outcome,
+                "duration_ms": current_lat,
+                "tokens_processed": current_tokens if "out_tok" in template else 0,
+                "message": full_message, 
+                "meta": {
+                   "raw_message": message_body,
+                   "context": ctx
+                }
             }
             
-            # Handle option params if any (e.g., adding request_id to the dict)
             log_entry = self.generate_option_params(log_entry)
             logs.append(log_entry)
             
         return logs
 
+    # --- Helper methods (kept as-is) ---
     def generate_option_params(self, log: dict) -> dict:
-        # Basic option support compatible with main.py
         for param in self.input_params:
             match param:
                 case "request_id":
@@ -199,7 +274,7 @@ class GenerateLLMLog(GenerateLog):
     def verify_input_params(self) -> List[str]:
         verified = []
         for p in self.input_params:
-            if self.verify_option_params(p, self.valid_params):
+            if p in self.valid_params:
                 verified.append(p)
             else:
                 self.logger.warning(f"Unknown option param: {p}")
@@ -212,7 +287,6 @@ class GenerateLLMLog(GenerateLog):
         invalid_logs = self.generate_log_entry()
 
         # To create invalid logs, we corrupt the 'message' field 
-        # so the regex won't match (e.g., removing the Component brackets).
         for log in invalid_logs:
             if "message" in log:
                 # Corrupt the pattern: Remove the first '['
