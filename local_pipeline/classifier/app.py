@@ -1,20 +1,31 @@
 """
 ULog local classifier runner.
 
-Reads every file under /in, decides whether each line is JSON-per-line or raw,
-invokes the packaged `classify` CLI with the right --input-format (json|raw),
+Reads every file under /in, processes through ClassifierPipeline,
 and writes results to /out/<filename>.classified.jsonl.
+
+Environment Variables:
+    IN_DIR: Input directory (default: /in)
+    OUT_DIR: Output directory (default: /out)
+    SCHEMA_OVERRIDE: Force schema for all files (overrides filename hints)
+                     Values: core_api, llm, agentic, cv
+    CLASSIFIER_NO_VALIDATION: Disable schema validation (default: false)
+
+Schema Priority: SCHEMA_OVERRIDE > filename hint > auto-detection
 """
 
 import json
 import os
 from pathlib import Path
-import subprocess
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Optional
+
+from ulog.classifier.core import ClassifierPipeline
+from ulog.core import canonical_order, ensure_provenance
 
 IN_DIR = Path(os.getenv("IN_DIR", "/in"))
 OUT_DIR = Path(os.getenv("OUT_DIR", "/out"))
+
 
 SCHEMAS_ALL: List[str] = ["agentic", "core_api", "cv", "llm"]
 FILENAME_HINTS = [
@@ -52,124 +63,56 @@ def guess_schema_from_filename(name: str) -> Optional[str]:
     return None
 
 
-def guess_schema_from_message(msg: str) -> Optional[str]:
-    lower = msg.lower()
-    if "[agent]" in lower or "planner" in lower or "tools registered" in lower:
-        return "agentic"
-    if "http" in lower or "status" in lower or "api" in lower:
-        return "core_api"
-    if "images" in lower or "fps" in lower or "cv " in lower or "(cv" in lower:
-        return "cv"
-    if "ttft" in lower or "tokens" in lower or "prompt" in lower or "model=" in lower:
-        return "llm"
-    return None
-
-
-def run_classify(payload: str, schema: str, input_format: str) -> Tuple[str, str, int]:
-    """
-    Invoke the packaged CLI with the correct input format.
-    input_format must be 'json' or 'raw' (the CLI does NOT accept 'jsonl').
-    """
-    cmd = ["classify", "--input-format", input_format, "--schema", schema]
-    if _env_bool("CLASSIFIER_NO_VALIDATION", False):
-        cmd.append("--no-validation")
-
-    env = os.environ.copy()
-    env.update(DEFAULT_CLASSIFY_ENV)
-
-    proc = subprocess.run(
-        cmd,
-        input=(payload if payload.endswith("\n") else payload + "\n"),
-        text=True,
-        capture_output=True,
-        env=env,
-    )
-    return proc.stdout, proc.stderr, proc.returncode
-
-
 def process_file(src: Path) -> None:
-    print(f"classifier: processing {src.name}", flush=True)
-    out_path = OUT_DIR / f"{src.name}.classified.jsonl"
+    """Process a file through ClassifierPipeline (stream-based, like CLI/Lambda)."""
+    base = src.stem if src.suffix == ".jsonl" else src.name
+    out_path = OUT_DIR / f"{base}.classified.jsonl"
+
+    # Schema priority: SCHEMA_OVERRIDE env var > filename hint > auto-detection
+    schema_hint = os.getenv("SCHEMA_OVERRIDE") or guess_schema_from_filename(src.name)
+
+    # Initialize pipeline (shared code path with CLI/Lambda)
+    enable_validation = not _env_bool("CLASSIFIER_NO_VALIDATION", False)
+    pipeline = ClassifierPipeline(enable_validation=enable_validation)
+
+    # Read all lines from file
+    with src.open("r", encoding="utf-8", errors="ignore") as fin:
+        lines = [line.strip() for line in fin if line.strip()]
+
+    if not lines:
+        print(f"classifier: no lines in {src.name}", flush=True)
+        return
+
+    # Parse all lines into list of dicts (JSONL only - matches CLI/Lambda)
+    input_data = []
+    for line in lines:
+        try:
+            input_data.append(json.loads(line))
+        except json.JSONDecodeError:
+            # Skip invalid JSON (deterministic behavior)
+            continue
+
+    if not input_data:
+        print(f"classifier: no valid JSONL records in {src.name}", flush=True)
+        return
+
+    # Process entire stream through pipeline (auto-detects format like CLI/Lambda)
+    try:
+        results = pipeline.process_input(input_data, input_format="auto", schema=schema_hint)
+        # Match CLI/Lambda behavior: prefer pattern_id over classification rule_id
+        results = ensure_provenance(results)
+    except Exception as e:
+        print(f"classifier: error processing {src.name}: {e}", flush=True)
+        return
+
+    # Write all results
     written = 0
-
-    filename_hint = guess_schema_from_filename(src.name)
-
-    with src.open("r", encoding="utf-8", errors="ignore") as fin, out_path.open("w", encoding="utf-8") as fout:
-        for raw in fin:
-            line = raw.strip()
-            if not line:
-                continue
-
-            ts = None
-            obj = None
-            is_json = False
-            msg_for_guess = line  # used only to guess schema
-
-            # Detect JSON-per-line with an @message envelope
-            try:
-                obj = json.loads(line)
-                if isinstance(obj, dict):
-                    is_json = True
-                    ts = obj.get("@timestamp") or obj.get("timestamp")
-                    msg_for_guess = obj.get("@message") or line
-            except Exception:
-                pass
-
-            # Choose schema: filename hint > message heuristics > default agentic
-            first_choice = filename_hint or guess_schema_from_message(msg_for_guess) or "agentic"
-            try_order = [first_choice] + [s for s in SCHEMAS_ALL if s != first_choice]
-
-            out = err = ""
-            rc = 0
-
-            for schema in try_order:
-                if is_json:
-                    # Decide format based on keys present
-                    is_raw_envelope = isinstance(obj, dict) and ("@message" in obj)
-                    is_normalized = isinstance(obj, dict) and (
-                        ("level" in obj) or ("category" in obj) or ("outcome" in obj)
-                    )
-
-                    if is_raw_envelope:
-                        # Raw JSON line: pass whole object (keeps @timestamp)
-                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
-                    elif is_normalized:
-                        # Already-normalized record
-                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "json")
-                    else:
-                        # Unknown JSON shape: try raw first
-                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
-
-                    # Fallback: if nothing came out and we have @message, try raw again
-                    if not out.strip() and isinstance(obj, dict) and obj.get("@message"):
-                        out, err, rc = run_classify(json.dumps(obj, ensure_ascii=False), schema, "raw")
-                else:
-                    # Plain text line
-                    out, err, rc = run_classify(line, schema, "raw")
-
-                if out.strip():
-                    break  # got something from this schema
-
-            if not out.strip():
-                sys.stderr.write(
-                    f"classifier: no output for a line in {src.name}. schemas_tried={try_order} rc={rc}\n{(err or '')}"
-                )
-                continue
-
-            # Write each JSON line produced by the CLI
-            for out_line in out.splitlines():
-                out_line = out_line.strip()
-                if not out_line:
-                    continue
-                try:
-                    rec = json.loads(out_line)
-                    # Patch missing/empty timestamp with the source @timestamp if available
-                    if ts and (not rec.get("timestamp") or rec.get("timestamp") == ""):
-                        rec["timestamp"] = ts
-                    fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                    written += 1
-                except Exception:
-                    sys.stderr.write(f"classifier: produced non-JSON output in {src.name}: {out_line[:200]}\n")
+    with out_path.open("w", encoding="utf-8") as fout:
+        for result in results:
+            # Enforce canonical key order for consistent output
+            ordered_result = canonical_order(result)
+            fout.write(json.dumps(ordered_result, ensure_ascii=False) + "\n")
+            written += 1
 
     if written:
         print(f"classifier: wrote {out_path.name} ({written} lines)", flush=True)

@@ -23,4 +23,4 @@ if command -v unzip >/dev/null 2>&1; then
   unzip -l "${PROJECT_ROOT}/dist/classifier_lambda.zip" | tail -5
 fi
 
-echo "Lambda Handler: ulog.classifier.handler.lambda_handler"
+echo "Lambda Handler: ulog.lambda_adapter.handler.handler"

@@ -4,7 +4,8 @@
     "@status": [
       "outcome",
       "status",
-      "result"
+      "result",
+      "response.status"
     ],
     "@latency": [
       "latency_ms",
@@ -14,7 +15,15 @@
     "@errorCode": [
       "http_status",
       "error.code",
-      "response.status"
+      "response.status_code"
+    ],
+    "@model": [
+      "model",
+      "model_name"
+    ],
+    "@failed": [
+      "failed",
+      "failure"
     ]
   },
   "default_action": {

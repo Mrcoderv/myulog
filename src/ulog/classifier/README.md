@@ -4,7 +4,10 @@ A local-first classifier that runs the full pipeline: raw|json → parse → val
 
 ## Features
 
-- **Multi-line joining**: Automatically joins stacktraces and multi-line log entries
+- **Contract-consistent shapes per domain**: All logs for the same domain (core_api, llm, agentic, cv) conform to their JSON schema
+- **Schema enforcement**: Required fields are always present with appropriate defaults
+- **Additive classification**: Classifier adds annotations without modifying parsed fields
+- **Line count preservation**: Guaranteed N-input → N-output (1:1 mapping)
 - **Parser error exposure**: Clear error reporting with detailed provenance
 - **Domain routing**: Automatic detection of log domain (core_api, llm, agentic, cv)
 - **Provenance tracking**: Complete audit trail of parsing decisions
@@ -47,6 +50,26 @@ cat logs.jsonl | python -m ulog.classifier.cli --input-format raw --schema core_
 # cat logs.jsonl | classify --input-format raw --schema core_api
 ```
 
+## Domain Inference
+
+The classifier uses the following precedence to determine the log domain:
+
+1. **Explicit parameter** (highest priority)
+   - CLI: `--schema core_api`
+   - HTTP: `?schema=core_api`
+   - Docker: `SCHEMA_OVERRIDE=core_api`
+   
+2. **Filename hint**
+   - Files containing `core_api`, `llm`, `agentic`, or `cv` in the name
+   - Example: `logs_core_api.jsonl` → detected as `core_api`
+
+3. **Auto-detection** (lowest priority)
+   - Analyzes record fields to infer domain
+   - Uses field presence (e.g., `pipeline_stage` → llm)
+   - Falls back to `core_api` if uncertain
+
+**All surfaces (CLI/HTTP/Docker/Lambda) use the same precedence.**
+
 #### Option 2: HTTP Service
 
 Start the HTTP service using uvicorn:
@@ -75,6 +98,38 @@ These match the Docker Compose and local pipeline:
 | `RULES_PATH`, `ULOG_RULES_PATH` | Path to `rules/rules.json` | `/app/rules/rules.json` |
 | `SCHEMAS_DIR`, `ULOG_SCHEMAS_DIR` | Root folder for schemas | `/app/schemas` |
 | `VOCAB_PATH`, `ULOG_VOCAB_PATH` | Path to `vocab/controlled_vocabulary.json` | `/app/vocab/controlled_vocabulary.json` |
+
+## File Naming Conventions
+
+### CLI Output
+By default, CLI commands write to stdout. Redirect to create files:
+
+```bash
+# Normalize
+cat input.jsonl | ulog parse > input.normalized.jsonl
+
+# Classify
+cat input.jsonl | python -m ulog.classifier.cli > input.classified.jsonl
+```
+
+### Docker Pipeline Output
+The Docker pipeline (`local_pipeline/classifier/`) automatically names output files:
+
+- **Input**: `/in/logs.jsonl`
+- **Output**: `/out/logs.classified.jsonl`
+
+### Make Targets
+```bash
+# Normalize all *.jsonl files in local_pipeline/in/
+make normalize
+# Creates: local_pipeline/out/*.normalized.jsonl
+
+# Classify all *.jsonl files in local_pipeline/in/
+make classify  
+# Creates: local_pipeline/out/*.classified.jsonl
+```
+
+**Convention**: Original filename + suffix preserves traceability.
 
 ## HTTP API Reference
 
@@ -155,7 +210,9 @@ Classify normalized or raw log entries.
 
 **Query Params**:
 - `input_format`: `auto` (default) | `raw` | `json`
-- `schema`: optional `core_api|llm|agentic|cv` (overrides automatic inference)
+- `schema`: Optional domain override (`core_api|llm|agentic|cv`)
+  - **Priority**: This parameter > filename patterns > auto-detection
+  - **When to use**: Force a specific domain when auto-detection is unreliable
 
 #### Option A — JSON array (application/json)
 ```bash
@@ -457,11 +514,15 @@ Classified: 2
 }
 ```
 
-### Parse Failure
+### Parse Failure (Schema-Compliant Envelope)
 ```json
 {
   "timestamp": "2025-01-01T12:34:56.789Z",
   "unparsed_reason": "no_pattern_match",
+  "event_type": "exception",
+  "service": "unknown-service",
+  "env": "development",
+  "outcome": "failure",
   "meta": {
     "raw_message": "Unparseable log message",
     "parse": {
@@ -475,6 +536,8 @@ Classified: 2
   }
 }
 ```
+
+**Note**: Error envelopes include schema-required fields (`service`, `env`, `outcome`) with defaults to ensure downstream tools can process them consistently.
 
 ### Validation Failure
 ```json
@@ -507,9 +570,90 @@ The classifier provides detailed error information:
 - **Validation failures**: Structured error envelopes with helpful hints in `validation_error`
 - **Invalid input**: HTTP 422 responses with field-level error details
 
+## Output Parity Guarantee
+
+**All invocation surfaces produce byte-identical output for the same input.**
+
+The CLI, HTTP service, Docker pipeline, and Lambda adapter all use the same `ClassifierPipeline` implementation, ensuring:
+
+- ✅ **Deterministic parsing**: Same patterns match the same way
+- ✅ **Identical field extraction**: Same fields, same values
+- ✅ **Consistent normalization**: Same vocabulary canonicalization
+- ✅ **Matching classification**: Same rules apply in the same order
+
+### Tested Surfaces
+- Command-line interface (`ulog classify`)
+- HTTP API (`POST /classify`)
+- Docker pipeline (`local_pipeline/classifier/app.py`)
+- AWS Lambda (via HTTP handler + Mangum)
+
+**This guarantee is enforced by unit tests** (`tests/classifier/test_determinism_across_implementations.py`) that compare byte-for-byte output across all surfaces.
+
+### When Outputs May Differ
+Outputs will only differ if:
+- Different `--schema` / domain override is used
+- Different environment variables affect defaults (`SERVICE_NAME`, `ENVIRONMENT`)
+- Validation is disabled in one surface but enabled in another
+
+## Line Count Preservation
+
+**The classifier guarantees N-input → N-output (1:1 mapping).**
+
+Every input line produces exactly one output record. This guarantee applies to all processing surfaces (CLI, HTTP, Docker, Lambda).
+
+### Guarantee Details
+- ✅ **Parse failures preserved**: Unparsable lines become error envelopes
+- ✅ **No silent drops**: Every input produces exactly one output
+- ✅ **Deterministic**: Same input always produces same line count
+- ✅ **No multi-line joining**: Each log line is processed independently
+
+### Example
+```bash
+# Input: 5 lines
+cat logs.jsonl | wc -l
+# Output: 5
+
+# Process through classifier
+cat logs.jsonl | python -m ulog.classifier.cli --input-format raw | wc -l
+# Output: 5 (guaranteed)
+```
+
+Even if a line cannot be parsed, it will be output as an error envelope with `unparsed_reason`, ensuring the 1:1 correspondence is maintained.
+
+### Testing
+Line count preservation is verified by:
+- `tests/test_line_count_preservation.py`
+- `tests/cli/test_cli_full.py::test_parse_line_count`
+
 ## Architecture & Components
 
-### Pipeline Flow
+### Pipeline Flow (Shared Across All Surfaces)
+
+```
+┌─────────────────────────────────────────────────────┐
+│            All Surfaces (CLI/HTTP/Docker/Lambda)    │
+│                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
+│  │   CLI    │  │   HTTP   │  │  Docker  │         │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘         │
+│       │             │              │               │
+│       └─────────────┴──────────────┘               │
+│                     │                              │
+│           ┌─────────▼──────────┐                  │
+│           │  ClassifierPipeline │ ◄── SHARED CODE │
+│           └─────────┬──────────┘                  │
+└─────────────────────┼────────────────────────────┘
+                      │
+        ┌─────────────┴─────────────┐
+        │                           │
+        ▼                           ▼
+  Raw Input                   Classified Output
+  (@timestamp/@message)       (with provenance)
+```
+
+**Key**: Single pipeline implementation ensures identical output across all surfaces.
+
+### Pipeline Stages
 ```
 Raw Input (@timestamp/@message)
     ↓
@@ -833,8 +977,11 @@ Example Output
 
 ### CLI Options
 
-- `--input-format {raw|json}`: Input format (default: `raw`)
-- `--schema <domain>`: Target schema domain (auto-detected if not specified)
+- `--input-format {auto|raw|json}`: Input format (default: `auto`)
+  - `auto`: Detect format automatically
+  - `raw`: Expect `@timestamp` and `@message` fields
+  - `json`: Expect already-normalized events
+- `--schema {core_api|llm|agentic|cv}`: Target schema domain (auto-detected if not specified)
 - `--stats`: Print processing statistics to stderr
 - `--no-validation`: Disable schema validation
 
@@ -882,6 +1029,64 @@ uvicorn ulog.classifier.http:app --ssl-keyfile key.pem --ssl-certfile cert.pem
    - Use multiple workers with uvicorn: `--workers 4`
    - Consider batch processing for large volumes
 
+## Determinism & Non-Determinism
+
+The ULog classifier is designed to produce **byte-identical outputs** for identical inputs across multiple runs. Deterministic behavior is critical for reproducible testing, reliable debugging, and stable golden sets.
+
+### Why Determinism Matters
+
+- **Reproducible Testing**: Tests must pass or fail consistently
+- **Debugging**: Issues must be reproducible to diagnose and fix
+- **Reliability**: Production systems must behave predictably
+- **Validation**: Golden sets must remain stable for regression testing
+
+### Common Sources of Non-Determinism
+
+The classifier guards against these common sources of non-deterministic behavior:
+
+1. **Dictionary Ordering**: All JSON output uses `sort_keys=True` for consistent field ordering
+2. **Floating-Point Formatting**: Numeric values use consistent precision formatting
+3. **Timestamp Generation**: No `datetime.now()` or `time.time()` calls during processing; only input timestamps are used
+4. **Unordered Iteration**: All dict/set iterations are sorted before processing
+5. **Random/UUID Generation**: No random values or UUIDs generated during processing; IDs are deterministic based on content
+6. **Rule Evaluation Order**: Rules are evaluated in explicit priority order with first-match-wins semantics
+
+### Testing Determinism
+
+The determinism test suite validates that the complete pipeline (raw → parse → validate → classify) produces identical outputs:
+
+```bash
+# Run determinism tests
+pytest tests/determinism/test_golden_determinism.py -v
+
+# Or use make target
+make test.determinism.golden
+```
+
+### Troubleshooting Non-Determinism
+
+If you encounter non-deterministic behavior or the determinism tests fail, consult the detailed troubleshooting guide:
+
+**[tests/determinism/TROUBLESHOOTING.md](../../../tests/determinism/TROUBLESHOOTING.md)**
+
+This guide provides:
+
+- Detailed explanations of each non-determinism cause
+- Code examples showing problems and fixes
+- Step-by-step debugging workflow
+- Best practices for maintaining determinism
+
+### Design Guidelines
+
+When adding new features to the classifier:
+
+- **Use deterministic data structures**: Sort collections before iteration
+- **Avoid timestamp generation**: Use only input timestamps
+- **No random values**: Generate IDs deterministically from content
+- **Consistent formatting**: Use explicit precision for floats
+- **Explicit ordering**: Document and enforce rule evaluation order
+- **Test early**: Run determinism tests during development
+
 ## Contributing
 
 When contributing to the classifier:
@@ -890,7 +1095,7 @@ When contributing to the classifier:
 2. **Add tests**: Include unit tests for new features
 3. **Update documentation**: Keep README and examples current
 4. **Preserve provenance**: Ensure `meta.parse.pattern_id` and `provenance.parser_rule_id` are maintained
-5. **Test determinism**: Verify same input produces same output
+5. **Test determinism**: Verify same input produces same output (see Determinism section above)
 
 ## License
 

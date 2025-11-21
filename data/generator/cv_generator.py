@@ -97,9 +97,9 @@ class GenerateCVLog(GenerateLog):
                 },
             }
             # populate raw_message after the log dict exists so context is available
-            log["meta"]["raw_message"] = self.generate_message(domain="cv", context=log)
+            log["meta"]["raw_message"] = self.generate_message(domain="cv", word_count=18, context=log)
             if log["outcome"] == "failure":
-                log["error"] = {"message": self.generate_string(self.generate_integer(20, 256))}
+                log["error"] = {"message": self.generate_message(domain="cv", word_count=self.generate_integer(6, 24))}
             if self.input_params:
                 log = self.generate_option_params(log)
             logs.append(log)

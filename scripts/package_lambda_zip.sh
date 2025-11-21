@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Produces dist/classifier_lambda.zip with Lambda entrypoint: ulog/classifier/handler.lambda_handler
+# Produces dist/classifier_lambda.zip with Lambda entrypoint: ulog.lambda_adapter.handler.handler
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="${ROOT_DIR}/dist"
@@ -35,4 +35,4 @@ zip -r "${DIST_DIR}/classifier_lambda.zip" .
 popd >/dev/null
 
 echo "✅ Package created at: ${DIST_DIR}/classifier_lambda.zip"
-echo "Lambda Handler: ulog.classifier.handler.lambda_handler"
+echo "Lambda Handler: ulog.lambda_adapter.handler.handler"
