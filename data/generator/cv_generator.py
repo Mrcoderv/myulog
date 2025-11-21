@@ -96,14 +96,20 @@ class GenerateCVLog(GenerateLog):
                     },
                 },
             }
+
             # populate raw_message after the log dict exists so context is available
             # Build parser-friendly CV raw messages with bracketed components and key=value parts
             log["meta"]["raw_message"] = self._build_cv_raw_message(log)
+
             if log["outcome"] == "failure":
+                # use domain-aware message generator for realistic error messages
                 log["error"] = {"message": self.generate_message(domain="cv", word_count=self.generate_integer(6, 24))}
+
             if self.input_params:
                 log = self.generate_option_params(log)
+
             logs.append(log)
+
         return logs
 
     def _build_cv_raw_message(self, log: dict) -> str:

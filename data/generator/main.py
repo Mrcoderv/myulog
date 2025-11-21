@@ -161,20 +161,12 @@ if args.raw_mirror:
         with open(raw_path, "w", encoding="utf-8") as f:
             for log in logs:
                 # Compose raw line with @timestamp and @message
-                # @message should contain the original raw text that would be sent to
-                # parsers (not the entire normalized JSON). Use meta.raw_message when
-                # available; fall back to the compact JSON string if not.
-                raw_msg_text = None
-                try:
-                    raw_msg_text = log.get("meta", {}).get("raw_message")
-                except Exception:
-                    raw_msg_text = None
-                if raw_msg_text is None:
-                    raw_msg_text = json.dumps(log, separators=(",", ":"))
-
+                # @message contains a compact JSON string of the normalized record,
+                # which ensures round-trip equality for this ticket.
+                raw_message = json.dumps(log, separators=(",", ":"))
                 raw_record = {
                     "@timestamp": _timestamp_for_raw(log, seed_ts),
-                    "@message": raw_msg_text,
+                    "@message": raw_message,
                 }
                 f.write(json.dumps(raw_record) + "\n")
         print(f"✅ Raw logs written to: {raw_path}")
