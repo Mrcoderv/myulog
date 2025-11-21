@@ -78,7 +78,6 @@ class GenerateLog:
     def generate_unique_string(self) -> str:
         return str(uuid4())
 
-
     def generate_integer(self, min_value: int = 0, max_value: int = 100000) -> int:
         return self.random.randint(min_value, max_value)
 

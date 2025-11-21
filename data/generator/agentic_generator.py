@@ -85,15 +85,14 @@ class AgenticGenerator(GenerateLog):
                 "output_summary": input_output["output"],
                 "status": self.select_enum(self.statuses),
             }
-            # populate a realistic raw message after creating the log entry so context is available
-            log_entry["meta"]["raw_message"] = self.generate_message(domain="agentic", context=log_entry)
-
-            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
 
             if log_entry["status"] in ["failed", "timeout"]:
                 log_entry["error"] = {"message": self.select_enum(self.messages[log_entry["status"]])}
             if self.input_params:
                 log_entry = self.generate_option_params(log_entry)
+            # populate a realistic raw message after creating the log entry so context is available
+            # log_entry["meta"]["raw_message"] = self.generate_message(domain="agentic", context=log_entry)
+            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
             logs.append(log_entry)
         return logs
 
