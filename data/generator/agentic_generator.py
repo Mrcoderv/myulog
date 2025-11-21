@@ -16,10 +16,14 @@ class AgenticGenerator(GenerateLog):
         self.input_params = input_params if input_params else []
 
         self.step_kinds = [
+            "session_start",
             "plan_created",
             "tool_selected",
             "step",
+            "stream_start",
             "guardrails",
+            "cost",
+            "cache",
         ]
         self.statuses = ["success", "retry", "timeout", "failed"]
         self.messages = {
@@ -75,20 +79,16 @@ class AgenticGenerator(GenerateLog):
                 # NB: Agentic records in this seed do not include top-level timestamp;
                 # raw mirror will inject @timestamp for consistency with sample raw shape.
                 "meta": {
-                    "raw_message": None,
+                    "raw_message": self.generate_string(100),
                 },
                 "step_kind": self.select_enum(self.step_kinds),
                 "workflow_id": self.generate_unique_string(),
                 "step_id": self.generate_unique_string(),
-                "tool_name": self.select_enum(self.list_of_tools),
+                "tool_name": self.generate_string(10),
                 "input_summary": input_output["input"],
                 "output_summary": input_output["output"],
                 "status": self.select_enum(self.statuses),
             }
-            # populate a realistic raw message after creating the log entry so context is available
-            log_entry["meta"]["raw_message"] = self.generate_message(domain="agentic", context=log_entry)
-
-            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry)
 
             if log_entry["status"] in ["failed", "timeout"]:
                 log_entry["error"] = {"message": self.select_enum(self.messages[log_entry["status"]])}
@@ -109,7 +109,7 @@ class AgenticGenerator(GenerateLog):
                 case "plan_id":
                     log["plan_id"] = self.generate_unique_string()
                 case "duration_ms":
-                    log['duration_ms'] = self.generate_float(0.0, 500.0)
+                    log["duration_ms"] = self.generate_float(0.0, 500.0)
                 case "cost":
                     log["cost"] = {
                         "tokens_in": self.generate_integer(0, 10000),
@@ -119,19 +119,11 @@ class AgenticGenerator(GenerateLog):
                 case "level":
                     log["level"] = self.select_enum(self.param_dict["levels"])
                 case "category":
-                    log["category"] = "agentic"
-                case "sub_category":
-                    log["sub_category"] = self.select_enum(self.param_dict["sub_categories"])
+                    log["category"] = self.select_enum(self.param_dict["categories"])
                 case "safety_flag":
                     log["safety_flag"] = self.select_enum(self.param_dict["safety_flags"])
                 case "outcome":
-                    if log["status"] in ["failed","retry"]:
-                        log["outcome"] = "failure"
-                    elif log["status"] in ["success","timeout"]:
-                        log["outcome"] = log["status"]
-                    else:
-                        log["outcome"] = self.select_enum(["cancelled","running","pending"])
-
+                    log["outcome"] = self.select_enum(self.param_dict["outcomes"])
                 case "error_code":
                     log["error_code"] = self.select_enum(self.error_codes)
                 case "ranked_tools":
@@ -151,112 +143,6 @@ class AgenticGenerator(GenerateLog):
                 self.logger.warning(f"Unknown option param: {param}")
         return verified_params
 
-
-    # generate raw message
-    def generate_raw_messages(self, log: dict) -> str:
-        events = {
-            "langchain": self._gen_langchain_event,
-            "tool_calling": self._gen_tool_call_event,
-            "graph_state": self._gen_graph_state_event,
-            "components": self._gen_component_event,
-            "session": self._gen_session_event,
-        }
-
-        event_key = self.select_enum(list(events.keys()))
-        return events[event_key](log)
-    # generate langchain event
-    def _gen_langchain_event(self, log: dict) -> str:
-        chain_name = self.select_enum(["AgentExecutor", "RouterChain", "ReActChain"])
-
-        return f"> {log['step_kind']} {log.get('level','info')} {chain_name} chain {log['output_summary']}"
-    
-    # generate tool calling event
-    def _gen_tool_call_event(self, log: dict) -> str:
-        tool = log.get("tool_name", "web_search")
-        action = self.select_enum(["call", "result"])
-        args = {"q": "python example", "k": 5}
-
-        if action == "call":
-            return (
-                f"[Tool] call {tool} "
-                f"args={args} "
-                f"timeout={log.get('duration_ms', 100)}ms"
-            )
-
-        else:
-            return f"""[Tool] result {tool} outcome={log.get('outcome', 'success')} 
-            latency={log.get('duration_ms', 100)}ms"""
-        
-    # generate graph state event
-    def _gen_graph_state_event(self, log: dict) -> str:
-        from_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
-        to_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
-        reason = self.select_enum([
-            "ready_to_execute_first_tool",
-            "no_more_steps",
-            "waiting_for_human_input",
-            "tool_execution_completed",
-        ])
-
-        return (
-            f"""[Graph] state={from_state} -> {to_state} reason='{reason}' 
-            message={log['output_summary']} level={log.get('level','info')}"""
-        )
-    
-    # generate component event
-    def _gen_component_event(self, log: dict) -> str:
-        component = self.select_enum([
-            "Planner", "Selector", "Memory", "Guard",
-            "RAG", "Verifier", "Coder", "Reviewer",
-            "SelfHeal", "Handoff", "RateLimit", "Metrics"
-        ])
-
-        def kv(key, val):
-            return f"{key}={val} "
-
-        extras = []
-        if component == "Planner":
-            extras.append(kv("plan_id", log.get("plan_id", self.generate_unique_string())))
-            extras.append(kv("steps", self.generate_integer(3, 12)))
-            extras.append(kv("plan_hash", log.get('step_id')))
-        elif component == "Selector":
-            extras.append(kv("candidates", self.generate_integer(3, 10)))
-        elif component == "Memory":
-            extras.append(kv("hits", self.generate_integer(0, 5)))
-            extras.append(kv("misses", self.generate_integer(0, 5)))
-        elif component == "Guard":
-            extras.append(kv("policy", "default-safety"))
-        elif component == "Verifier":
-            extras.append(kv("checks", self.generate_integer(1, 3)))
-        elif component == "Coder":
-            tokens = log.get("cost", {}).get("tokens_out", self.generate_integer(100, 1000))
-            extras.append(kv("tokens", tokens))
-        elif component == "Handoff":
-            extras.append(kv("target_agent", self.generate_unique_string()))
-
-        extras_str = "".join(extras).strip()
-
-        return f"[{component}] {log['step_kind']} level={log.get('level','info')} {extras_str}"
-    
-    # generate session event
-    def _gen_session_event(self, log: dict) -> str:
-        session_type = self.select_enum(["session_start", "session_end"])
-        req_id = self.generate_unique_string()[:8]
-        model = self.select_enum(["llm-7b-instruct", "llm-70b-chat", "llama3-8b"])
-        locale = self.select_enum(["en-US", "es-ES", "fr-FR"])
-        tz = self.select_enum(["Europe/Madrid", "America/New_York", "UTC"])
-
-        return (
-            f"[Agent] {session_type} "
-            f"id={log['step_id']} "
-            f"req_id={req_id} "
-            f"model={model} "
-            f"locale={locale} "
-            f"tz={tz}"
-        )
-
-
-    # run all
     def run(self) -> tuple[list[dict], list[dict]]:
         self.input_params = self.verify_input_params()
         self.param_dict = self.load_param_dict(self.input_params)
