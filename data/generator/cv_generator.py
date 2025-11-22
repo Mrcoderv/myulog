@@ -156,7 +156,7 @@ class GenerateCVLog(GenerateLog):
                 lambda: f"[WARNING] Unknown fourcc '{self.select_enum(['xvid','DIVX','MJPG'])}' — falling back to software decoder",
                 lambda: f"[ERROR] Could not open image '{self.faker.file_path(depth=2) if self.faker else '/data/frames/000123.png'}': No such file or directory",
                 lambda: f"[INFO] EXIF orientation={self.select_enum([3,6,1])} detected; rotating image {self.select_enum(['90° CW','90° CCW','180°'])}",
-                lambda: f"[WARNING] Color space mismatch detected (BGR input) — converting to RGB",
+                lambda: "[WARNING] Color space mismatch detected (BGR input) — converting to RGB",
             ]
             choice = self.select_enum(variants)
             text = choice()
@@ -169,24 +169,24 @@ class GenerateCVLog(GenerateLog):
         if comp == "Preproc":
             variants = [
                 lambda: f"Letterbox resize {self.select_enum(['1920x1080','1280x720'])} -> {self.select_enum(['640x640','320x320'])} (pad: 0x160 top/bottom)",
-                lambda: f"Non-contiguous array; making contiguous copy (HWC->CHW)",
-                lambda: f"Normalizing to [0,1], dtype float32",
+                lambda: "Non-contiguous array; making contiguous copy (HWC->CHW)",
+                lambda: "Normalizing to [0,1], dtype float32",
                 lambda: f"[ERROR] Invalid image shape: expected 3 channels, got {self.select_enum([1,2])} (grayscale)",
-                lambda: f"[WARNING] NaN values found after standardization — replacing with 0.0",
+                lambda: "[WARNING] NaN values found after standardization — replacing with 0.0",
             ]
             return f"[Preproc] {self.select_enum(variants)()}"
 
         # AUGMENTATION
         if comp == "Aug":
-            return f"[Aug] Applied transforms: RandomFlip(p=0.5), ColorJitter(bright=0.2,contrast=0.2), Mosaic(p=0.2)"
+            return "[Aug] Applied transforms: RandomFlip(p=0.5), ColorJitter(bright=0.2,contrast=0.2), Mosaic(p=0.2)"
 
         # MODEL / RUNTIME
         if comp == "Model":
             variants = [
                 lambda: f"Loading PyTorch weights: /models/{self.select_enum(['yolov8s.pt','yolov8m.pt'])} (anchors auto)",
                 lambda: f"Device selected: {self.select_enum(['cuda:0','cuda:1','cpu'])} ({self.select_enum(['NVIDIA RTX A5000, 24GB','NVIDIA V100, 16GB','Intel Xeon'])}) — CUDA {self.select_enum(['12.2','11.7'])}, cuDNN {self.select_enum(['9.0','8.2'])}",
-                lambda: f"[WARNING] Missing keys in state_dict: model.head.cls_conv.2.weight ... (3 more); unexpected keys: model.neck.upsample.bias",
-                lambda: f"Converting PyTorch -> ONNX opset=13 dynamic_axes=[batch,h,w]",
+                lambda: "[WARNING] Missing keys in state_dict: model.head.cls_conv.2.weight ... (3 more); unexpected keys: model.neck.upsample.bias",
+                lambda: "Converting PyTorch -> ONNX opset=13 dynamic_axes=[batch,h,w]",
                 lambda: f"[INFO] Exported ONNX graph: {self.generate_integer(100,300)} layers, {round(self.generate_float(1.0,20.0),1)} GFLOPs @640x640",
             ]
             return f"[Model] {self.select_enum(variants)()}"

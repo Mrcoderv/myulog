@@ -1,6 +1,6 @@
-from pathlib import Path
 import importlib.util
 import json
+from pathlib import Path
 
 from src.ulog.parsers.cv import CVParser
 
