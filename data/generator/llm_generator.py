@@ -1,19 +1,11 @@
-from typing import List, Tuple
-import json
-import random
-from datetime import datetime, timedelta
-import string
-import re
+from typing import List
 
-# NOTE: This assumes a parent class 'GenerateLog' exists with base methods. 
-# Placeholder methods are included here for select_enum, generate_integer, etc.
+from generator import GenerateLog
+from llm_message_template_engine import LLMMessageTemplateEngine
 
-class GenerateLLMLog:
-    """
-    Synthetic LLM logs generator.
-    Produces logs matching patterns for log parsing, ensuring the output format 
-    (Timestamp [Component][Level] Message) is consistently followed.
-    """
+
+class GenerateLLMLog(GenerateLog):
+    """Synthetic LLM logs."""
 
     def __init__(
         self,
@@ -23,273 +15,348 @@ class GenerateLLMLog:
         input_params: List[str] | None,
         valid_params: List[str] | None,
     ) -> None:
-        # Placeholder for parent class initialization
-        self.fields = fields
-        self.size = size
-        self.seed = seed
-        self.valid_params = valid_params or []
+        super().__init__(fields, size, seed, valid_params)
         self.input_params = input_params or []
-        
-        # Initialize random seed
-        random.seed(seed)
-        self.random = random
-        
-        # Add basic placeholder logger
-        class PlaceholderLogger:
-            def warning(self, msg):
-                print(f"WARNING: {msg}")
-        self.logger = PlaceholderLogger()
-    
-        # Vocabulary for dynamic template filling
-        self.models = ["llm-7b-instruct", "llm-3b", "llm-32k", "gpt-4-turbo", "llama-3-70b"]
-        self.tiers = ["pro", "standard", "internal", "free"]
-        self.dtypes = ["bfloat16", "float16", "float32", "int8", "fp8"]
-        self.providers = ["local", "openai", "anthropic", "azure"]
-        self.frameworks = ["TensorFlow", "PyTorch", "JAX"]
-        self.components_hw = ["CPU", "GPU", "TPU"]
-        
-        self.error_reasons = [
-            "connection_reset", "timeout", "bad_request", "auth_failure", 
-            "rate_limit", "out_of_memory", "gpu_error"
+
+        # Load controlled vocabulary (only what's in schema)
+        vocab_lists = self.load_from_vocab(["levels", "outcomes", "safety_flags"])
+        self.levels, self.outcomes, self.safety_flags = vocab_lists
+
+        # Schema-compliant pipeline_stage enum
+        self.pipeline_stages = [
+            "serve",
+            "tokenizer",
+            "quant",
+            "load",
+            "inference",
+            "rag_retrieve",
+            "rag_embed",
+            "rag_rerank",
+            "safety_check",
+            "sampling",
         ]
-        
-        # --- FIX 1 & 3 APPLIED: Ensure all tuples have 3 elements (Level, Template, Phase) ---
-        # The Metrics level is changed from None to "INFO" to pass the strict regex check.
-        self.templates = {
-            "Serve": [
-                ("INFO", "Starting LLM HTTP server on {ip}:{port} (workers={workers}, backlog={backlog})", "init"),
-                ("WARNING", "Dynamic batching disabled due to SLA (p95_latency target={lat}ms violated)", "runtime"),
-            ],
-            "Router": [
-                ("INFO", "Default model={model}, fallback={fallback}, long_context={long_ctx}", "config"),
-                ("ERROR", "No healthy backends for model={model} — circuit open (cooldown={cd}s)", "failure"),
-            ],
-            "Auth": [
-                ("INFO", "Loaded {n} API keys (RBAC: tier={tier})", "load"),
-                ("ERROR", "Invalid API key '{key}...' — HMAC signature verification failed", "fail"),
-            ],
-            "Tokenizer": [
-                ("INFO", "Loading tokenizer from /models/{model} (fast=True)", "load"),
-                ("WARNING", "Added {n} missing special tokens: pad_token, bos_token", "config"),
-                ("ERROR", "Incompatible merges file: expected bpe ranks > 0, got -1 — falling back to slow tokenizer", "config"),
-            ],
-            "Model": [
-                ("INFO", "Loading model weights /models/{model} in dtype={dtype}, attn=flash-attn-2", "load"),
-                ("INFO", "device_map=auto — shards spread across {gpus} GPUs (tp_size={tp}, pp_size={pp})", "config"),
-            ],
-            "Quant": [
-                ("INFO", "Loading {bits}-bit quantization (bnb-nf4) with double quant — compute_dtype={dtype}", "load"),
-                ("WARNING", "bitsandbytes CUDA extension not found; falling back to 8-bit (LLM.int8())", "fallback"),
-                ("ERROR", "AWQ/GPTQ weights detected but incompatible with current architecture — please re-export", "fail"),
-            ],
-            "KVCache": [
-                ("INFO", "Paged KV enabled: max_kv_tokens={tokens}, offload=CPU threshold={thresh}%", "config"),
-                ("WARNING", "Eviction triggered: {seq} sequences spilled to host (pressure={press})", "runtime"),
-            ],
-            "HTTP": [
-                ("INFO", "POST /v1/chat/completions 200 OK — ttft={ttft}ms, output_tokens={out_tok}, tps={tps}", "request"),
-                ("ERROR", "504 Gateway Timeout — upstream tool router took > {sec}s", "request"),
-                ("WARNING", "413 Payload Too Large — client sent {mb}MB file to /v1/chat/completions", "request"),
-            ],
-            "JSON": [
-                ("INFO", "response_format=json_schema (strict=True)", "output"),
-                ("ERROR", "Schema validation failed at '$.items[0].price': expected number, got string — repairing output", "output"),
-            ],
-            "ToolCall": [
-                ("INFO", "Tool requested: 'get_weather' args={{'city':'{city}','units':'metric'}}", "runtime"),
-                ("WARNING", "Tool timeout after {ms}ms — returning partial answer", "runtime"),
-            ],
-            "Safety": [
-                ("INFO", "Running moderation: categories=toxicity, self_harm, sexual_minors, pii", "pre_process"),
-                ("WARNING", "Prompt injection pattern detected (override system) — sanitized prompt applied", "pre_process"),
-                ("ERROR", "Output blocked by policy: {policy} — returning refusal template", "post_process"),
-            ],
-            "RateLimit": [
-                ("WARNING", "key=sk-{tier}-... exceeded {rpm} rpm — backoff={sec}s", "enforce"),
-                ("ERROR", "429 Too Many Requests — quota exhausted for tier={tier}", "fail"),
-            ],
-            "RAG": [
-                ("INFO", "Query embedder={model} provider={prov}", "pre_process"),
-                ("ERROR", "Embedding service timeout after {ms}ms — retries left={retries}", "fail"),
-                ("WARNING", "Retrieved 0 documents above threshold={thresh} — switching to hybrid BM25+dense", "search"),
-            ],
-            "Metrics": [
-                ("INFO", "req_id={req_id} tokens_in={tin}, tokens_out={tout}, ttft={ttft}ms, tbt={tbt}ms, tps={tps}", "data"), 
-            ],
-            "HW": [
-                ("INFO", "GPU0 NVIDIA A100 40GB — mem alloc={alloc}GB, reserved={res}GB, util={util}%", "runtime"),
-                ("ERROR", "CUDA error: an illegal memory access was encountered — resetting context", "fail")
-            ]
+
+        # Component names for realistic message generation
+        self.components = [
+            "Serve",
+            "Router",
+            "Auth",
+            "Tokenizer",
+            "Model",
+            "Loader",
+            "Quant",
+            "KVCache",
+            "Config",
+            "Context",
+            "vLLM",
+            "Batcher",
+            "Speculative",
+            "HTTP",
+            "Stream",
+            "JSON",
+            "ToolCall",
+            "Safety",
+            "PII",
+            "RateLimit",
+            "Prompt",
+            "Cache",
+            "RAG",
+            "Sampler",
+            "Lang",
+            "Metrics",
+            "HW",
+            "Distributed",
+            "MPS",
+            "Tracing",
+            "Audit",
+            "Guardrails",
+            "Policies",
+            "Planner",
+            "Monitor",
+            "Embeddings",
+            "SSE",
+            "gRPC",
+            "TLS",
+            "Telemetry",
+            "Logger",
+            "Train",
+            "LoRA",
+            "QLoRA",
+            "Optimizer",
+            "Trainer",
+            "Checkpoint",
+            "Eval",
+            "Merge",
+            "Export",
+            "ggml",
+            "Llama.cpp",
+            "TritonIS",
+            "TGI",
+            "Observability",
+            "Scheduler",
+            "ColdStart",
+            "Cleanup",
+            "Shutdown",
+            "Web",
+            "Security",
+            "Plugins",
+        ]
+
+        self.model_names = [
+            "llm-7b-instruct",
+            "llm-3b",
+            "llm-32k",
+            "llm-70b-chat",
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4-turbo",
+            "mistral-7b",
+            "llama-3-70b",
+            "llama3-8b",
+        ]
+
+        self.endpoints = [
+            "/v1/chat/completions",
+            "/v1/completions",
+            "/v1/embeddings",
+            "/v1/models",
+            "/healthz",
+        ]
+
+        self.finish_reasons = ["stop", "length", "content_filter", "tool_calls", "timeout"]
+
+        self.error_types = [
+            "TokenizerError",
+            "CUDAError",
+            "TimeoutError",
+            "ValidationError",
+            "OOMError",
+            "ModelLoadError",
+            "AuthenticationError",
+            "RateLimitError",
+        ]
+
+        self.param_dict = {}
+
+        # Error messages for failure scenarios
+        self.error_message_map = {
+            "TokenizerError": "Incompatible tokenizer configuration detected",
+            "CUDAError": "CUDA out of memory during inference",
+            "TimeoutError": "Request exceeded maximum processing time",
+            "ValidationError": "Invalid input format or schema violation",
+            "OOMError": "System ran out of available memory",
+            "ModelLoadError": "Failed to load model weights",
+            "AuthenticationError": "Invalid or expired API key",
+            "RateLimitError": "Rate limit exceeded for current tier",
         }
 
-
-    # --- Placeholder methods for functionality assumed from parent class 'GenerateLog' ---
-    def select_enum(self, enum_list):
-        return self.random.choice(enum_list)
-
-    def generate_integer(self, min_val, max_val):
-        return self.random.randint(min_val, max_val)
-
-    def generate_float(self, min_val, max_val):
-        return self.random.uniform(min_val, max_val)
-
-    def generate_timestamp(self):
-        now = datetime.now()
-        delta = timedelta(seconds=self.random.randint(0, 86400))
-        ts = now - delta
-        # Format matching the test output: YYYY-MM-DDTHH:MM:SS.msZ
-        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-
-    def generate_unique_string(self, length=12):
-        chars = string.ascii_letters + string.digits
-        return ''.join(self.random.choice(chars) for _ in range(length))
-
-    # --- End of Placeholder methods ---
+        # Initialize template engine
+        self.message_engine = LLMMessageTemplateEngine(
+            self.random, self.select_enum, self.generate_integer, self.generate_float, self.model_names
+        )
 
     def generate_log_entry(self) -> List[dict]:
+        """Generate schema-compliant LLM log entries with realistic raw messages."""
         logs = []
+        used_messages = set()
+
         for _ in range(self.size):
-            # 1. Select Component & Template
-            component = self.select_enum(list(self.templates.keys()))
-            
-            # This unpacking is now safe as all templates have 3 elements
-            level, template, phase = self.select_enum(self.templates[component])
-            
-            # 2. Generate Context 
-            current_model = self.select_enum(self.models)
-            current_lat = self.generate_integer(10, 2000)
-            current_tokens = self.generate_integer(10, 4096)
-            
-            ctx = {
-                "ip": f"10.{self.generate_integer(0,255)}.{self.generate_integer(0,255)}.{self.generate_integer(1,255)}",
-                "port": self.generate_integer(8000, 9000),
-                "workers": self.generate_integer(2, 16),
-                "backlog": 512,
-                "lat": current_lat,
-                "model": current_model,
-                "fallback": "llm-3b",
-                "long_ctx": "llm-32k",
-                "cd": self.generate_integer(10, 60),
-                "n": self.generate_integer(1, 100),
-                "tier": self.select_enum(self.tiers),
-                "gpus": 8,
-                "tp": 4, 
-                "pp": 2,
-                "dtype": self.select_enum(self.dtypes),
-                
-                # --- FIX 2 APPLIED: Added 'tokens' key ---
-                "tokens": self.generate_integer(10000, 100000), 
-                # ----------------------------------------
-                
-                "ttft": self.generate_integer(20, 200),
-                "out_tok": current_tokens,
-                "tps": self.generate_float(10.0, 150.0),
-                "policy": self.select_enum(["sexual_minors", "hate_speech"]),
-                "util": self.generate_integer(50, 99),
-                
-                # Additional variables for templates:
-                "req_id": self.generate_unique_string(12),
-                "tin": self.generate_integer(10, 1000),
-                "tout": self.generate_integer(1, 1000),
-                "tbt": self.generate_integer(10, 500),
-                "key": self.generate_unique_string(4),
-                "bits": self.select_enum([4, 8]),
-                "thresh": self.generate_float(0.5, 0.9),
-                "seq": self.generate_integer(1, 50),
-                "press": self.generate_integer(80, 100),
-                "mb": self.generate_integer(50, 200),
-                "city": self.select_enum(["Berlin", "London", "Tokyo"]),
-                "ms": self.generate_integer(100, 5000),
-                "rpm": self.generate_integer(100, 10000),
-                "retries": self.generate_integer(1, 5),
-                "sec": self.generate_integer(5, 30),
-                "prov": self.select_enum(self.providers),
-                "alloc": self.generate_integer(10, 39),
-                "res": self.generate_integer(1, 5),
-            }
-
-            # 3. Format Message Body
-            try:
-                message_body = template.format(**ctx)
-            except KeyError as e:
-                # This should no longer occur for 'tokens' or other common keys
-                print(f"KeyError: Missing key {e} for template: {template}")
-                continue
-            
-            # A. Generate the timestamp first
-            timestamp = self.generate_timestamp()
-
-            # B. Prepend timestamp to the message string
-            # Since 'level' is never None now, we use the simple, robust format
-            full_message = f"{timestamp} [{component}][{level}] {message_body}"
-
-            # 4. Determine Outcome
-            if level in ["ERROR", "CRITICAL"]:
-                outcome = "failure"
-            elif level == "WARNING":
-                outcome = self.select_enum(["success", "degraded"])
-            else:
-                outcome = "success"
-
-            # 5. Build Log Entry
-            log_entry = {
-                "timestamp": timestamp, 
-                "model": current_model,
-                "framework": self.select_enum(self.frameworks),
-                "component": self.select_enum(self.components_hw),
-                "log_component": component,
-                "phase": phase,
-                "level": level,
-                "category": "llm",
-                "sub_category": "general",
-                "outcome": outcome,
-                "duration_ms": current_lat,
-                "tokens_processed": current_tokens if "out_tok" in template else 0,
-                "message": full_message, 
-                "meta": {
-                   "raw_message": message_body,
-                   "context": ctx
-                }
-            }
-            
+            outcome = self.select_enum(self.outcomes) if self.outcomes else "success"
+            log_entry = self._create_base_log_entry(outcome)
+            self._add_optional_fields(log_entry)
+            self._add_usage_metrics(log_entry)
+            self._add_sampler_params(log_entry)
+            self._add_outcome_specific_fields(log_entry, outcome)
             log_entry = self.generate_option_params(log_entry)
+            log_entry["meta"]["raw_message"] = self.generate_raw_messages(log_entry, used_messages)
             logs.append(log_entry)
-            
+
         return logs
 
-    # --- Helper methods (kept as-is) ---
+    def _create_base_log_entry(self, outcome: str) -> dict:
+        """Create base log structure with required fields."""
+        return {
+            "meta": {
+                "raw_message": None,
+                "parse": {
+                    "parser_name": "llm_parser",
+                    "parser_version": self.select_enum(["1.0.0", "1.1.0", "2.0.0"]),
+                    "pattern_id": self.generate_unique_string(),
+                    "confidence": self.generate_float(0.75, 0.99),
+                },
+            },
+            "timestamp": self.generate_timestamp(),
+            "outcome": outcome,
+            "request_id": self.generate_unique_string(),
+            "model": self.select_enum(self.model_names),
+            "pipeline_stage": self.select_enum(self.pipeline_stages),
+        }
+
+    def _add_optional_fields(self, log_entry: dict) -> None:
+        """Add optional fields to log entry."""
+        log_entry["level"] = self.select_enum(self.levels) if self.levels else "info"
+        log_entry["category"] = "llm"
+        log_entry["component"] = self.select_enum(self.components)
+        log_entry["latency_ms"] = round(self.generate_float(5.0, 5000.0), 2)
+        log_entry["ttft_ms"] = round(self.generate_float(10.0, 500.0), 2)
+        log_entry["endpoint"] = self.select_enum(self.endpoints)
+
+    def _add_usage_metrics(self, log_entry: dict) -> None:
+        """Add token usage metrics."""
+        prompt_tokens = self.generate_integer(50, 2000)
+        completion_tokens = self.generate_integer(10, 1000)
+        log_entry["usage"] = {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+        }
+
+    def _add_sampler_params(self, log_entry: dict) -> None:
+        """Add sampler configuration parameters."""
+        log_entry["sampler"] = {
+            "temperature": round(self.generate_float(0.0, 2.0), 2),
+            "top_p": round(self.generate_float(0.8, 1.0), 2),
+            "max_tokens": self.generate_integer(256, 4096),
+            "presence_penalty": round(self.generate_float(0.0, 1.0), 2),
+            "frequency_penalty": round(self.generate_float(0.0, 1.0), 2),
+        }
+
+    def _add_outcome_specific_fields(self, log_entry: dict, outcome: str) -> None:
+        """Add fields specific to success or failure outcomes."""
+        if outcome == "success":
+            self._add_success_fields(log_entry)
+        elif outcome == "failure":
+            self._add_failure_fields(log_entry)
+
+    def _add_success_fields(self, log_entry: dict) -> None:
+        """Add success-specific fields (result, finish_reason)."""
+        completion_tokens = log_entry["usage"]["completion_tokens"]
+        output_len = completion_tokens * self.generate_integer(3, 5)
+        log_entry["result"] = {
+            "output_text_length": output_len,
+            "output_preview": self.generate_string(min(output_len, 50)),
+            "safety_flags": [],
+        }
+        # Optionally add safety flags
+        if self.random.random() < 0.1:
+            log_entry["result"]["safety_flags"] = [self.select_enum(self.safety_flags) if self.safety_flags else "none"]
+        log_entry["finish_reason"] = self.select_enum(self.finish_reasons)
+
+    def _add_failure_fields(self, log_entry: dict) -> None:
+        """Add failure-specific fields (error)."""
+        error_type = self.select_enum(self.error_types)
+        log_entry["error"] = {
+            "type": error_type,
+            "message": self.error_message_map.get(error_type, "Unknown error occurred"),
+        }
+
+    def generate_raw_messages(self, log: dict, used_messages: set) -> str:
+        """Generate realistic LLM raw log messages using template engine."""
+
+        pipeline_stage = log.get("pipeline_stage", "inference")
+        outcome = log.get("outcome", "success")
+        level = log.get("level", "info").upper()
+
+        # Map pipeline stages and conditions to template keys
+        template_key = self._get_template_key(pipeline_stage, outcome, level)
+
+        # Generate message with uniqueness check
+        max_attempts = 10
+        for _ in range(max_attempts):
+            message = self.message_engine.render(template_key, log)
+            if message not in used_messages:
+                used_messages.add(message)
+                return message
+
+        # Fallback: add unique suffix
+        return "{} [{}]".format(message, self.generate_unique_string()[:8])
+
+    def _get_template_key(self, pipeline_stage: str, outcome: str, level: str) -> str:
+        """Determine template key based on pipeline stage, outcome, and level."""
+        # Special cases with level/outcome variations
+        stage_level_map = {
+            ("tokenizer", "ERROR"): "tokenizer_error",
+            ("tokenizer", "failure"): "tokenizer_error",
+            ("quant", "ERROR"): "quant_error",
+            ("quant", "WARNING"): "quant_warning",
+            ("rag_embed", "ERROR"): "rag_embed_error",
+            ("safety_check", "ERROR"): "safety_error",
+            ("safety_check", "WARNING"): "safety_warning",
+        }
+
+        # Check level-based variations first
+        template_key = stage_level_map.get((pipeline_stage, level))
+        if not template_key and outcome == "failure":
+            template_key = stage_level_map.get((pipeline_stage, outcome))
+
+        # Fallback to direct stage mapping
+        if not template_key:
+            direct_map = {
+                "serve": "serve",
+                "tokenizer": "tokenizer",
+                "quant": "quant",
+                "load": "load",
+                "inference": "inference",
+                "rag_embed": "rag_embed",
+                "rag_retrieve": "rag_retrieve",
+                "rag_rerank": "rag_rerank",
+                "safety_check": "safety",
+                "sampling": "sampling",
+            }
+            template_key = direct_map.get(pipeline_stage, "inference")
+
+        return template_key
+
     def generate_option_params(self, log: dict) -> dict:
+        """Apply optional parameters from input_params."""
         for param in self.input_params:
             match param:
-                case "request_id":
-                    log["request_id"] = self.generate_unique_string()
                 case "version":
-                    log["version"] = "1.0.0"
+                    major = self.generate_integer(0, 5)
+                    minor = self.generate_integer(0, 10)
+                    patch = self.generate_integer(0, 20)
+                    # Use metadata for extra fields not in schema
+                    if "metadata" not in log:
+                        log["metadata"] = {}
+                    log["metadata"]["version"] = f"{major}.{minor}.{patch}"
+                case "stack_trace" if log.get("outcome") == "failure":
+                    # Add to error.stack
+                    if "error" in log and isinstance(log["error"], dict):
+                        log["error"]["stack"] = self.generate_stacktrace(max_frames=4)
                 case "latency_ms":
-                    log["latency_ms"] = self.generate_integer(0, 2000)
+                    log["latency_ms"] = round(self.generate_float(1.0, 5000.0), 2)
+                case "throughput":
+                    if "metadata" not in log:
+                        log["metadata"] = {}
+                    log["metadata"]["throughput"] = round(self.generate_float(0.1, 1000.0), 2)
                 case _:
                     continue
         return log
 
     def verify_input_params(self) -> List[str]:
+        """Verify input parameters against valid params list."""
         verified = []
         for p in self.input_params:
-            if p in self.valid_params:
+            if self.verify_option_params(p, self.valid_params):
                 verified.append(p)
             else:
                 self.logger.warning(f"Unknown option param: {p}")
         return verified
 
     def run(self) -> tuple[List[dict], List[dict]]:
+        """Generate valid and invalid log sets."""
         self.input_params = self.verify_input_params()
-        
+        self.param_dict = self.load_param_dict(self.input_params)
+
+        required_fields = ["request_id", "model", "pipeline_stage", "outcome", "timestamp", "meta"]
+
         valid_logs = self.generate_log_entry()
         invalid_logs = self.generate_log_entry()
 
-        # To create invalid logs, we corrupt the 'message' field 
+        # Make invalid logs by removing required fields
         for log in invalid_logs:
-            if "message" in log:
-                # Corrupt the pattern: Remove the first '['
-                log["message"] = log["message"].replace("[", "", 1)
-                
+            field_to_remove = self.select_enum(required_fields)
+            if field_to_remove in log:
+                del log[field_to_remove]
+
         return valid_logs, invalid_logs
