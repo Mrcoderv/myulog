@@ -15,52 +15,55 @@ help: ## Show available commands
 	@echo "Common commands:"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make lint        - run ruff lint locally (poetry run)"
-	@echo "  make test        - run pytest locally (poetry run)"
-	@echo "  make test.unit   - run unit tests for rules and provenance"
-	@echo "  make coverage    - run tests with coverage and write docs/coverage.svg"
-	@echo "  make test.schemas - run JSON Schema test harness (writes JUnit XML)"
-	@echo "  make test.schemas.json - run JSON Schema test harness (writes JSON)"
-	@echo "  make test.determinism - run determinism tests for data generators"
-	@echo "  make test.determinism.golden - run golden set determinism tests"
-	@echo "  make test.all    - run all checks: lint + unit tests + schema harness (CI parity)"
+	@echo "  make lint						- run ruff lint locally (poetry run)"
+	@echo "  make test						- run pytest locally (poetry run)"
+	@echo "  make test.unit					- run unit tests for rules and provenance"
+	@echo "  make coverage					- run tests with coverage and write docs/coverage.svg"
+	@echo "  make test.schemas				- run JSON Schema test harness (writes JUnit XML)"
+	@echo "  make test.schemas.json 		- run JSON Schema test harness (writes JSON)"
+	@echo "  make test.determinism 			- run determinism tests for data generators"
+	@echo "  make test.determinism.golden	- run golden set determinism tests"
+	@echo "  make test.roundtrip			- run roundtrip test for data generators"
+	@echo "  make test.all    				- run all checks: lint + unit tests + schema harness (CI parity)"
 	@echo ""
 	@echo "Rules:"
-	@echo "  make rules.validate     - validate rules.json against rules.schema.json"
-	@echo "  make rules.test         - run unit tests for rules examples"
-	@echo "  make rules.check        - validate rules and run tests"
+	@echo "  make rules.validate     		- validate rules.json against rules.schema.json"
+	@echo "  make rules.test         		- run unit tests for rules examples"
+	@echo "  make rules.check        		- validate rules and run tests"
 	@echo ""
 	@echo "Demo:"
-	@echo "  make demo.generate      - generate tiny demo schema/examples/raw inputs"
-	@echo "  make demo.run           - generate demo and run the harness against it"
+	@echo "  make demo.generate      		- generate tiny demo schema/examples/raw inputs"
+	@echo "  make demo.run           		- generate demo and run the harness against it"
 	@echo ""
 	@echo "Pipeline:"
-	@echo "  make generate           - create a sample log in local_pipeline/in"
-	@echo "  make normalize          - normalize/parse logs from local_pipeline/in to local_pipeline/out"
-	@echo "  make classify           - run docker-compose pipeline (in -> out)"
-	@echo "  make down               - stop/cleanup docker-compose services"
+	@echo "  make generate       		    - create a sample log in local_pipeline/in"
+	@echo "  make normalize      		    - normalize/parse logs from local_pipeline/in to local_pipeline/out"
+	@echo "  make classify       		    - run docker-compose pipeline (in -> out)"
+	@echo "  make down           		    - stop/cleanup docker-compose services"
 	@echo ""
 	@echo "HTTP Service:"
-	@echo "  make http.up            - start HTTP classifier service"
-	@echo "  make http.down          - stop HTTP classifier service"
-	@echo "  make http.logs          - view HTTP service logs"
-	@echo "  make http.test          - run smoke tests against HTTP service"
-	@echo "  make http.smoke         - start service and run smoke tests"
+	@echo "  make http.up            		- start HTTP classifier service"
+	@echo "  make http.down          		- stop HTTP classifier service"
+	@echo "  make http.logs          		- view HTTP service logs"
+	@echo "  make http.test          		- run smoke tests against HTTP service"
+	@echo "  make http.smoke         		- start service and run smoke tests"
 	@echo "Build & Packaging:"
-	@echo "  make build              - build all distribution artifacts (wheel, CLI, Lambda ZIP)"
-	@echo "  make build.verify       - verify build reproducibility (builds twice, compares checksums)"
-	@echo "  make package            - alias for 'make build' (produces dist/* + SHA256SUMS)"
-	@echo "  make clean              - remove ./dist (no Docker pruning)"
+	@echo "  make build              		- build all distribution artifacts (wheel, CLI, Lambda ZIP)"
+	@echo "  make build.verify       		- verify build reproducibility (builds twice, compares checksums)"
+	@echo "  make package            		- alias for 'make build' (produces dist/* + SHA256SUMS)"
+	@echo "  make clean              		- remove ./dist (no Docker pruning)"
 	@echo ""
 	@echo "Vocabulary:"
-	@echo "  make lint-vocab         - lint the controlled vocabulary"
-	@echo "  make format-vocab       - auto-format the vocabulary JSON"
+	@echo "  make lint-vocab         		- lint the controlled vocabulary"
+	@echo "  make format-vocab       		- auto-format the vocabulary JSON"
 	@echo "Synthetic Data:"
-	@echo "  make data.generate - Generate normalized synthetic JSONL (per domain)"
-	@echo "  make data.generate.raw - Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate 			- Generate normalized synthetic JSONL (per domain)"
+	@echo "  make data.generate.raw 		- Generate raw-line mirrors for round-trip tests (per domain)"
+	@echo "  make data.generate.baseline	- Generate paired raw+parsed JSONL and labels (200 total; 50/domain)"
+	@echo "  make data.validate.baseline	- Validate baseline: round-trip counts, label alignment, minima"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make setup              - install local dev tools (ruff, pytest) (optional)"
+	@echo "  make setup              		- install local dev tools (ruff, pytest) (optional)"
 
 setup: ## Install local tools (optional; CI installs its own)
 	@python3 -m pip install --upgrade pip || true
@@ -208,7 +211,7 @@ rules.check: ## Run both rules validation and tests
 
 
 # --- Synthetic Data Generators ---
-.PHONY: data.generate data.generate.raw test.roundtrip
+.PHONY: data.generate data.generate.raw test.roundtrip data.generate.baseline data.validate.baseline
 
 data.generate: ## Generate synthetic JSONL (per domain)
 	@poetry run python data/generator/main.py -d agentic -n log_agentic
@@ -228,6 +231,14 @@ data.generate.raw: ## Generate raw-line mirrors for round-trip tests
 test.roundtrip:
 	@poetry run pytest -q data/generator/test_roundtrip.py
 
+
+# --- Baseline dataset (Ticket 2.3) ---
+
+data.generate.baseline: ## Generate paired raw+parsed JSONL and labels (200 total; 50/domain)
+	@poetry run python data/generator/generate_baseline.py --seed 42 --count-per-domain 50
+
+data.validate.baseline: ## Validate baseline integrity and alignment
+	@poetry run python data/generator/validate_baseline.py
 # --- Parity check: CLI vs local pipeline app ---
 parity.check: ## Compare CLI vs pipeline outputs for all files in local_pipeline/in/*.jsonl
 	@bash scripts/parity_check.sh
