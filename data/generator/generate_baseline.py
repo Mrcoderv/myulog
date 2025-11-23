@@ -217,6 +217,12 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
     with open(labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
+            
+    # Also write the final labels file at the path expected by the validate_baseline.py 
+    final_labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
+    with open(final_labels_file, "w", encoding="utf-8") as f:
+        for label in all_labels:
+            f.write(json.dumps(label) + "\n")
 
     print("\nBaseline dataset generated successfully!")
     print(f"   Raw logs: {BASELINE_DIR}")
