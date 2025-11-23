@@ -4,7 +4,7 @@ Baseline Dataset Generator (v0.9)
 Generates paired artifacts for synthetic data:
   1. Raw logs (in /data/synthetic/baseline/raw/)
   2. Parsed normalized logs (in /data/synthetic/baseline/)
-  3. Labeled logs with rule classifications (baseline_labels.jsonl)
+  3. Labeled logs with rule classifications (pre_review_baseline_labels.jsonl)
 
 Usage:
     poetry run python data/generator/generate_baseline.py [--seed SEED] [--count-per-domain N]
@@ -101,7 +101,7 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
 
     # Use the mapped domain name for the parser
     parser_domain = DOMAIN_MAP.get(domain, domain)
-    
+
     cmd = [
         "poetry",
         "run",
@@ -213,7 +213,7 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         print(f"[{domain}] Complete: {count_per_domain} records")
 
     # Step 4: Write labels to output
-    labels_file = BASELINE_DIR / "baseline_labels.jsonl"
+    labels_file = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
     with open(labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")

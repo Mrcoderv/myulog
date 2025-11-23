@@ -223,7 +223,7 @@ def main():
                 }
                 all_labels.append(wrapped)
 
-    labels_out = BASELINE_DIR / "baseline_labels.jsonl"
+    labels_out = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
     with open(labels_out, "w", encoding="utf-8") as lf:
         for label in all_labels:
             lf.write(json.dumps(label, ensure_ascii=False) + "\n")
