@@ -15,8 +15,8 @@ from tests.rules.conftest import evaluate
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 GENERATOR_DIR = PROJECT_ROOT / "data" / "generator"
 DATA_SYNTHETIC = PROJECT_ROOT / "data" / "synthetic"
-RAW_DIR = DATA_SYNTHETIC / "raw"
 BASELINE_DIR = DATA_SYNTHETIC / "baseline"
+RAW_DIR = BASELINE_DIR / "raw"
 RULES_JSON = PROJECT_ROOT / "rules" / "rules.json"
 
 DOMAINS = ["agentic", "cv", "api", "llm"]
@@ -40,7 +40,7 @@ def run_generator(domain: str, count: int, seed: int):
         "-n",
         f"{domain}_baseline",
         "-o",
-        str(DATA_SYNTHETIC),
+        str(BASELINE_DIR),
         "--raw-mirror",
     ]
     res = subprocess.run(cmd, capture_output=True, text=True)
@@ -223,7 +223,7 @@ def main():
                 }
                 all_labels.append(wrapped)
 
-    labels_out = DATA_SYNTHETIC / "baseline_labels.jsonl"
+    labels_out = BASELINE_DIR / "baseline_labels.jsonl"
     with open(labels_out, "w", encoding="utf-8") as lf:
         for label in all_labels:
             lf.write(json.dumps(label, ensure_ascii=False) + "\n")

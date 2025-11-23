@@ -2,7 +2,7 @@
 Baseline Dataset Generator (v0.9)
 
 Generates paired artifacts for synthetic data:
-  1. Raw logs (in /data/synthetic/raw/)
+  1. Raw logs (in /data/synthetic/baseline/raw/)
   2. Parsed normalized logs (in /data/synthetic/baseline/)
   3. Labeled logs with rule classifications (baseline_labels.jsonl)
 
@@ -28,8 +28,8 @@ PROJECT_ROOT = GENERATOR_DIR.parent.parent
 # Add project root to sys.path to enable imports from tests module
 sys.path.insert(0, str(PROJECT_ROOT))
 DATA_SYNTHETIC = PROJECT_ROOT / "data" / "synthetic"
-RAW_DIR = DATA_SYNTHETIC / "raw"
 BASELINE_DIR = DATA_SYNTHETIC / "baseline"
+RAW_DIR = BASELINE_DIR / "raw"
 RULES_JSON = PROJECT_ROOT / "rules" / "rules.json"
 
 DOMAINS = ["agentic", "cv", "api", "llm"]
@@ -39,7 +39,7 @@ DOMAIN_MAP = {
     "agentic": "agentic",
     "cv": "cv",
     "api": "core_api",  # Generator uses 'api', parser uses 'core_api'
-    "llm": "llm"
+    "llm": "llm",
 }
 
 
@@ -78,7 +78,7 @@ def generate_raw_logs(domain: str, count: int, seed: int) -> pathlib.Path:
         "-n",
         output_name,
         "-o",
-        str(DATA_SYNTHETIC),
+        str(BASELINE_DIR),
         "--raw-mirror",
     ]
 
@@ -199,23 +199,27 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
     for domain in DOMAINS:
         domain_seed = seed + DOMAINS.index(domain) * 1000
 
+        # Step 1: Generate raw logs
         raw_file = generate_raw_logs(domain, count_per_domain, domain_seed)
 
+        # Step 2: Parse and normalize raw logs
         parsed_file = BASELINE_DIR / f"{domain}_baseline_parsed.jsonl"
         parse_raw_to_normalized(raw_file, parsed_file, domain)
 
+        # Step 3: Classify logs and collect labels
         domain_labels = classify_logs(parsed_file, rules_doc)
         all_labels.extend(domain_labels)
 
         print(f"[{domain}] Complete: {count_per_domain} records")
 
-    labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
+    # Step 4: Write labels to output
+    labels_file = BASELINE_DIR / "baseline_labels.jsonl"
     with open(labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
     print("\nBaseline dataset generated successfully!")
-    print(f"   Raw logs: {RAW_DIR}")
+    print(f"   Raw logs: {BASELINE_DIR}")
     print(f"   Parsed logs: {BASELINE_DIR}")
     print(f"   Labels: {labels_file}")
     print(f"   Total records: {len(all_labels)}")
