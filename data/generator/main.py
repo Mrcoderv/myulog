@@ -53,6 +53,7 @@ args = parser.parse_args()
 output_dir = pathlib.Path(args.output_dir).resolve()
 output_dir.mkdir(parents=True, exist_ok=True)
 
+# Define generators
 generator_classes = {
     "cv": {
         "class": GenerateCVLog,
@@ -153,70 +154,77 @@ generator = domain["class"](
 )
 
 
+# Helper for raw timestamp
 def _timestamp_for_raw(log: dict, fallback_ts: str) -> str:
     # Use log["timestamp"] if present; otherwise provide a deterministic fallback
     return log.get("timestamp") or fallback_ts
 
+# Function to write JSONL files
+def write_jsonl_file(file_path: pathlib.Path, logs: list[dict]):
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(file_path, "w", encoding="utf-8") as f:
+        for log in logs:
+            json_line = json.dumps(log)
+            f.write(json_line + "\n")
+
+
+# Function to write raw logs
+def write_raw_logs(logs: list[dict], name: str, seed_ts: str, base_dir: pathlib.Path):
+    # Ensure base_dir is a Path object and expanded
+    base_dir = pathlib.Path(base_dir).expanduser().resolve()  # resolve full path
+    raw_dir = base_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)  # ensure folder exists BEFORE opening file
+
+    raw_path = raw_dir / f"{name}_raw.jsonl"
+
+    # Make absolutely sure the parent directory exists
+    if not raw_path.parent.exists():
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(raw_path, "w", encoding="utf-8") as f:
+        for log in logs:
+            # Compose raw line with @timestamp and @message
+            # @message should contain the original raw text that would be sent to
+            # parsers (not the entire normalized JSON). Use meta.raw_message when
+            # available; fall back to the compact JSON string if not.
+            raw_msg_text = None
+            try:
+                raw_msg_text = log.get("meta", {}).get("raw_message")
+            except Exception:
+                raw_msg_text = None
+            if not raw_msg_text:
+                raw_msg_text = json.dumps(log, separators=(",", ":"))
+
+            raw_record = {
+                "@timestamp": _timestamp_for_raw(log, seed_ts),
+                "@message": raw_msg_text,
+            }
+            f.write(json.dumps(raw_record) + "\n")
+
+    print(f"✅ Raw logs written to: {raw_path}")
+    return raw_path
+
+
+# Generate logs
+valid_logs, invalid_logs = generator.run()
+seed_ts = generator.generate_timestamp() if hasattr(generator, "generate_timestamp") else None
 
 if args.raw_mirror:
-    raw_dir = output_dir / "raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-
-    valid_logs, invalid_logs = generator.run()
-
-    def write_raw_logs(logs, name, seed_ts):
-        raw_path = raw_dir / f"{name}_raw.jsonl"
-        with open(raw_path, "w", encoding="utf-8") as f:
-            for log in logs:
-                # Compose raw line with @timestamp and @message
-                # @message should contain the original raw text that would be sent to
-                # parsers (not the entire normalized JSON). Use meta.raw_message when
-                # available; fall back to the compact JSON string if not.
-                raw_msg_text = None
-                try:
-                    raw_msg_text = log.get("meta", {}).get("raw_message")
-                except Exception:
-                    raw_msg_text = None
-                if raw_msg_text is None:
-                    raw_msg_text = json.dumps(log, separators=(",", ":"))
-
-                raw_record = {
-                    "@timestamp": _timestamp_for_raw(log, seed_ts),
-                    "@message": raw_msg_text,
-                }
-                f.write(json.dumps(raw_record) + "\n")
-        print(f"✅ Raw logs written to: {raw_path}")
-        return raw_path
-
-    seed_ts = generator.generate_timestamp()
-    write_raw_logs(valid_logs, args.name, seed_ts)
-
     # Write valid logs?
     if args.log_type in ["valid", "both"]:
-        write_raw_logs(valid_logs, args.name, seed_ts)
-
+        write_raw_logs(valid_logs, args.name, seed_ts, output_dir)
     # Write invalid logs?
     if args.log_type in ["invalid", "both"]:
-        write_raw_logs(invalid_logs, f"{args.name}_invalid", seed_ts)
-
+        write_raw_logs(invalid_logs, f"{args.name}_invalid", seed_ts, output_dir)
 else:
-    valid_logs, invalid_logs = generator.run()
-
-    valid_log_path = output_dir / f"{args.name}_valid.jsonl"
-    invalid_log_path = output_dir / f"{args.name}_invalid.jsonl"
-
-    def create_jsonl_file(file_path, data):
-        with open(file_path, "w", encoding="utf-8") as f:
-            for item in data:
-                json_line = json.dumps(item)
-                f.write(json_line + "\n")
-
     # Write valid logs?
     if args.log_type in ["valid", "both"]:
-        create_jsonl_file(valid_log_path, valid_logs)
+        valid_log_path = output_dir / f"{args.name}_valid.jsonl"
+        write_jsonl_file(valid_log_path, valid_logs)
         print(f"✅ Valid logs written to: {valid_log_path}")
 
     # Write invalid logs?
     if args.log_type in ["invalid", "both"]:
-        create_jsonl_file(invalid_log_path, invalid_logs)
+        invalid_log_path = output_dir / f"{args.name}_invalid.jsonl"
+        write_jsonl_file(invalid_log_path, invalid_logs)
         print(f"⚠️ Invalid logs written to: {invalid_log_path}")
