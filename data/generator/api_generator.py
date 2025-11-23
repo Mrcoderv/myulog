@@ -69,22 +69,22 @@ class GenerateAPILog(GenerateLog):
             "https://github.com/ExampleOrg/LMS_AI_AGENT",
         ]
         self.app_events = [
-            "[AppRunner] Deployment Artifact: [Repo Type: {repo_type}], [Repository: {repo_url}], [Branch: {branch}],\
-                  [SourceDirectory: /]",
+            "[AppRunner] Deployment Artifact: [Repo Type: {repo_type}], [Repository: {repo_url}], [Branch: {branch}],"
+                  "[SourceDirectory: /]",
             "[AppRunner] Deployment with ID : {deploy_id} started. Triggering event : {event_type}",
             "[AppRunner] Pulling source code from GITHUB Repository ( {repo_url} ).",
             "[AppRunner] Successfully pulled your application source code.",
             "[AppRunner] Health check is successful. Routing traffic to application.",
-            "[AppRunner] Your application stopped or failed to start. See logs for more information.\
-                  Container exit code: {exit_code}",
+            "[AppRunner] Your application stopped or failed to start. See logs for more information."
+                  "Container exit code: {exit_code}",
         ]
         self.app_event_types = ["SERVICE_CREATE", "SERVICE_UPDATE", "SERVICE_DEPLOY"]
 
         # --- Build templates ---
         self.build_templates = [
             "[Build] Downloading {package}-{version}-py3-none-any.whl ({size} kB)",
-            "[Build] WARNING: The candidate selected for download or install is a yanked version: '{package}'\
-                  candidate (version {version})",
+            "[Build] WARNING: The candidate selected for download or install is a yanked version: '{package}'"
+                  "candidate (version {version})",
             "[Build] Successfully installed {package}-{version}",
         ]
 
@@ -181,8 +181,8 @@ class GenerateAPILog(GenerateLog):
 
                     def tpl_func():
                         pkg = self.generate_string(self.generate_integer(5, 10))
-                        version = f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 10)}\
-                            .{self.generate_integer(0, 5)}"
+                        version = (f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 10)}"
+                            f".{self.generate_integer(0, 5)}")
                         size_kb = self.generate_integer(50, 400)
                         template = self.random.choice(self.build_templates)
                         return template.format(package=pkg, version=version, size=size_kb)
