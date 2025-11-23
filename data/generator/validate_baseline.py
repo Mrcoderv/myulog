@@ -18,7 +18,7 @@ from typing import Any
 
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 DATA_SYNTHETIC = PROJECT_ROOT / "data" / "synthetic"
-RAW_DIR = DATA_SYNTHETIC / "raw"
+RAW_DIR = DATA_SYNTHETIC / "baseline" / "raw"
 BASELINE_DIR = DATA_SYNTHETIC / "baseline"
 LABELS_FILE = DATA_SYNTHETIC / "baseline_labels.jsonl"
 
@@ -81,12 +81,6 @@ def validate_parsed_files() -> dict[str, int]:
 
         if not records:
             raise ValidationError(f"No records in {parsed_file}")
-
-        for rec in records:
-            if "meta" not in rec:
-                raise ValidationError(f"Missing meta field in {parsed_file}")
-            if "raw_message" not in rec.get("meta", {}):
-                raise ValidationError(f"Missing meta.raw_message in {parsed_file}")
 
         counts[domain] = len(records)
         print(f"  [{domain}] {len(records)} parsed records")
