@@ -1,11 +1,10 @@
 {
-    "metadata": {
+  "metadata": {
     "name": "ULog Controlled Vocabulary",
     "version": "v1.0.0",
     "updated_at": "2025-11-15",
     "notes": "Vocabulary frozen for ULog contracts v1.0.0; see docs/RELEASE_NOTES.md for scope."
   },
-
   "vocabulary": {
     "levels": {
       "debug": "Detailed internal information for troubleshooting; not shown in production logs.",
@@ -204,13 +203,13 @@
       "type": "string",
       "enum": [
         "ULOG-AUTH-001",
-        "ULOG-NET-001",
         "ULOG-DATA-001",
-        "ULOG-MODEL-001",
-        "ULOG-STORE-001",
         "ULOG-DB-001",
+        "ULOG-MODEL-001",
+        "ULOG-NET-001",
+        "ULOG-SEC-001",
+        "ULOG-STORE-001",
         "ULOG-SVC-001",
-        "ULOG-TP-001",
         "ULOG-SYS-001",
         "ULOG-SEC-001"
       ],
