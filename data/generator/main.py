@@ -40,6 +40,14 @@ parser.add_argument(
         "no normalized logs when this flag is set."
     ),
 )
+# New argument to control invalid logs (default is only valid logs)
+parser.add_argument(
+    "--log-type",
+    type=str,
+    choices=["valid", "invalid", "both"],
+    default="valid",
+    help="Choose which logs to generate: valid, invalid, or both (default: valid).",
+)
 
 args = parser.parse_args()
 output_dir = pathlib.Path(args.output_dir).resolve()
@@ -182,7 +190,15 @@ if args.raw_mirror:
 
     seed_ts = generator.generate_timestamp()
     write_raw_logs(valid_logs, args.name, seed_ts)
-    write_raw_logs(invalid_logs, f"{args.name}_invalid", seed_ts)
+
+    # Write valid logs?
+    if args.log_type in ["valid", "both"]:
+        write_raw_logs(valid_logs, args.name, seed_ts)
+
+    # Write invalid logs?
+    if args.log_type in ["invalid", "both"]:
+        write_raw_logs(invalid_logs, f"{args.name}_invalid", seed_ts)
+
 else:
     valid_logs, invalid_logs = generator.run()
 
@@ -195,7 +211,12 @@ else:
                 json_line = json.dumps(item)
                 f.write(json_line + "\n")
 
-    create_jsonl_file(valid_log_path, valid_logs)
-    create_jsonl_file(invalid_log_path, invalid_logs)
-    print(f"✅ Valid logs written to: {valid_log_path}")
-    print(f"✅ Invalid logs written to: {invalid_log_path}")
+    # Write valid logs?
+    if args.log_type in ["valid", "both"]:
+        create_jsonl_file(valid_log_path, valid_logs)
+        print(f"✅ Valid logs written to: {valid_log_path}")
+
+    # Write invalid logs?
+    if args.log_type in ["invalid", "both"]:
+        create_jsonl_file(invalid_log_path, invalid_logs)
+        print(f"⚠️ Invalid logs written to: {invalid_log_path}")
