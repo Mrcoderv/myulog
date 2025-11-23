@@ -166,7 +166,7 @@ jobs:
               with:
                   name: rules-unit-test-results
                   path: tests/reports/rules_unit_results.*
-            
+
             # --- Determinism test ---
 
             - name: Run golden set determinism test
