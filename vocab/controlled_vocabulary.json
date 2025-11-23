@@ -211,7 +211,7 @@
         "ULOG-STORE-001",
         "ULOG-SVC-001",
         "ULOG-SYS-001",
-        "ULOG-SEC-001"
+        "ULOG-TP-001"
       ],
       "pattern": "^ULOG-[A-Z]{2,10}-[0-9]{3}$",
       "description": "Standardized error codes following ULOG-[CAT]-[NNN] convention"
