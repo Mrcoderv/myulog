@@ -132,7 +132,7 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
     # data/generator/run_generate_and_parse.py which performs the same raw->parsed
     # conversion. This avoids requiring the CLI to be installed in test/CI.
     if result.returncode != 0:
-        stderr = (result.stderr or "")
+        stderr = result.stderr or ""
         if "No module named 'ulog'" in stderr or "poetry" in cmd[0] and not shutil.which("poetry"):
             # Fallback to in-process parser
             try:
@@ -154,7 +154,7 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
     print(f"[{domain}] Parsed logs written to: {output_file}")
 
 
-def classify_logs(parsed_file: pathlib.Path, rules_doc: dict) -> list[dict]:
+def classify_logs(parsed_file: pathlib.Path, classified_file: pathlib.Path, rules_doc: dict) -> list[dict]:
     print(f"Classifying logs from {parsed_file.name}...")
 
     from tests.rules.conftest import evaluate
@@ -172,10 +172,21 @@ def classify_logs(parsed_file: pathlib.Path, rules_doc: dict) -> list[dict]:
                 print(f"Warning: Failed to parse line {line_num}: {e}")
                 continue
 
+            # Add schema_id based on category for rule matching
+            # Map category to schema_id used in rules
+            if "category" in event and "schema_id" not in event:
+                category_to_schema = {
+                    "agentic": "agentic",
+                    "cv": "computer_vision",
+                    "core_api": "core_api",
+                    "llm": "llm",
+                }
+                event["schema_id"] = category_to_schema.get(event["category"], event["category"])
+
             label = evaluate(event, rules_doc)
             # Emit a label record aligned with parsed JSONL order. Include record_index
             # and top-level rule_id for easier validation and traceability.
-            labels.append({
+            label_record = {
                 "record_index": line_num - 1,
                 "level": label.get("level"),
                 "category": label.get("category"),
@@ -184,7 +195,15 @@ def classify_logs(parsed_file: pathlib.Path, rules_doc: dict) -> list[dict]:
                 "tags": label.get("tags", []),
                 "rule_id": label.get("provenance", {}).get("rule_id"),
                 "provenance": label.get("provenance", {}),
-            })
+            }
+            labels.append(label_record)
+
+    # Write classified labels to domain-specific file
+    with open(classified_file, "w", encoding="utf-8") as f:
+        for label in labels:
+            f.write(json.dumps(label) + "\n")
+
+    print(f"  Wrote {len(labels)} classified labels to {classified_file.name}")
 
     return labels
 
@@ -207,27 +226,33 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         parse_raw_to_normalized(raw_file, parsed_file, domain)
 
         # Step 3: Classify logs and collect labels
-        domain_labels = classify_logs(parsed_file, rules_doc)
+        classified_file = BASELINE_DIR / f"{domain}_baseline_classified.jsonl"
+        domain_labels = classify_logs(parsed_file, classified_file, rules_doc)
         all_labels.extend(domain_labels)
 
         print(f"[{domain}] Complete: {count_per_domain} records")
 
-    # Step 4: Write labels to output
-    labels_file = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
-    with open(labels_file, "w", encoding="utf-8") as f:
+    # Step 4: Write combined labels to pre-review file
+    pre_review_file = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
+    with open(pre_review_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
-            
-    # Also write the final labels file at the path expected by the validate_baseline.py 
+
+    print(f"\n✓ Pre-review labels written to: {pre_review_file.name}")
+
+    # Step 5: Create final baseline_labels.jsonl as a copy of pre-review
+    # This file should be manually reviewed and corrected before committing
     final_labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
     with open(final_labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
     print("\nBaseline dataset generated successfully!")
-    print(f"   Raw logs: {BASELINE_DIR}")
-    print(f"   Parsed logs: {BASELINE_DIR}")
-    print(f"   Labels: {labels_file}")
+    print(f"   Raw logs: {RAW_DIR.relative_to(PROJECT_ROOT)}")
+    print(f"   Parsed logs: {BASELINE_DIR.relative_to(PROJECT_ROOT)}")
+    print(f"   Classified logs: {BASELINE_DIR.relative_to(PROJECT_ROOT)}/*_classified.jsonl")
+    print(f"   Pre-review labels: {pre_review_file.relative_to(PROJECT_ROOT)}")
+    print(f"   Final labels: {final_labels_file.relative_to(PROJECT_ROOT)}")
     print(f"   Total records: {len(all_labels)}")
 
 
