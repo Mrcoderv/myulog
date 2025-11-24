@@ -97,6 +97,27 @@ class GenerateAPILog(GenerateLog):
             "{errtype}: {errmsg}",
         ]
 
+    def generate_http_raw(self):
+        ip = f"10.0.0.{self.generate_integer(1, 254)}"
+        port = self.generate_integer(30000, 60000)
+        method = self.select_enum(self.actions)
+        endpoint = self.select_enum(self.endpoints)
+        status = self.generate_integer(200, 599)
+        status_text = {
+            200: "OK",
+            201: "Created",
+            400: "Bad Request",
+            401: "Unauthorized",
+            403: "Forbidden",
+            404: "Not Found",
+            422: "Unprocessable Entity",
+            500: "Internal Server Error",
+            502: "Bad Gateway",
+            503: "Service Unavailable",
+        }.get(status, "OK")
+
+        return f"INFO:     {ip}:{port} - \"{method} {endpoint} HTTP/1.1\" {status} {status_text}"
+
     def generate_log_entry(self):
         # Each "size" iteration will produce one event group deterministically
         logs = []
@@ -291,7 +312,7 @@ class GenerateAPILog(GenerateLog):
             else:
                 # Generate realistic message
                 def tpl_func():
-                    return self.generate_message(domain="api", word_count=20)
+                    return self.generate_http_raw()  # Force raw HTTP log text
 
                 message = unique_message(tpl_func)
                 log_entry = {
