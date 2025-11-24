@@ -1104,6 +1104,212 @@
       }
     },
     {
+      "rule_id": "core-api-http-2xx-success",
+      "version": "1.0.0",
+      "name": "HTTP 2xx successful responses",
+      "description": "Catch-all for successful HTTP responses (200-299)",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "http_status",
+            "op": "gte",
+            "value": 200
+          },
+          {
+            "field": "http_status",
+            "op": "lt",
+            "value": 300
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "http_success"
+        ]
+      }
+    },
+    {
+      "rule_id": "core-api-generic-exception",
+      "version": "1.0.0",
+      "name": "Generic exception or error event",
+      "description": "Catch-all for core_api exceptions not matched by specific rules",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "event_type",
+            "op": "eq",
+            "value": "exception"
+          },
+          {
+            "field": "outcome",
+            "op": "eq",
+            "value": "failure"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "exception"
+        ]
+      }
+    },
+    {
+      "rule_id": "core-api-general-event",
+      "version": "1.0.0",
+      "name": "General core_api event",
+      "description": "Catch-all for any core_api event with domain signals",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "event_type",
+            "op": "exists"
+          },
+          {
+            "field": "http_status",
+            "op": "exists"
+          },
+          {
+            "field": "endpoint",
+            "op": "exists"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "general"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-general-pipeline",
+      "version": "1.0.0",
+      "name": "General LLM pipeline event",
+      "description": "Catch-all for any LLM event with domain signals",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "pipeline_stage",
+            "op": "exists"
+          },
+          {
+            "field": "model",
+            "op": "exists"
+          },
+          {
+            "field": "usage",
+            "op": "exists"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "general"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-general-step",
+      "version": "1.0.0",
+      "name": "General agentic workflow step",
+      "description": "Catch-all for any agentic event with domain signals",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "step_kind",
+            "op": "exists"
+          },
+          {
+            "field": "workflow_id",
+            "op": "exists"
+          },
+          {
+            "field": "tool_name",
+            "op": "exists"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "agentic",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "agentic",
+          "general"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-general-phase",
+      "version": "1.0.0",
+      "name": "General CV phase event",
+      "description": "Catch-all for any CV event with domain signals",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "phase",
+            "op": "exists"
+          },
+          {
+            "field": "model_name",
+            "op": "exists"
+          },
+          {
+            "field": "metrics",
+            "op": "exists"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "cv",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "cv",
+          "general"
+        ]
+      }
+    },
+    {
       "rule_id": "all-failure-high",
       "version": "1.0.0",
       "name": "Universal failure detection",

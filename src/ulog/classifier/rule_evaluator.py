@@ -91,7 +91,18 @@ class RuleEvaluator:
             return "agentic"
         if "pipeline_stage" in record:
             return "llm"
-        if "phase" in record and record.get("phase") in {"inference", "training", "evaluation"}:
+        # Look for all the enum value from computer_vision.schema.json for phase
+        if "phase" in record and record.get("phase") in {
+            "ingest",
+            "preprocess",
+            "inference",
+            "postprocess",
+            "eval",
+            "serve",
+            "track",
+            "training",
+            "pose",
+        }:
             return "cv"
         if any(k in record for k in ("http_status", "http_method", "endpoint", "event_type")):
             return "core_api"

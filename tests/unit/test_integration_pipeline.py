@@ -39,6 +39,9 @@ class TestPipelineIntegration:
                 "timestamp": "2024-03-15T10:30:00Z",
                 "pipeline_stage": "inference",
                 "model": "gpt-4",
+                "outcome": "success",
+                "request_id": "req-123",
+                "meta": {},
                 "usage": {
                     "prompt_tokens": 9500,
                     "completion_tokens": 500,
@@ -52,13 +55,10 @@ class TestPipelineIntegration:
         assert len(results) == 1
         result = results[0]
         
-        # Check classification - may match llm-token-budget-exceeded or all-failure-high
-        # depending on rule order and domain inference
-        assert result["provenance"]["parser_rule_id"] in ["llm-token-budget-exceeded", "all-failure-high"]
+        # Check classification - llm-token-budget-exceeded should match
+        assert result["provenance"]["parser_rule_id"] == "llm-token-budget-exceeded" 
         assert result["level"] in ["warn", "error"]
-        # If llm-token-budget-exceeded matched, check for token_budget tag
-        if result["provenance"]["parser_rule_id"] == "llm-token-budget-exceeded":
-            assert "token_budget" in result["tags"]
+        assert "token_budget" in result["tags"]
 
     def test_agentic_tool_failure_full_pipeline(self, classifier_pipeline):
         """Test full pipeline: agentic tool failure → classified."""
@@ -68,6 +68,10 @@ class TestPipelineIntegration:
                 "step_kind": "tool_call",
                 "tool_name": "search_web",
                 "status": "failed",
+                "workflow_id": "workflow1",
+                "input_summary": "my input summary",
+                "output_summary": "my output summary",
+                "meta": {},
                 "error": {
                     "message": "Connection timeout"
                 }
@@ -79,8 +83,8 @@ class TestPipelineIntegration:
         assert len(results) == 1
         result = results[0]
         
-        # Check classification - may match agentic-tool-failure or all-failure-high
-        assert result["provenance"]["parser_rule_id"] in ["agentic-tool-failure", "all-failure-high"]
+        # Check classification - agentic-tool-failure should match
+        assert result["provenance"]["parser_rule_id"] == "agentic-tool-failure"
         assert result["level"] == "error"
         assert result["outcome"] == "failure"
 
@@ -91,6 +95,14 @@ class TestPipelineIntegration:
                 "timestamp": "2024-03-15T10:30:00Z",
                 "phase": "inference",
                 "outcome": "failure",
+                "meta": {},
+                "latency_ms": 2.5,
+                "metrics": "a metric",
+                "model_name": "dalle",
+                "dataset_id": "dataimage1 1", 
+                "image_count": 1,
+                "batch_size": 1,
+                "hardware": "fast machine",
                 "error": {
                     "message": "CUDA out of memory: tried to allocate 2.5 GB"
                 }
@@ -102,8 +114,8 @@ class TestPipelineIntegration:
         assert len(results) == 1
         result = results[0]
         
-        # Check classification - may match cv-gpu-oom or all-failure-high
-        assert result["provenance"]["parser_rule_id"] in ["cv-gpu-oom", "all-failure-high"]
+        # Check classification - cv-gpu-oom should match
+        assert result["provenance"]["parser_rule_id"] == "cv-gpu-oom"
         assert result["level"] == "error"
         # Check for oom tag if cv-gpu-oom matched
         if result["provenance"]["parser_rule_id"] == "cv-gpu-oom":
@@ -156,34 +168,46 @@ class TestPipelineIntegration:
                 "http_status": 503,
                 "endpoint": "/api/test1",
                 "event_type": "http_request",
-                "action": "GET"  # Add action to strengthen domain signal
+                "action": "GET",  # Add action to strengthen domain signal
+                "meta": {},
+                "outcome": "failure",
+                "service": "service 5",
+                "env": "test"
             },
             {
                 "timestamp": "2024-03-15T10:30:01Z",
                 "http_status": 401,
                 "endpoint": "/api/test2",
                 "event_type": "http_request",
-                "action": "POST"
+                "action": "POST",
+                "meta": {},
+                "outcome": "failure",
+                "service": "service 10",
+                "env": "test"
             },
             {
                 "timestamp": "2024-03-15T10:30:02Z",
                 "http_status": 200,
                 "endpoint": "/api/test3",
                 "event_type": "http_request",
-                "action": "GET"
+                "action": "GET",
+                "meta": {},
+                "outcome": "success",
+                "service": "service 7",
+                "env": "test"
             }
         ]
-        
+
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="core_api")
         
         assert len(results) == 3
         
         # First should match api-5xx-critical or all-failure-high
-        assert results[0]["provenance"]["parser_rule_id"] in ["api-5xx-critical", "all-failure-high"]
-        assert results[0]["level"] in ["critical", "error"]
+        assert results[0]["provenance"]["parser_rule_id"] == "api-5xx-critical"
+        assert results[0]["level"] == "critical"
         
         # Second should match api-4xx-client-error, api-unauthorized, or all-failure-high
-        assert results[1]["provenance"]["parser_rule_id"] in ["api-4xx-client-error", "api-unauthorized", "all-failure-high"]
+        assert results[1]["provenance"]["parser_rule_id"] == "api-4xx-client-error"
         
         # Third should get default action, missing-trace-identifier, or all-failure-high
-        assert results[2]["provenance"]["parser_rule_id"] in ["default", "missing-trace-identifier", "all-failure-high"]
+        assert results[2]["provenance"]["parser_rule_id"] == "core-api-http-2xx-success"
