@@ -1,3 +1,4 @@
+import copy
 from typing import List
 
 from generator import GenerateLog
@@ -350,8 +351,9 @@ class GenerateLLMLog(GenerateLog):
 
         required_fields = ["request_id", "model", "pipeline_stage", "outcome", "timestamp", "meta"]
 
-        valid_logs = self.generate_log_entry()
-        invalid_logs = self.generate_log_entry()
+
+        valid_logs = self.generate_log_entry()  # generate only ONCE
+        invalid_logs = copy.deepcopy(valid_logs)
 
         # Make invalid logs by removing required fields
         for log in invalid_logs:

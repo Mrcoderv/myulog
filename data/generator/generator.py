@@ -95,8 +95,8 @@ class GenerateLog:
         return ts.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
     def generate_timestamp_group(self, base_ts: str, count: int, interval_s: float = 0.5) -> list[str]:
-        """Return a series of timestamps starting from a base (used for connected logs)\
-              and spaced within a small interval."""
+        """Return a series of timestamps starting from a base (used for connected logs)
+        and spaced within a small interval."""
         base = dt.datetime.strptime(base_ts, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=dt.timezone.utc)
         group = [
             (base + dt.timedelta(seconds=i * interval_s)).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
@@ -234,21 +234,22 @@ class GenerateLog:
         try:
             if domain == "api":
                 method = self.select_enum(["GET", "POST", "PUT", "DELETE", "PATCH"])
-                endpoint = self.select_enum(["/api/v1/resource", "/api/v1/auth/login", "/api/v1/search", "/healthz"])
+                endpoint = self.select_enum(
+                    ["/api/v1/resource", "/api/v1/auth/login", "/api/v1/search", "/health", "/api/test"]
+                )
                 status = self.select_enum([200, 201, 400, 401, 403, 404, 500, 502, 503])
                 latency = ctx.get("latency_ms", self.generate_float(1, 2000))
                 sentence = f"{method} {endpoint} returned {status} in {latency}ms."
                 templates = [
-                    lambda: f"[API] {
-                        self.faker.http_method() if self.faker else self.select_enum(['GET', 'POST', 'PUT', 'DELETE'])}\
-                                          {ctx.get('endpoint', '/api/test', '/api/v1/resource')} -\
-                                              {self.select_enum(['200 OK', '404 Not Found', '500 Error'])}",
-                    # lambda: f"[API] {self.faker.http_method() if self.faker else\
-                    #  self.select_enum(['GET', 'POST', 'PUT', 'DELETE'])} {ctx.get('endpoint', '/api/test')} -\
-                    #  {self.select_enum(['200 OK', '404 Not Found', '500 Error'])}",
-                    lambda: f"Service {ctx.get('service', 'backend')} handled request_id={
-                        ctx.get('request_id', self.generate_unique_string())
-                    }",
+                    lambda: (
+                        f"[API] {self.faker.http_method() if self.faker else method} "
+                        f"{ctx.get('endpoint', endpoint)} - "
+                        f"{self.select_enum(['200 OK', '404 Not Found', '500 Error'])}"
+                    ),
+                    lambda: (
+                        f"Service {ctx.get('service', 'backend')} handled "
+                        f"request_id={ctx.get('request_id', self.generate_unique_string())}"
+                        ),
                     lambda: self.generate_stacktrace() if self.random.random() < 0.2 else fk_sentence(8),
                 ]
             elif domain == "llm":
@@ -262,17 +263,19 @@ class GenerateLog:
                 sentence = f"Model {model} processed {tokens} tokens in {ttft}ms"
                 # Realistic templates
                 templates = [
-                    lambda: f"""[LLM] Model={model} | phase={phase} | tokens={tokens} | ttft={ttft}ms | 
-                    latency={latency}ms.""",
-                    lambda: f"""[LLM] Request {req_id}: {model} processed {tokens} tokens in 
-                    {latency}ms (TTFT {ttft}ms).""",
+                    lambda: (
+                        f"[LLM] Model={model} | phase={phase} | tokens={tokens} | ttft={ttft}ms |latency={latency}ms."
+                    ),
+                    lambda: (
+                        f"[LLM] Request {req_id}: {model} processed {tokens} tokens in{latency}ms (TTFT {ttft}ms)."
+                    ),
                     lambda: f"Inference completed on {model} (phase={phase}) — total tokens={tokens}, ttft={ttft}ms.",
                     lambda: f"{model} executed '{phase}' phase; {tokens} tokens processed.",
                     lambda: f"{model} inference request {req_id}: {tokens} tokens.",
                     # Occasional stacktrace-like message
                     lambda: (
                         "Traceback (most recent call last):\n"
-                        f'  File "/usr/local/lib/python3.{self.generate_integer(8, 11)}/site-packages/llm/server.py", '
+                        f' File "/usr/local/lib/python3.{self.generate_integer(8, 11)}/site-packages/llm/server.py", '
                         f"line {self.generate_integer(20, 80)}, in inference\n"
                         f"{self.select_enum(['RuntimeError', 'ValueError', 'ModelError'])}: "
                         f"{
@@ -289,16 +292,20 @@ class GenerateLog:
                 images = self.generate_integer(1, 128)
                 latency = round(self.generate_float(1, 500), 2)
                 dataset = ctx.get("dataset_id", self.select_enum(["ImageNet", "COCO"]))
-                accel = ctx.get("hardware", {}).get("accelerator", self.select_enum(["GPU", "TPU", "CPU",\
+                accel = ctx.get("hardware", {}).get("accelerator", self.select_enum(["GPU", "TPU", "CPU",
                      'NVIDIA A100', 'Google TPU v3', 'NVIDIA V100']))
                 sentence = f"Inference: {model} processed {images} images in {latency}ms"
                 templates = [
-                    lambda: f"Processed {ctx.get('image_count', self.generate_integer(1, 1000))} images from {dataset}\
-                          using {model} on {accel} - avg latency {latency} ms.",
+                    lambda: (
+                        f"Processed {ctx.get('image_count', self.generate_integer(1, 1000))} images from {dataset}"
+                        f"using {model} on {accel} - avg latency {latency} ms."
+                        ),
                     lambda: f"Evaluation completed for {model} on {dataset}.",
                     lambda: f"Metrics: {json.dumps(ctx.get('metrics', {}))}" if ctx.get("metrics") else fk_sentence(12),
-                    lambda: f"Evaluated {model} on {dataset}: {', '.join([f'{k}={v}' for k, v in\
-                         (ctx.get('metrics') or {}).items()])}",
+                    lambda: (
+                        f"Evaluated {model} on {dataset}: "
+                        "{', '.join([f'{k}={v}' for k, v in (ctx.get('metrics') or {}).items()])}"
+                        ),
                     lambda: f"{fk_sentence(12)}" if self.faker else f"{model} processing completed",
                 ]
             elif domain == "agentic":
@@ -307,8 +314,9 @@ class GenerateLog:
                 status = ctx.get("status", self.select_enum(["success", "failed", "timeout", "retry"]))
                 sentence = f"Agent step {step} used {tool} and completed with status {status}"
                 templates = [
-                    lambda: f"Agent executing {ctx.get('step_kind', 'plan')}\
-                          step using {ctx.get('tool_name', 'tool_x')}.",
+                    lambda: (
+                        f"Agent executing {ctx.get('step_kind', 'plan')} step using {ctx.get('tool_name', 'tool_x')}."
+                        ),
                     lambda: f"Workflow {ctx.get('workflow_id', self.generate_unique_string())} step completed.",
                     lambda: "Plan created for user request.",
                     lambda: self.generate_stacktrace() if status == "failed" else fk_sentence(10),
@@ -316,20 +324,20 @@ class GenerateLog:
                     lambda: f"Agent created {step}-step execution plan for user query",
                     # Tool selector / tool_selected with ranking
                     lambda: (
-                        f"Tool selector ranked {self.generate_integer(2, 5)} options, selected {self.faker.word()\
-                             if self.faker else 'tool_x'} ({self.generate_integer(10, 200)} ms.)"
-                    ),
+                        f"Tool selector ranked {self.generate_integer(2, 5)} options, selected "
+                        f"{self.faker.word() if self.faker else 'tool_x'} ({self.generate_integer(10, 200)} ms.)"
+                        ),
                     # LLM step with cost
                     lambda: (
-                    f"LLM inference: {round(self.generate_float(0.1, 5.0), 1)}s, {self.generate_integer(1000, 20000)}\
-                    tokens in, {self.generate_integer(0, 5000)} tokens out,\
-                         cost=${round(self.generate_float(0.001, 1.0), 3)}"
-                    ),
+                        f"LLM inference: {round(self.generate_float(0.1, 5.0), 1)}s, "
+                        f"{self.generate_integer(1000, 20000)} tokens in, {self.generate_integer(0, 5000)} "
+                        f"tokens out,cost=${round(self.generate_float(0.001, 1.0), 3)}"
+                        ),
                     # Guardrails warn
                     lambda: (
-                        f"[WARN] Safety check detected PII in output ({self.generate_integer(10, 500)}ms)\
-                              - email and phone number found"
-                    ),
+                        f"[WARN] Safety check detected PII in output ({self.generate_integer(10, 500)}ms)"
+                        f" - email and phone number found"
+                        ),
                     # Generic: use stacktrace on failures occasionally
                     lambda: (
                         self.generate_stacktrace()
@@ -382,7 +390,7 @@ class GenerateLog:
                 msg = self.faker.text(max_nb_chars=200)
             else:
                 msg = self.generate_string(120)
-        
+
         # Ensure no duplicates within this generator run
         sentence = self._ensure_unique(sentence)
         msg = self._ensure_unique(msg)
@@ -440,7 +448,7 @@ class GenerateLog:
             )
             lineno = self.generate_integer(10, 999)
             func = self.generate_string(self.generate_integer(3, 12))
-            lines.append(f'  File \"{filename}\", line {lineno}, in {func}')
+            lines.append(f' File \"{filename}\", line {lineno}, in {func}')
             # optionally show source line
             if self.faker:
                 src = self.faker.sentence(nb_words=6)

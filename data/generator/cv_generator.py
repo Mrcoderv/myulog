@@ -1,3 +1,5 @@
+import copy
+
 from generator import GenerateLog
 
 
@@ -343,8 +345,8 @@ class GenerateCVLog(GenerateLog):
         self.input_params = self.verify_input_params()
         self.param_dict = self.load_param_dict(self.input_params)
 
-        valid = self.generate_log_entry()
-        invalid = self.generate_log_entry()
+        valid = self.generate_log_entry()  # generate only ONCE
+        invalid = copy.deepcopy(valid)
         for log in invalid:
             field_to_remove = self.select_enum(self.fields)
             if field_to_remove in log:

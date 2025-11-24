@@ -1,3 +1,4 @@
+import copy
 from typing import List
 
 from generator import GenerateLog
@@ -113,11 +114,11 @@ class GenerateAPILog(GenerateLog):
 
             # Determine group size dynamically
             if mode == "apprunner":
-                group_size = self.random.randint(3, 6)
+                group_size = min(self.random.randint(3, 6), len(self.app_events))
             elif mode == "build":
-                group_size = self.random.randint(2, 5)
+                group_size = min(self.random.randint(2, 5), len(self.build_templates))
             elif mode == "traceback":
-                group_size = self.random.randint(3, 6)
+                group_size = min(self.random.randint(3, 6), 6)  # actual traceback lines = 1 + frames + 1
             else:
                 group_size = 1
 
@@ -137,15 +138,16 @@ class GenerateAPILog(GenerateLog):
 
             # --- AppRunner group ---
             if mode == "apprunner":
-                repo_type = self.select_enum(self.repo_types)
-                repo_url = self.select_enum(self.repos)
-                branch = self.select_enum(["main", "dev", "release"])
-                deploy_id = self.generate_unique_string()[:16]
-                event_type = self.select_enum(self.app_event_types)
-                exit_code = self.generate_integer(0, 137)
-
                 templates = self.random.sample(self.app_events, k=len(self.app_events))  # unique templates
                 for t in ts_group:
+
+                    repo_type = self.select_enum(self.repo_types)
+                    repo_url = self.select_enum(self.repos)
+                    branch = self.select_enum(["main", "dev", "release"])
+                    deploy_id = self.generate_unique_string()[:16]
+                    event_type = self.select_enum(self.app_event_types)
+                    exit_code = self.generate_integer(0, 137)
+
                     # Pick a template function to generate a message
                     def tpl_func(template=templates.pop(0)):
                         return template.format(
@@ -204,30 +206,47 @@ class GenerateAPILog(GenerateLog):
             # --- Realistic Traceback group ---
             elif mode == "traceback":
                 # Pre-generate shared traceback context
-                pyver = self.generate_integer(8, 11)
-                module = self.select_enum(["git", "click", "app", "server", "service", "db"])
-                submodule = self.select_enum(["core", "cmd", "init", "main"])
-                func = self.select_enum(["refresh", "run", "load_config", "<module>"])
-                errtype = self.select_enum(["ModuleNotFoundError", "ImportError", "RuntimeError", "ValueError"])
-                submodule = self.select_enum(["core", "cmd", "init", "main", "tasks", "loader"])
-                func = self.select_enum(["refresh", "run", "load_config", "start", "execute"])
-                line = self.generate_integer(50, 900)
-                errmsg = self.select_enum(
-                    [
+                # --- Traceback exception pairs ---
+                self.exception_map = {
+                    "ModuleNotFoundError": [
                         "No module named 'uvicorn'",
-                        "Failed to connect to DB",
+                        "No module named 'requests'",
+                        "No module named 'dotenv'",
+                    ],
+                    "ImportError": [
                         "Invalid import path",
+                        "Failed to import required module",
+                        "Cannot import name 'config' from 'service'",
+                        "Import path contains invalid structure",
+                    ],
+                    "RuntimeError": [
                         "Invalid configuration",
                         "Unhandled exception occurred",
-                    ]
-                )
+                        "Runtime execution failure",
+                    ],
+                    "ValueError": [
+                        "No module named 'uvicorn'",
+                        "Invalid import path",
+                        "Invalid argument provided",
+                        "Malformed configuration format",
+                    ],
+                }
+                # Choose consistent error type + correct message
+                errtype = self.select_enum(list(self.exception_map.keys()))
+                errmsg = self.select_enum(self.exception_map[errtype])
 
                 # Generate 2–4 realistic stack frames
                 frame_count = self.random.randint(2, 4)
                 frames = []
                 for _ in range(frame_count):
+                    pyver = self.generate_integer(8, 11)
+                    module = self.select_enum(["git", "click", "app", "server", "service", "db"])
+                    submodule = self.select_enum(["core", "cmd", "init", "main", "tasks", "loader"])
+                    func = self.select_enum(["refresh", "run", "load_config", "start", "execute", "<module>"])
+                    line = self.generate_integer(20, 900)
+
                     frame = (
-                        f'  File "/usr/local/lib/python3.{pyver}/site-packages/{module}/{submodule}.py", '
+                        f' File "/usr/local/lib/python3.{pyver}/site-packages/{module}/{submodule}.py", '
                         f"line {line}, in {func}"
                     )
                     frame = frame.format(
@@ -241,10 +260,14 @@ class GenerateAPILog(GenerateLog):
 
                 # Build complete traceback lines
                 traceback_lines = ["Traceback (most recent call last):"] + frames + [f"{errtype}: {errmsg}"]
+                group_size = min(group_size, len(traceback_lines))
+                ts_group = ts_group[:group_size]
                 # Emit one traceback line per timestamp in the group
                 for index, t in enumerate(ts_group):
                     # Clamp index so we don't overflow traceback_lines
-                    line_index = index if index < len(traceback_lines) else len(traceback_lines) - 1
+                    if index >= len(traceback_lines):
+                        break  # <-- stop generating lines to prevent duplicates
+                    line_index = index
                     message = traceback_lines[line_index]
 
                     message = unique_message(lambda m=message: m)
@@ -356,8 +379,8 @@ class GenerateAPILog(GenerateLog):
         self.input_params = self.verify_input_params()
         self.param_dict = self.load_param_dict(self.input_params)
 
-        valid_logs = self.generate_log_entry()
-        invalid_logs = self.generate_log_entry()
+        valid_logs = self.generate_log_entry()  # generate only ONCE
+        invalid_logs = copy.deepcopy(valid_logs)
 
         # Randomly remove a field to simulate malformed logs
         for log in invalid_logs:

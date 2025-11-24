@@ -1,3 +1,5 @@
+import copy
+
 from generator import GenerateLog
 
 
@@ -168,7 +170,7 @@ class AgenticGenerator(GenerateLog):
         chain_name = self.select_enum(["AgentExecutor", "RouterChain", "ReActChain"])
 
         return f"> {log['step_kind']} {log.get('level','info')} {chain_name} chain {log['output_summary']}"
-    
+
     # generate tool calling event
     def _gen_tool_call_event(self, log: dict) -> str:
         tool = log.get("tool_name", "web_search")
@@ -183,9 +185,11 @@ class AgenticGenerator(GenerateLog):
             )
 
         else:
-            return f"""[Tool] result {tool} outcome={log.get('outcome', 'success')} 
-            latency={log.get('duration_ms', 100)}ms"""
-        
+            return (
+                f"[Tool] result {tool} outcome={log.get('outcome', 'success')} "
+                f"latency={log.get('duration_ms', 100)}ms"
+                )
+
     # generate graph state event
     def _gen_graph_state_event(self, log: dict) -> str:
         from_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
@@ -198,10 +202,10 @@ class AgenticGenerator(GenerateLog):
         ])
 
         return (
-            f"""[Graph] state={from_state} -> {to_state} reason='{reason}' 
-            message={log['output_summary']} level={log.get('level','info')}"""
+            f"[Graph] state={from_state} -> {to_state} reason='{reason}'"
+            f"message={log['output_summary']} level={log.get('level','info')}"""
         )
-    
+
     # generate component event
     def _gen_component_event(self, log: dict) -> str:
         component = self.select_enum([
@@ -236,7 +240,7 @@ class AgenticGenerator(GenerateLog):
         extras_str = "".join(extras).strip()
 
         return f"[{component}] {log['step_kind']} level={log.get('level','info')} {extras_str}"
-    
+
     # generate session event
     def _gen_session_event(self, log: dict) -> str:
         session_type = self.select_enum(["session_start", "session_end"])
@@ -260,8 +264,8 @@ class AgenticGenerator(GenerateLog):
         self.input_params = self.verify_input_params()
         self.param_dict = self.load_param_dict(self.input_params)
 
-        valid_logs = self.generate_log_entries()
-        invalid_logs = self.generate_log_entries()
+        valid_logs = self.generate_log_entries()  # generate only ONCE
+        invalid_logs = copy.deepcopy(valid_logs)
 
         # remove one random field from invalid to make them invalid
         for log in invalid_logs:
