@@ -99,14 +99,19 @@ def validate_classified_files() -> dict[str, int]:
         if not records:
             raise ValidationError(f"No records in {classified_file}")
 
-        # Validate required fields in classified records
+        # The required fields inside _extra_rule_eval
         required_fields = ["record_index", "level", "category", "outcome"]
+
         for idx, record in enumerate(records):
+            # Ensure new nested structure exists
+            if "_extra_rule_eval" not in record:
+                raise ValidationError(f"Missing _extra_rule_eval in {classified_file} at record {idx}")
+
+            extra = record["_extra_rule_eval"]
+
             for field in required_fields:
-                if field not in record:
-                    raise ValidationError(
-                        f"Missing {field} in {classified_file} at record {idx}"
-                    )
+                if field not in extra:
+                    raise ValidationError(f"Missing {field} in _extra_rule_eval of {classified_file} at record {idx}")
 
         counts[domain] = len(records)
         print(f"  [{domain}] {len(records)} classified records")
@@ -151,10 +156,16 @@ def validate_labels() -> int:
         raise ValidationError("No labels found")
 
     required_fields = ["record_index", "level", "category", "outcome"]
+
     for idx, label in enumerate(labels):
+        if "_extra_rule_eval" not in label:
+            raise ValidationError(f"Missing _extra_rule_eval in label {idx}")
+
+        extra = label["_extra_rule_eval"]
+
         for field in required_fields:
-            if field not in label:
-                raise ValidationError(f"Missing {field} in label {idx}")
+            if field not in extra:
+                raise ValidationError(f"Missing {field} in _extra_rule_eval of label {idx}")
 
     print(f"  {len(labels)} labels validated")
     return len(labels)
