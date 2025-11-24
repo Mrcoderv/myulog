@@ -110,9 +110,9 @@ sample_logs/
 # Synthetic artifacts produced locally
 data/synthetic/
 !data/synthetic/.gitkeep
-!data/synthetic/raw/.gitkeep
+# !data/synthetic/raw/.gitkeep
 !data/synthetic/baseline/.gitkeep
-!data/synthetic/baseline/baseline_labels.jsonl
+!data/synthetic/baseline_labels.jsonl
 
 # Lambda build
 .lambda_build/
