@@ -20,7 +20,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 DATA_SYNTHETIC = PROJECT_ROOT / "data" / "synthetic"
 RAW_DIR = DATA_SYNTHETIC / "baseline" / "raw"
 BASELINE_DIR = DATA_SYNTHETIC / "baseline"
-LABELS_FILE = BASELINE_DIR / "baseline_labels.jsonl"
+LABELS_FILE = DATA_SYNTHETIC / "baseline_labels.jsonl"
 
 DOMAINS = ["agentic", "cv", "api", "llm"]
 MIN_TOTAL_RECORDS = 200
@@ -99,19 +99,13 @@ def validate_classified_files() -> dict[str, int]:
         if not records:
             raise ValidationError(f"No records in {classified_file}")
 
-        # The required fields inside _extra_rule_eval
+        # The required fields (flattened)
         required_fields = ["record_index", "level", "category", "outcome"]
 
         for idx, record in enumerate(records):
-            # Ensure new nested structure exists
-            if "_extra_rule_eval" not in record:
-                raise ValidationError(f"Missing _extra_rule_eval in {classified_file} at record {idx}")
-
-            extra = record["_extra_rule_eval"]
-
             for field in required_fields:
-                if field not in extra:
-                    raise ValidationError(f"Missing {field} in _extra_rule_eval of {classified_file} at record {idx}")
+                if field not in record:
+                    raise ValidationError(f"Missing {field} in {classified_file} at record {idx}")
 
         counts[domain] = len(records)
         print(f"  [{domain}] {len(records)} classified records")
@@ -158,14 +152,13 @@ def validate_labels() -> int:
     required_fields = ["record_index", "level", "category", "outcome"]
 
     for idx, label in enumerate(labels):
-        if "_extra_rule_eval" not in label:
-            raise ValidationError(f"Missing _extra_rule_eval in label {idx}")
-
-        extra = label["_extra_rule_eval"]
-
         for field in required_fields:
-            if field not in extra:
-                raise ValidationError(f"Missing {field} in _extra_rule_eval of label {idx}")
+            if field not in label:
+                raise ValidationError(f"Missing {field} in label {idx}")
+        
+        # Optional: check for provenance if expected
+        if "provenance" not in label:
+             print(f"  [WARN] Missing provenance in label {idx}")
 
     print(f"  {len(labels)} labels validated")
     return len(labels)
@@ -210,7 +203,7 @@ def print_statistics(parsed_counts: dict[str, int]) -> None:
         print(f"    {domain:>10}: {count:>4} ({pct:>5.1f}%)")
 
     labels = load_jsonl(LABELS_FILE)
-    rule_counts = Counter(label.get("rule_id") for label in labels)
+    rule_counts = Counter(label.get("provenance", {}).get("rule_id") for label in labels)
     print(f"\n  Unique rule_ids applied: {len([r for r in rule_counts if r])}")
     print(f"  Default action (no rule): {rule_counts.get(None, 0)}")
 

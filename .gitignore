@@ -108,9 +108,9 @@ local_pipeline/in/*
 sample_logs/
 
 # Synthetic artifacts produced locally
-data/synthetic/
+data/synthetic/*
+
 !data/synthetic/.gitkeep
-# !data/synthetic/raw/.gitkeep
 !data/synthetic/baseline/.gitkeep
 !data/synthetic/baseline_labels.jsonl
 
