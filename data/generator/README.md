@@ -306,22 +306,22 @@ GitHub Actions workflow automatically:
 ```
 data/
 ├── generator/
-│   ├── generator.py                    # Base class
-│   ├── agentic_generator.py            # Agentic domain
-│   ├── cv_generator.py                 # CV domain
-│   ├── api_generator.py                # API domain
-│   ├── llm_generator.py                # LLM domain
-│   ├── main.py                         # CLI entrypoint
-│   ├── generate_baseline.py           # Baseline dataset generator
-│   ├── validate_baseline.py           # Validation suite
-│   └── README.md                       # This file
+│   ├── generator.py                          # Base class
+│   ├── agentic_generator.py                  # Agentic domain
+│   ├── cv_generator.py                       # CV domain
+│   ├── api_generator.py                      # API domain
+│   ├── llm_generator.py                      # LLM domain
+│   ├── main.py                               # CLI entrypoint
+│   ├── generate_baseline.py                  # Baseline dataset generator
+│   ├── validate_baseline.py                  # Validation suite
+│   └── README.md                             # This file
 ├── synthetic/
 │   ├── baseline/
-│   │   ├── raw/                        # Raw logs (@timestamp + @message)
-│   │   ├── *_baseline_parsed.jsonl    # Parsed normalized logs (per domain)
-│   │   ├── *_baseline_classified.jsonl # Classified labels (per domain)
-│   │   └── pre_review_baseline_labels.jsonl # Combined auto-generated labels
-│   └── baseline_labels.jsonl          # Final manually-reviewed labels (committed)
+│   │   ├── raw/                              # Raw logs (@timestamp + @message)
+│   │   ├── *_baseline_parsed.jsonl           # Parsed normalized logs (per domain)
+│   │   ├── *_baseline_classified.jsonl       # Classified labels (per domain)
+│   │   └── pre_review_baseline_labels.jsonl  # Combined auto-generated labels
+│   labels (committed)
 └── blueprint/                          # Data profiling docs
 ```
 
@@ -414,7 +414,7 @@ Raw and parsed counts differ - indicates parsing failure.
 Debug:
 ```bash
 # Check parser output
-cat data/synthetic/raw/agentic_baseline_raw.jsonl | \
+cat data/synthetic/baseline/raw/agentic_baseline_raw.jsonl | \
   poetry run ulog parse --domain agentic | head -20
 ```
 
@@ -445,6 +445,6 @@ poetry run python data/generator/generate_baseline.py --count-per-domain 75
 
 ---
 
-**Version:** v0.9 (Sprint 2.3)
+**Version:** v0.9
 **Status:** ✅ Production Ready
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-11-24

@@ -20,7 +20,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 DATA_SYNTHETIC = PROJECT_ROOT / "data" / "synthetic"
 RAW_DIR = DATA_SYNTHETIC / "baseline" / "raw"
 BASELINE_DIR = DATA_SYNTHETIC / "baseline"
-LABELS_FILE = DATA_SYNTHETIC / "baseline_labels.jsonl"
+LABELS_FILE = BASELINE_DIR / "baseline_labels.jsonl"
 
 DOMAINS = ["agentic", "cv", "api", "llm"]
 MIN_TOTAL_RECORDS = 200
@@ -129,7 +129,7 @@ def validate_roundtrip(
                 f"Record count mismatch for {domain}: "
                 f"raw={raw_count}, parsed={parsed_count}"
             )
-        
+
         if parsed_count != classified_count:
             raise ValidationError(
                 f"Record count mismatch for {domain}: "

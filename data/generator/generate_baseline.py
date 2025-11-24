@@ -20,7 +20,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
-from typing import Any
+from typing import Any, Optional
 
 GENERATOR_DIR = pathlib.Path(__file__).parent
 PROJECT_ROOT = GENERATOR_DIR.parent.parent
@@ -154,26 +154,50 @@ def parse_raw_to_normalized(raw_file: pathlib.Path, output_file: pathlib.Path, d
     print(f"[{domain}] Parsed logs written to: {output_file}")
 
 
-def classify_logs(parsed_file: pathlib.Path, classified_file: pathlib.Path, rules_doc: dict) -> list[dict]:
-    print(f"Classifying logs from {parsed_file.name}...")
+def classify_normalized_to_classified(parsed_file: pathlib.Path, classified_file: pathlib.Path, domain: str) -> None:
+    """
+    Equivalent to parse_raw_to_normalized → but for classification.
+    Reads normalized JSONL → runs classifier pipeline → emits classified JSONL
+    """
+    print(f"[{domain}] Classifying normalized logs using classifier pipeline...")
+
+    # Use pipeline in JSON mode
+    from ulog.classifier import ClassifierPipeline
+
+    pipeline = ClassifierPipeline(enable_validation=True)
+
+    with open(parsed_file, "r", encoding="utf-8") as infile:
+        with open(classified_file, "w", encoding="utf-8") as outfile:
+            # Stream-processing (line by line, N→N)
+            results = pipeline.process_stream(infile, input_format="json")
+            for record in results:
+                outfile.write(json.dumps(record) + "\n")
+
+    print(f"[{domain}] Classified logs written to: {classified_file}")
+
+
+
+
+
+def classify_logs(parsed_file: pathlib.Path, classified_file: Optional[pathlib.Path], rules_doc: dict) -> list[dict]:
+    """
+    Reads the full classifier output (parsed_file),
+    applies the test-rule evaluator for additional metadata,
+    and returns fully enriched records.
+    Does NOT overwrite the classifier output.
+    If classified_file is given, it writes enriched records there.
+    """
+    print(f"Classifying logs from {parsed_file.name} (adding rule-evaluation fields)...")
 
     from tests.rules.conftest import evaluate
 
-    labels = []
+    enriched_records = []
+
     with open(parsed_file, "r", encoding="utf-8") as f:
-        for line_num, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
-                continue
+        for line_num, line in enumerate(f):
+            event = json.loads(line)
 
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError as e:
-                print(f"Warning: Failed to parse line {line_num}: {e}")
-                continue
-
-            # Add schema_id based on category for rule matching
-            # Map category to schema_id used in rules
+            # Add schema_id if needed
             if "category" in event and "schema_id" not in event:
                 category_to_schema = {
                     "agentic": "agentic",
@@ -183,11 +207,12 @@ def classify_logs(parsed_file: pathlib.Path, classified_file: pathlib.Path, rule
                 }
                 event["schema_id"] = category_to_schema.get(event["category"], event["category"])
 
+            # Run test rule evaluator
             label = evaluate(event, rules_doc)
-            # Emit a label record aligned with parsed JSONL order. Include record_index
-            # and top-level rule_id for easier validation and traceability.
-            label_record = {
-                "record_index": line_num - 1,
+
+            # Add extra fields INTO the classifier record
+            event["_extra_rule_eval"] = {
+                "record_index": line_num,
                 "level": label.get("level"),
                 "category": label.get("category"),
                 "sub_category": label.get("sub_category"),
@@ -196,16 +221,19 @@ def classify_logs(parsed_file: pathlib.Path, classified_file: pathlib.Path, rule
                 "rule_id": label.get("provenance", {}).get("rule_id"),
                 "provenance": label.get("provenance", {}),
             }
-            labels.append(label_record)
 
-    # Write classified labels to domain-specific file
-    with open(classified_file, "w", encoding="utf-8") as f:
-        for label in labels:
-            f.write(json.dumps(label) + "\n")
+            enriched_records.append(event)
 
-    print(f"  Wrote {len(labels)} classified labels to {classified_file.name}")
+    # Optionally write enriched records back out
+    if classified_file is not None:
+        with open(classified_file, "w", encoding="utf-8") as f:
+            for rec in enriched_records:
+                f.write(json.dumps(rec) + "\n")
+        print(f"  Wrote {len(enriched_records)} enriched records to {classified_file.name}")
+    else:
+        print(f"  Generated {len(enriched_records)} enriched in-memory records")
 
-    return labels
+    return enriched_records
 
 
 def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
@@ -227,32 +255,49 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
 
         # Step 3: Classify logs and collect labels
         classified_file = BASELINE_DIR / f"{domain}_baseline_classified.jsonl"
-        domain_labels = classify_logs(parsed_file, classified_file, rules_doc)
-        all_labels.extend(domain_labels)
+
+        # 1. Produce full classifier output
+        classify_normalized_to_classified(parsed_file, classified_file, domain)
+
+        # 2. Extract labels into memory ONLY (do NOT overwrite classified_file)
+        # Enrich the classifier output with extra fields AND overwrite the classified file
+        enriched_records = classify_logs(
+            classified_file,      # read the classifier output
+            classified_file,      # write enriched classifier output back into same file
+            rules_doc
+        )
+
+        # Add to global list
+        all_labels.extend(enriched_records)
+
 
         print(f"[{domain}] Complete: {count_per_domain} records")
 
     # Step 4: Write combined labels to pre-review file
     pre_review_file = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
+    for idx, rec in enumerate(all_labels):
+        rec["_extra_rule_eval"]["record_index"] = idx
+
+
     with open(pre_review_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
     print(f"\n✓ Pre-review labels written to: {pre_review_file.name}")
-
+    '''
     # Step 5: Create final baseline_labels.jsonl as a copy of pre-review
     # This file should be manually reviewed and corrected before committing
     final_labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
     with open(final_labels_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
-
+    '''
     print("\nBaseline dataset generated successfully!")
     print(f"   Raw logs: {RAW_DIR.relative_to(PROJECT_ROOT)}")
     print(f"   Parsed logs: {BASELINE_DIR.relative_to(PROJECT_ROOT)}")
     print(f"   Classified logs: {BASELINE_DIR.relative_to(PROJECT_ROOT)}/*_classified.jsonl")
     print(f"   Pre-review labels: {pre_review_file.relative_to(PROJECT_ROOT)}")
-    print(f"   Final labels: {final_labels_file.relative_to(PROJECT_ROOT)}")
+    # print(f"   Final labels: {final_labels_file.relative_to(PROJECT_ROOT)}")
     print(f"   Total records: {len(all_labels)}")
 
 
