@@ -111,6 +111,7 @@ sample_logs/
 data/synthetic/*
 
 !data/synthetic/.gitkeep
+!data/synthetic/raw/.gitkeep
 !data/synthetic/baseline/.gitkeep
 !data/synthetic/baseline_labels.jsonl
 
