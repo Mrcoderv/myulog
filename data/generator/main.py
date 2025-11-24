@@ -159,6 +159,7 @@ def _timestamp_for_raw(log: dict, fallback_ts: str) -> str:
     # Use log["timestamp"] if present; otherwise provide a deterministic fallback
     return log.get("timestamp") or fallback_ts
 
+
 # Function to write JSONL files
 def write_jsonl_file(file_path: pathlib.Path, logs: list[dict]):
     file_path.parent.mkdir(parents=True, exist_ok=True)

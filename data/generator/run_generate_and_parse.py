@@ -26,6 +26,7 @@ DOMAIN_MAP = {"agentic": "agentic", "cv": "cv", "api": "core_api", "llm": "llm"}
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 BASELINE_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def run_generator(domain: str, count: int, seed: int):
     print(f"Generating raw logs for {domain} (count={count}, seed={seed})")
     cmd = [
@@ -92,10 +93,14 @@ def parse_raw_file(raw_file: Path, parsed_out: Path, parser_domain: str):
                         try:
                             parsed_inner = inner
                             # Create a dummy parser object with minimal attributes expected
-                            dummy_parser = type("DummyParser", (), {
-                                "parser_name": "generator",
-                                "parser_version": "0.0.0",
-                            })()
+                            dummy_parser = type(
+                                "DummyParser",
+                                (),
+                                {
+                                    "parser_name": "generator",
+                                    "parser_version": "0.0.0",
+                                },
+                            )()
 
                             parse_result = ParseResult(
                                 success=True,
@@ -121,7 +126,7 @@ def parse_raw_file(raw_file: Path, parsed_out: Path, parser_domain: str):
             # Format: RAW_TXT key1=<json> key2=<json> ...
             if isinstance(msg_text, str) and msg_text.startswith("RAW_TXT "):
                 try:
-                    kv_part = msg_text[len("RAW_TXT "):]
+                    kv_part = msg_text[len("RAW_TXT ") :]
                     parsed_inner = {}
                     for token in kv_part.split(" "):
                         if "=" not in token:
@@ -234,5 +239,5 @@ def main():
     print(f"  labels: {labels_out}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

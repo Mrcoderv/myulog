@@ -60,9 +60,7 @@ class DeterminismTester:
 
         return results
 
-    def compare_outputs(
-        self, output1: List[Dict[str, Any]], output2: List[Dict[str, Any]]
-    ) -> tuple[bool, str]:
+    def compare_outputs(self, output1: List[Dict[str, Any]], output2: List[Dict[str, Any]]) -> tuple[bool, str]:
         """Byte-level comparison of two output sets.
 
         Performs deep comparison using deterministic JSON serialization:
@@ -81,12 +79,8 @@ class DeterminismTester:
             - report: Human-readable comparison report
         """
         # Serialize with deterministic settings
-        json1 = json.dumps(
-            output1, sort_keys=True, ensure_ascii=False, separators=(",", ": ")
-        )
-        json2 = json.dumps(
-            output2, sort_keys=True, ensure_ascii=False, separators=(",", ": ")
-        )
+        json1 = json.dumps(output1, sort_keys=True, ensure_ascii=False, separators=(",", ": "))
+        json2 = json.dumps(output2, sort_keys=True, ensure_ascii=False, separators=(",", ": "))
 
         # Byte-level comparison
         if json1 == json2:
@@ -183,9 +177,7 @@ def test_golden_set_determinism(
         diffs_dir: Directory to save diff files on failure
     """
     # Verify input file exists
-    assert (
-        golden_input_path.exists()
-    ), f"Golden input file not found: {golden_input_path}"
+    assert golden_input_path.exists(), f"Golden input file not found: {golden_input_path}"
 
     # Run pipeline twice
     print("\n🔄 Running pipeline pass 1...")

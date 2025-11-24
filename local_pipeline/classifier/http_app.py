@@ -32,9 +32,7 @@ def health() -> tuple[Dict[str, Any], int]:
         200: Service is healthy
     """
     return (
-        jsonify(
-            {"status": "healthy", "service": "ulog-classifier-http", "version": "0.1.0"}
-        ),
+        jsonify({"status": "healthy", "service": "ulog-classifier-http", "version": "0.1.0"}),
         200,
     )
 
@@ -81,9 +79,7 @@ def parse() -> tuple[Dict[str, Any], int]:
                         "@message": line,
                         "@timestamp": "2025-10-21T00:00:00Z",
                     },
-                    "meta": {
-                        "parse": {"pattern_id": "placeholder_pattern", "success": True}
-                    },
+                    "meta": {"parse": {"pattern_id": "placeholder_pattern", "success": True}},
                 }
             )
 

@@ -150,8 +150,14 @@ class TestVocabularyCompliance:
     def test_level_category_outcome_from_controlled_vocabulary(self, vocab, pipeline):
         """All classification values must come from controlled vocabulary."""
         inputs = [
-            {"@timestamp": "2025-01-15T10:00:00Z", "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK'},
-            {"@timestamp": "2025-01-15T10:00:01Z", "@message": 'ERROR: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 500 Internal Server Error'},
+            {
+                "@timestamp": "2025-01-15T10:00:00Z",
+                "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK',
+            },
+            {
+                "@timestamp": "2025-01-15T10:00:01Z",
+                "@message": 'ERROR: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 500 Internal Server Error',
+            },
             {"@timestamp": "2025-01-15T10:00:02Z", "@message": "[Model] Loaded weights"},
         ]
 
@@ -161,24 +167,24 @@ class TestVocabularyCompliance:
             if result.get("meta", {}).get("parse", {}).get("ok"):
                 # Level must be from vocabulary (vocab["levels"] is a dict, check keys)
                 if "level" in result:
-                    assert result["level"] in vocab["levels"].keys(), \
-                        f"Invalid level: {result['level']}"
+                    assert result["level"] in vocab["levels"].keys(), f"Invalid level: {result['level']}"
 
                 # Category must be from vocabulary
                 if "category" in result:
-                    assert result["category"] in vocab["categories"].keys(), \
-                        f"Invalid category: {result['category']}"
+                    assert result["category"] in vocab["categories"].keys(), f"Invalid category: {result['category']}"
 
                 # Outcome must be from vocabulary
                 if "outcome" in result:
-                    assert result["outcome"] in vocab["outcomes"].keys(), \
-                        f"Invalid outcome: {result['outcome']}"
+                    assert result["outcome"] in vocab["outcomes"].keys(), f"Invalid outcome: {result['outcome']}"
 
     def test_ci_rejects_out_of_vocabulary_values(self, vocab, pipeline):
         """CI must fail if classification produces invalid vocabulary values."""
         # This test simulates what CI should check
         inputs = [
-            {"@timestamp": "2025-01-15T10:00:00Z", "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK'},
+            {
+                "@timestamp": "2025-01-15T10:00:00Z",
+                "@message": 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK',
+            },
         ]
 
         results = pipeline.process_input(inputs, "raw", schema="core_api")
@@ -210,29 +216,35 @@ class TestVocabularyCompliance:
 class TestMultipleDomains:
     """Test vocabulary compliance across different domains."""
 
-    @pytest.mark.parametrize("schema,message", [
-        ("core_api", 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK'),
-        ("llm", "[Model] Loaded tokenizer"),
-        ("agentic", "[Agent] Step: tool_call"),
-        ("cv", "[Inference] Batch processed: 32 images"),
-    ])
+    @pytest.mark.parametrize(
+        "schema,message",
+        [
+            ("core_api", 'INFO: 10.0.0.2:35466 - "GET /api/users HTTP/1.1" 200 OK'),
+            ("llm", "[Model] Loaded tokenizer"),
+            ("agentic", "[Agent] Step: tool_call"),
+            ("cv", "[Inference] Batch processed: 32 images"),
+        ],
+    )
     def test_all_domains_use_valid_vocabulary(self, vocab, pipeline, schema, message):
         """All domains must use values from controlled vocabulary."""
         inputs = [{"@timestamp": "2025-01-15T10:00:00Z", "@message": message}]
-        
+
         results = pipeline.process_input(inputs, "raw", schema=schema)
 
         for result in results:
             if result.get("meta", {}).get("parse", {}).get("ok"):
                 # Validate each classification field if present
                 if "level" in result:
-                    assert result["level"] in vocab["levels"].keys(), \
+                    assert result["level"] in vocab["levels"].keys(), (
                         f"Domain {schema}: invalid level '{result['level']}'"
-                
+                    )
+
                 if "category" in result:
-                    assert result["category"] in vocab["categories"].keys(), \
+                    assert result["category"] in vocab["categories"].keys(), (
                         f"Domain {schema}: invalid category '{result['category']}'"
-                
+                    )
+
                 if "outcome" in result:
-                    assert result["outcome"] in vocab["outcomes"].keys(), \
+                    assert result["outcome"] in vocab["outcomes"].keys(), (
                         f"Domain {schema}: invalid outcome '{result['outcome']}'"
+                    )

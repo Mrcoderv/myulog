@@ -249,7 +249,7 @@ class GenerateLog:
                     lambda: (
                         f"Service {ctx.get('service', 'backend')} handled "
                         f"request_id={ctx.get('request_id', self.generate_unique_string())}"
-                        ),
+                    ),
                     lambda: self.generate_stacktrace() if self.random.random() < 0.2 else fk_sentence(8),
                 ]
             elif domain == "llm":
@@ -292,20 +292,22 @@ class GenerateLog:
                 images = self.generate_integer(1, 128)
                 latency = round(self.generate_float(1, 500), 2)
                 dataset = ctx.get("dataset_id", self.select_enum(["ImageNet", "COCO"]))
-                accel = ctx.get("hardware", {}).get("accelerator", self.select_enum(["GPU", "TPU", "CPU",
-                     'NVIDIA A100', 'Google TPU v3', 'NVIDIA V100']))
+                accel = ctx.get("hardware", {}).get(
+                    "accelerator",
+                    self.select_enum(["GPU", "TPU", "CPU", "NVIDIA A100", "Google TPU v3", "NVIDIA V100"]),
+                )
                 sentence = f"Inference: {model} processed {images} images in {latency}ms"
                 templates = [
                     lambda: (
                         f"Processed {ctx.get('image_count', self.generate_integer(1, 1000))} images from {dataset}"
                         f"using {model} on {accel} - avg latency {latency} ms."
-                        ),
+                    ),
                     lambda: f"Evaluation completed for {model} on {dataset}.",
                     lambda: f"Metrics: {json.dumps(ctx.get('metrics', {}))}" if ctx.get("metrics") else fk_sentence(12),
                     lambda: (
                         f"Evaluated {model} on {dataset}: "
                         "{', '.join([f'{k}={v}' for k, v in (ctx.get('metrics') or {}).items()])}"
-                        ),
+                    ),
                     lambda: f"{fk_sentence(12)}" if self.faker else f"{model} processing completed",
                 ]
             elif domain == "agentic":
@@ -316,7 +318,7 @@ class GenerateLog:
                 templates = [
                     lambda: (
                         f"Agent executing {ctx.get('step_kind', 'plan')} step using {ctx.get('tool_name', 'tool_x')}."
-                        ),
+                    ),
                     lambda: f"Workflow {ctx.get('workflow_id', self.generate_unique_string())} step completed.",
                     lambda: "Plan created for user request.",
                     lambda: self.generate_stacktrace() if status == "failed" else fk_sentence(10),
@@ -326,25 +328,24 @@ class GenerateLog:
                     lambda: (
                         f"Tool selector ranked {self.generate_integer(2, 5)} options, selected "
                         f"{self.faker.word() if self.faker else 'tool_x'} ({self.generate_integer(10, 200)} ms.)"
-                        ),
+                    ),
                     # LLM step with cost
                     lambda: (
                         f"LLM inference: {round(self.generate_float(0.1, 5.0), 1)}s, "
                         f"{self.generate_integer(1000, 20000)} tokens in, {self.generate_integer(0, 5000)} "
                         f"tokens out,cost=${round(self.generate_float(0.001, 1.0), 3)}"
-                        ),
+                    ),
                     # Guardrails warn
                     lambda: (
                         f"[WARN] Safety check detected PII in output ({self.generate_integer(10, 500)}ms)"
                         f" - email and phone number found"
-                        ),
+                    ),
                     # Generic: use stacktrace on failures occasionally
                     lambda: (
                         self.generate_stacktrace()
                         if outcome == "failure" and self.random.random() < 0.7
                         else (fk_sentence(12) if self.faker else "agentic step completed")
                     ),
-
                 ]
             else:
                 # fallback to sentence built from vocab pool for generic domains
@@ -448,7 +449,7 @@ class GenerateLog:
             )
             lineno = self.generate_integer(10, 999)
             func = self.generate_string(self.generate_integer(3, 12))
-            lines.append(f' File \"{filename}\", line {lineno}, in {func}')
+            lines.append(f' File "{filename}", line {lineno}, in {func}')
             # optionally show source line
             if self.faker:
                 src = self.faker.sentence(nb_words=6)

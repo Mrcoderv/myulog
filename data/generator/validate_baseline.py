@@ -114,8 +114,8 @@ def validate_classified_files() -> dict[str, int]:
 
 
 def validate_roundtrip(
-        raw_counts: dict[str, int], parsed_counts: dict[str, int], classified_counts: dict[str, int]
-    ) -> None:
+    raw_counts: dict[str, int], parsed_counts: dict[str, int], classified_counts: dict[str, int]
+) -> None:
     print("✓ Validating round-trip alignment...")
 
     for domain in DOMAINS:
@@ -124,15 +124,11 @@ def validate_roundtrip(
         classified_count = classified_counts.get(domain, 0)
 
         if raw_count != parsed_count:
-            raise ValidationError(
-                f"Record count mismatch for {domain}: "
-                f"raw={raw_count}, parsed={parsed_count}"
-            )
+            raise ValidationError(f"Record count mismatch for {domain}: raw={raw_count}, parsed={parsed_count}")
 
         if parsed_count != classified_count:
             raise ValidationError(
-                f"Record count mismatch for {domain}: "
-                f"parsed={parsed_count}, classified={classified_count}"
+                f"Record count mismatch for {domain}: parsed={parsed_count}, classified={classified_count}"
             )
 
         print(f"  [{domain}] ✓ {raw_count} records aligned (raw→parsed→classified)")
@@ -155,10 +151,10 @@ def validate_labels() -> int:
         for field in required_fields:
             if field not in label:
                 raise ValidationError(f"Missing {field} in label {idx}")
-        
+
         # Optional: check for provenance if expected
         if "provenance" not in label:
-             print(f"  [WARN] Missing provenance in label {idx}")
+            print(f"  [WARN] Missing provenance in label {idx}")
 
     print(f"  {len(labels)} labels validated")
     return len(labels)
@@ -170,9 +166,7 @@ def validate_label_alignment(parsed_counts: dict[str, int], label_count: int) ->
     total_parsed = sum(parsed_counts.values())
 
     if label_count != total_parsed:
-        raise ValidationError(
-            f"Label count mismatch: labels={label_count}, parsed={total_parsed}"
-        )
+        raise ValidationError(f"Label count mismatch: labels={label_count}, parsed={total_parsed}")
 
     print(f"  [OK] {label_count} labels aligned with parsed records")
 
@@ -231,6 +225,7 @@ def main():
     except Exception as e:
         print(f"\n[ERROR] Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

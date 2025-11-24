@@ -2,6 +2,7 @@
 Small helper script to regenerate sample messages from the generator for quick verification.
 Generates N messages per domain and writes to data/synthetic/sample_messages.jsonl
 """
+
 import importlib.util
 import json
 from pathlib import Path

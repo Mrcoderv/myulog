@@ -75,17 +75,13 @@ def verify_golden_set() -> bool:
                             parse_success += 1
                             # Verify pattern_id is present
                             if "pattern_id" not in parse_meta:
-                                warnings.append(
-                                    f"Parsed event {line_num}: Missing pattern_id"
-                                )
+                                warnings.append(f"Parsed event {line_num}: Missing pattern_id")
                         else:
                             parse_failures += 1
                     elif "unparsed_reason" in event:
                         parse_failures += 1
                     else:
-                        warnings.append(
-                            f"Parsed event {line_num}: Missing parse metadata"
-                        )
+                        warnings.append(f"Parsed event {line_num}: Missing parse metadata")
 
                 except json.JSONDecodeError as e:
                     errors.append(f"Parsed line {line_num}: Invalid JSON - {e}")
@@ -95,18 +91,16 @@ def verify_golden_set() -> bool:
     # Basic sanity checks
     if len(raw_events) == 0:
         errors.append("No raw events found")
-    
+
     if len(parsed_events) == 0:
         errors.append("No parsed events found")
-    
+
     # Verify we have reasonable parse success rate (>80%)
     total_parsed = parse_success + parse_failures
     if total_parsed > 0:
         success_rate = (parse_success / total_parsed) * 100
         if success_rate < 80:
-            warnings.append(
-                f"Low parse success rate: {success_rate:.1f}% (expected >80%)"
-            )
+            warnings.append(f"Low parse success rate: {success_rate:.1f}% (expected >80%)")
 
     # Print results
     print("=" * 70)

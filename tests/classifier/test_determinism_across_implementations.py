@@ -40,159 +40,115 @@ INPUT = [
 # Updated to reflect schema enforcement (required fields + unknown fields in metadata)
 # Ordered according to canonical_order() in core.py
 EXPECTED = [
-  {
-    "timestamp": "2025-01-01T12:00:00Z",
-    "message": "Traceback (most recent call last):",
-    "level": "error",
-    "category": "core_api",
-    "event_type": "exception",
-    "service": "unknown-service",
-    "env": "development",
-    "outcome": "failure",
-    "error": {
-      "type": "stacktrace",
-      "message": "Traceback (most recent call last):"
+    {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": "Traceback (most recent call last):",
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "failure",
+        "error": {"type": "stacktrace", "message": "Traceback (most recent call last):"},
+        "sub_category": "service",
+        "tags": ["core_api", "exception"],
+        "meta": {"validation": {"skipped": True}},
+        "provenance": {
+            "parser_rule_id": "core-api-generic-exception",
+            "rule_version": "1.0.0",
+            "rule_name": "Generic exception or error event",
+        },
     },
-    "sub_category": "service",
-    "tags": [
-      "core_api",
-      "exception"
-    ],
-    "meta": {
-      "validation": {
-        "skipped": True
-      }
+    {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": 'File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "failure",
+        "error": {
+            "file": "/usr/local/lib/python3.8/site-packages/git/__init__.py",
+            "line": 140,
+            "function": "<module>",
+            "type": "stacktrace",
+            "message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
+        },
+        "sub_category": "service",
+        "tags": ["core_api", "exception"],
+        "meta": {"validation": {"skipped": True}},
+        "provenance": {
+            "parser_rule_id": "core-api-generic-exception",
+            "rule_version": "1.0.0",
+            "rule_name": "Generic exception or error event",
+        },
     },
-    "provenance": {
-      "parser_rule_id": "core-api-generic-exception",
-      "rule_version": "1.0.0",
-      "rule_name": "Generic exception or error event"
-    }
-  },
-  {
-    "timestamp": "2025-01-01T12:00:00Z",
-    "message": "File \"/usr/local/lib/python3.8/site-packages/git/__init__.py\", line 140, in <module>",
-    "level": "error",
-    "category": "core_api",
-    "event_type": "exception",
-    "service": "unknown-service",
-    "env": "development",
-    "outcome": "failure",
-    "error": {
-      "file": "/usr/local/lib/python3.8/site-packages/git/__init__.py",
-      "line": 140,
-      "function": "<module>",
-      "type": "stacktrace",
-      "message": " File \"/usr/local/lib/python3.8/site-packages/git/__init__.py\", line 140, in <module>"
+    {
+        "timestamp": "2025-01-01T12:00:00Z",
+        "message": 'File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
+        "level": "error",
+        "category": "core_api",
+        "event_type": "exception",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "failure",
+        "error": {
+            "file": "/usr/local/lib/python3.8/site-packages/git/cmd.py",
+            "line": 456,
+            "function": "refresh",
+            "type": "stacktrace",
+            "message": ' File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
+        },
+        "sub_category": "service",
+        "tags": ["core_api", "exception"],
+        "meta": {"validation": {"skipped": True}},
+        "provenance": {
+            "parser_rule_id": "core-api-generic-exception",
+            "rule_version": "1.0.0",
+            "rule_name": "Generic exception or error event",
+        },
     },
-    "sub_category": "service",
-    "tags": [
-      "core_api",
-      "exception"
-    ],
-    "meta": {
-      "validation": {
-        "skipped": True
-      }
+    {
+        "timestamp": "2025-01-01T12:00:01Z",
+        "message": 'INFO:     10.0.0.2:35466 - "GET /health HTTP/1.1" 200 OK',
+        "level": "info",
+        "category": "core_api",
+        "event_type": "http_request",
+        "service": "unknown-service",
+        "env": "development",
+        "outcome": "success",
+        "action": "GET",
+        "endpoint": "/health",
+        "http_status": 200,
+        "sub_category": "service",
+        "tags": ["core_api", "http_success"],
+        "metadata": {"client_ip": "10.0.0.2", "client_port": 35466, "http_version": "1.1", "status_text": "OK"},
+        "meta": {"validation": {"skipped": True}},
+        "provenance": {
+            "parser_rule_id": "core-api-http-2xx-success",
+            "rule_version": "1.0.0",
+            "rule_name": "HTTP 2xx successful responses",
+        },
     },
-    "provenance": {
-      "parser_rule_id": "core-api-generic-exception",
-      "rule_version": "1.0.0",
-      "rule_name": "Generic exception or error event"
-    }
-  },
-  {
-    "timestamp": "2025-01-01T12:00:00Z",
-    "message": "File \"/usr/local/lib/python3.8/site-packages/git/cmd.py\", line 456, in refresh",
-    "level": "error",
-    "category": "core_api",
-    "event_type": "exception",
-    "service": "unknown-service",
-    "env": "development",
-    "outcome": "failure",
-    "error": {
-      "file": "/usr/local/lib/python3.8/site-packages/git/cmd.py",
-      "line": 456,
-      "function": "refresh",
-      "type": "stacktrace",
-      "message": " File \"/usr/local/lib/python3.8/site-packages/git/cmd.py\", line 456, in refresh"
+    {
+        "timestamp": "2025-01-01T12:00:02Z",
+        "message": "Collecting fastapi==0.103.1",
+        "level": "info",
+        "category": "core_api",
+        "event_type": "build",
+        "service": "Build",
+        "env": "development",
+        "outcome": "success",
+        "sub_category": "build",
+        "tags": ["core_api", "build", "guard"],
+        "meta": {"validation": {"skipped": True}},
+        "provenance": {
+            "parser_rule_id": "api-build-guard",
+            "rule_version": "1.0.0",
+            "rule_name": "Filter build events (noise guard)",
+        },
     },
-    "sub_category": "service",
-    "tags": [
-      "core_api",
-      "exception"
-    ],
-    "meta": {
-      "validation": {
-        "skipped": True
-      }
-    },
-    "provenance": {
-      "parser_rule_id": "core-api-generic-exception",
-      "rule_version": "1.0.0",
-      "rule_name": "Generic exception or error event"
-    }
-  },
-  {
-    "timestamp": "2025-01-01T12:00:01Z",
-    "message": "INFO:     10.0.0.2:35466 - \"GET /health HTTP/1.1\" 200 OK",
-    "level": "info",
-    "category": "core_api",
-    "event_type": "http_request",
-    "service": "unknown-service",
-    "env": "development",
-    "outcome": "success",
-    "action": "GET",
-    "endpoint": "/health",
-    "http_status": 200,
-    "sub_category": "service",
-    "tags": [
-      "core_api",
-      "http_success"
-    ],
-    "metadata": {
-      "client_ip": "10.0.0.2",
-      "client_port": 35466,
-      "http_version": "1.1",
-      "status_text": "OK"
-    },
-    "meta": {
-      "validation": {
-        "skipped": True
-      }
-    },
-    "provenance": {
-      "parser_rule_id": "core-api-http-2xx-success",
-      "rule_version": "1.0.0",
-      "rule_name": "HTTP 2xx successful responses"
-    }
-  },
-  {
-    "timestamp": "2025-01-01T12:00:02Z",
-    "message": "Collecting fastapi==0.103.1",
-    "level": "info",
-    "category": "core_api",
-    "event_type": "build",
-    "service": "Build",
-    "env": "development",
-    "outcome": "success",
-    "sub_category": "build",
-    "tags": [
-      "core_api",
-      "build",
-      "guard"
-    ],
-    "meta": {
-      "validation": {
-        "skipped": True
-      }
-    },
-    "provenance": {
-      "parser_rule_id": "api-build-guard",
-      "rule_version": "1.0.0",
-      "rule_name": "Filter build events (noise guard)"
-    }
-  }
 ]
 
 

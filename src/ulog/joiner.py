@@ -1,4 +1,3 @@
-
 class MultiLineJoiner:
     """
     Deterministic multi-line joiner.

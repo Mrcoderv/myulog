@@ -351,7 +351,6 @@ class GenerateLLMLog(GenerateLog):
 
         required_fields = ["request_id", "model", "pipeline_stage", "outcome", "timestamp", "meta"]
 
-
         valid_logs = self.generate_log_entry()  # generate only ONCE
         invalid_logs = copy.deepcopy(valid_logs)
 

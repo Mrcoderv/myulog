@@ -110,7 +110,7 @@ class AgenticGenerator(GenerateLog):
                 case "plan_id":
                     log["plan_id"] = self.generate_unique_string()
                 case "duration_ms":
-                    log['duration_ms'] = self.generate_float(0.0, 500.0)
+                    log["duration_ms"] = self.generate_float(0.0, 500.0)
                 case "cost":
                     log["cost"] = {
                         "tokens_in": self.generate_integer(0, 10000),
@@ -126,12 +126,12 @@ class AgenticGenerator(GenerateLog):
                 case "safety_flag":
                     log["safety_flag"] = self.select_enum(self.param_dict["safety_flags"])
                 case "outcome":
-                    if log["status"] in ["failed","retry"]:
+                    if log["status"] in ["failed", "retry"]:
                         log["outcome"] = "failure"
-                    elif log["status"] in ["success","timeout"]:
+                    elif log["status"] in ["success", "timeout"]:
                         log["outcome"] = log["status"]
                     else:
-                        log["outcome"] = self.select_enum(["cancelled","running","pending"])
+                        log["outcome"] = self.select_enum(["cancelled", "running", "pending"])
 
                 case "error_code":
                     log["error_code"] = self.select_enum(self.error_codes)
@@ -152,7 +152,6 @@ class AgenticGenerator(GenerateLog):
                 self.logger.warning(f"Unknown option param: {param}")
         return verified_params
 
-
     # generate raw message
     def generate_raw_messages(self, log: dict) -> str:
         events = {
@@ -165,11 +164,12 @@ class AgenticGenerator(GenerateLog):
 
         event_key = self.select_enum(list(events.keys()))
         return events[event_key](log)
+
     # generate langchain event
     def _gen_langchain_event(self, log: dict) -> str:
         chain_name = self.select_enum(["AgentExecutor", "RouterChain", "ReActChain"])
 
-        return f"> {log['step_kind']} {log.get('level','info')} {chain_name} chain {log['output_summary']}"
+        return f"> {log['step_kind']} {log.get('level', 'info')} {chain_name} chain {log['output_summary']}"
 
     # generate tool calling event
     def _gen_tool_call_event(self, log: dict) -> str:
@@ -178,41 +178,50 @@ class AgenticGenerator(GenerateLog):
         args = {"q": "python example", "k": 5}
 
         if action == "call":
-            return (
-                f"[Tool] call {tool} "
-                f"args={args} "
-                f"timeout={log.get('duration_ms', 100)}ms"
-            )
+            return f"[Tool] call {tool} args={args} timeout={log.get('duration_ms', 100)}ms"
 
         else:
             return (
-                f"[Tool] result {tool} outcome={log.get('outcome', 'success')} "
-                f"latency={log.get('duration_ms', 100)}ms"
-                )
+                f"[Tool] result {tool} outcome={log.get('outcome', 'success')} latency={log.get('duration_ms', 100)}ms"
+            )
 
     # generate graph state event
     def _gen_graph_state_event(self, log: dict) -> str:
         from_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
         to_state = self.select_enum(["PLAN", "ACT", "IDLE", "FINISH"])
-        reason = self.select_enum([
-            "ready_to_execute_first_tool",
-            "no_more_steps",
-            "waiting_for_human_input",
-            "tool_execution_completed",
-        ])
+        reason = self.select_enum(
+            [
+                "ready_to_execute_first_tool",
+                "no_more_steps",
+                "waiting_for_human_input",
+                "tool_execution_completed",
+            ]
+        )
 
         return (
             f"[Graph] state={from_state} -> {to_state} reason='{reason}'"
-            f"message={log['output_summary']} level={log.get('level','info')}"""
+            f"message={log['output_summary']} level={log.get('level', 'info')}"
+            ""
         )
 
     # generate component event
     def _gen_component_event(self, log: dict) -> str:
-        component = self.select_enum([
-            "Planner", "Selector", "Memory", "Guard",
-            "RAG", "Verifier", "Coder", "Reviewer",
-            "SelfHeal", "Handoff", "RateLimit", "Metrics"
-        ])
+        component = self.select_enum(
+            [
+                "Planner",
+                "Selector",
+                "Memory",
+                "Guard",
+                "RAG",
+                "Verifier",
+                "Coder",
+                "Reviewer",
+                "SelfHeal",
+                "Handoff",
+                "RateLimit",
+                "Metrics",
+            ]
+        )
 
         def kv(key, val):
             return f"{key}={val} "
@@ -221,7 +230,7 @@ class AgenticGenerator(GenerateLog):
         if component == "Planner":
             extras.append(kv("plan_id", log.get("plan_id", self.generate_unique_string())))
             extras.append(kv("steps", self.generate_integer(3, 12)))
-            extras.append(kv("plan_hash", log.get('step_id')))
+            extras.append(kv("plan_hash", log.get("step_id")))
         elif component == "Selector":
             extras.append(kv("candidates", self.generate_integer(3, 10)))
         elif component == "Memory":
@@ -239,7 +248,7 @@ class AgenticGenerator(GenerateLog):
 
         extras_str = "".join(extras).strip()
 
-        return f"[{component}] {log['step_kind']} level={log.get('level','info')} {extras_str}"
+        return f"[{component}] {log['step_kind']} level={log.get('level', 'info')} {extras_str}"
 
     # generate session event
     def _gen_session_event(self, log: dict) -> str:
@@ -249,15 +258,7 @@ class AgenticGenerator(GenerateLog):
         locale = self.select_enum(["en-US", "es-ES", "fr-FR"])
         tz = self.select_enum(["Europe/Madrid", "America/New_York", "UTC"])
 
-        return (
-            f"[Agent] {session_type} "
-            f"id={log['step_id']} "
-            f"req_id={req_id} "
-            f"model={model} "
-            f"locale={locale} "
-            f"tz={tz}"
-        )
-
+        return f"[Agent] {session_type} id={log['step_id']} req_id={req_id} model={model} locale={locale} tz={tz}"
 
     # run all
     def run(self) -> tuple[list[dict], list[dict]]:

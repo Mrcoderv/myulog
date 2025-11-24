@@ -41,9 +41,7 @@ class NormalizerAdapter:
         self.router = DomainRouter()
         self.normalizer = Normalizer()
 
-    def process_raw_input(
-        self, input_data: List[Dict[str, Any]], schema: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    def process_raw_input(self, input_data: List[Dict[str, Any]], schema: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Process raw input records (N→N guarantee).
 

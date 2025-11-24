@@ -41,12 +41,14 @@ def load_jsonl(path: Path) -> List[Dict[str, Any]]:
 @pytest.fixture
 def load_sample_logs(sample_logs_dir):
     """Factory fixture to load sample logs by domain."""
+
     def _loader(domain: str) -> List[Dict[str, Any]]:
         filename = f"logs_cleaned_final_{domain}.jsonl"
         path = sample_logs_dir / filename
         if not path.exists():
             return []
         return load_jsonl(path)
+
     return _loader
 
 
@@ -54,6 +56,7 @@ def load_sample_logs(sample_logs_dir):
 def core_api_parser():
     """Return CoreAPIParser instance."""
     from ulog.parsers.core_api import CoreAPIParser
+
     return CoreAPIParser()
 
 
@@ -61,6 +64,7 @@ def core_api_parser():
 def llm_parser():
     """Return LLMParser instance."""
     from ulog.parsers.llm import LLMParser
+
     return LLMParser()
 
 
@@ -68,6 +72,7 @@ def llm_parser():
 def agentic_parser():
     """Return AgenticParser instance."""
     from ulog.parsers.agentic import AgenticParser
+
     return AgenticParser()
 
 
@@ -75,6 +80,7 @@ def agentic_parser():
 def cv_parser():
     """Return CVParser instance."""
     from ulog.parsers.cv import CVParser
+
     return CVParser()
 
 
@@ -82,4 +88,5 @@ def cv_parser():
 def classifier_pipeline():
     """Return ClassifierPipeline instance."""
     from ulog.classifier.core import ClassifierPipeline
+
     return ClassifierPipeline(enable_validation=False)

@@ -3,7 +3,6 @@ Unit tests for Core API parser (raw → json).
 """
 
 
-
 class TestCoreAPIParserRawToJson:
     """Test raw log parsing for core_api domain (≥8 tests)."""
 
@@ -11,7 +10,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing uvicorn HTTP request with INFO prefix."""
         raw = 'INFO:     10.0.0.2:35466 - "GET /process_colab_request/?query=test HTTP/1.1" 200 OK'
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "http_request_uvicorn"
         assert result.data["level"] == "info"
@@ -26,7 +25,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing HTTP request without INFO prefix."""
         raw = '127.0.0.1:48342 - "GET / HTTP/1.1" 200 OK'
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "http_request_uvicorn"
         assert result.data["client_ip"] == "127.0.0.1"
@@ -36,7 +35,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing HTTP request with 5xx error."""
         raw = 'INFO:     10.0.0.20:46002 - "GET /healthz/ready HTTP/1.1" 503 Service Unavailable'
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "http_request_uvicorn"
         assert result.data["http_status"] == 503
@@ -46,7 +45,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing AppRunner deployment artifact log."""
         raw = "[AppRunner] Deployment Artifact: [Repo Type: Source], [Repository: https://github.com/ExampleOrg/website_chatbot], [Branch: main], [SourceDirectory: /]"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "apprunner_event"
         assert result.data["service"] == "AppRunner"
@@ -57,7 +56,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing AppRunner service failure with exit code."""
         raw = "[AppRunner] Your application stopped or failed to start. See logs for more information.  Container exit code: 1"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "apprunner_event"
         assert result.data["event_type"] == "service_failure"
@@ -68,7 +67,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing Build dependency download log."""
         raw = "[Build] Downloading uvicorn-0.23.2-py3-none-any.whl (59 kB)"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "build_event"
         assert result.data["service"] == "Build"
@@ -80,7 +79,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing Build ERROR log."""
         raw = "[Build] ERROR: Could not build wheels for orjson, which is required to install pyproject.toml-based projects"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "build_event"
         assert result.data["level"] == "error"
@@ -90,7 +89,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing generic SSL error."""
         raw = "SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "generic_error"
         assert result.data["level"] == "error"
@@ -102,7 +101,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing ERROR: No matching distribution."""
         raw = "ERROR: No matching distribution found for orjson"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "generic_error"
         assert result.data["level"] == "error"
@@ -111,7 +110,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing Uvicorn INFO messages."""
         raw = "INFO: Uvicorn running on http://10.0.0.1:8080 (Press CTRL+C to quit)"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         # Should match uvicorn_info or uvicorn_running_simple
         assert result.pattern_id in ["uvicorn_info", "uvicorn_running_simple"]
@@ -121,7 +120,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing health check messages."""
         raw = "Health check is successful. Routing traffic to application."
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "health_check"
         assert result.data["event_type"] == "health_check"
@@ -131,7 +130,7 @@ class TestCoreAPIParserRawToJson:
         """Test parsing Python traceback header."""
         raw = "Traceback (most recent call last):"
         result = core_api_parser.parse(raw)
-        
+
         assert result.success is True
         assert result.pattern_id == "stacktrace_header"
         assert result.data["level"] == "error"

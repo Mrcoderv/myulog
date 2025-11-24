@@ -178,7 +178,7 @@ def classify_normalized_to_classified(parsed_file: pathlib.Path, classified_file
                 if "meta" not in rec:
                     rec["meta"] = {
                         "raw_message": rec.get("message", ""),
-                        "parse": {"ok": True} # Assume OK if it's in parsed file
+                        "parse": {"ok": True},  # Assume OK if it's in parsed file
                     }
                 input_records.append(rec)
             except json.JSONDecodeError:
@@ -186,15 +186,12 @@ def classify_normalized_to_classified(parsed_file: pathlib.Path, classified_file
 
     # Process all records
     results = pipeline.process_input(input_records, input_format="json")
-    
+
     with open(classified_file, "w", encoding="utf-8") as outfile:
         for record in results:
             outfile.write(json.dumps(record) + "\n")
 
     print(f"[{domain}] Classified logs written to: {classified_file}")
-
-
-
 
 
 def classify_logs(parsed_file: pathlib.Path, classified_file: Optional[pathlib.Path], rules_doc: dict) -> list[dict]:
@@ -230,7 +227,7 @@ def classify_logs(parsed_file: pathlib.Path, classified_file: Optional[pathlib.P
 
             # Merge label fields directly into the event (flattened)
             # We prioritize the label fields if they exist, but keep original event data
-            
+
             if "level" in label:
                 event["level"] = label["level"]
             if "category" in label:
@@ -241,11 +238,11 @@ def classify_logs(parsed_file: pathlib.Path, classified_file: Optional[pathlib.P
                 event["outcome"] = label["outcome"]
             if "tags" in label:
                 event["tags"] = label["tags"]
-            
+
             # Provenance is a dictionary, we add it as a top-level field
             if "provenance" in label:
                 event["provenance"] = label["provenance"]
-            
+
             # Add record index for tracking
             event["record_index"] = line_num
 
@@ -289,36 +286,34 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
         # 2. Extract labels into memory ONLY (do NOT overwrite classified_file)
         # Enrich the classifier output with extra fields AND overwrite the classified file
         enriched_records = classify_logs(
-            classified_file,      # read the classifier output
-            classified_file,      # write enriched classifier output back into same file
-            rules_doc
+            classified_file,  # read the classifier output
+            classified_file,  # write enriched classifier output back into same file
+            rules_doc,
         )
 
         # Add to global list
         all_labels.extend(enriched_records)
 
-
         print(f"[{domain}] Complete: {count_per_domain} records")
 
     # Step 4: Write combined labels to pre-review file
     pre_review_file = BASELINE_DIR / "pre_review_baseline_labels.jsonl"
-    
+
     # Re-index globally
     for idx, rec in enumerate(all_labels):
         rec["record_index"] = idx
-
 
     with open(pre_review_file, "w", encoding="utf-8") as f:
         for label in all_labels:
             f.write(json.dumps(label) + "\n")
 
     print(f"\n✓ Pre-review labels written to: {pre_review_file.name}")
-    
+
     # Step 5: Manual Review Reminder
     # We do NOT overwrite baseline_labels.jsonl automatically.
     # It represents the "ground truth" after manual review.
     final_labels_file = DATA_SYNTHETIC / "baseline_labels.jsonl"
-    
+
     print("\nBaseline dataset generated successfully!")
     print(f"   Raw logs: {RAW_DIR.relative_to(PROJECT_ROOT)}")
     print(f"   Parsed logs: {BASELINE_DIR.relative_to(PROJECT_ROOT)}")
@@ -326,7 +321,10 @@ def generate_baseline_dataset(seed: int, count_per_domain: int) -> None:
     print(f"   Pre-review labels: {pre_review_file.relative_to(PROJECT_ROOT)}")
     print(f"   Final labels: {final_labels_file.relative_to(PROJECT_ROOT)} (NOT overwritten)")
     print(f"   Total records: {len(all_labels)}")
-    print("\n[IMPORTANT] Please manually review 'pre_review_baseline_labels.jsonl' and update 'baseline_labels.jsonl' if needed.")
+    print(
+        "\n[IMPORTANT] Please manually review 'pre_review_baseline_labels.jsonl' "
+        "and update 'baseline_labels.jsonl' if needed."
+    )
 
 
 def main():

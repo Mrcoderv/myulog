@@ -71,13 +71,13 @@ class GenerateAPILog(GenerateLog):
         ]
         self.app_events = [
             "[AppRunner] Deployment Artifact: [Repo Type: {repo_type}], [Repository: {repo_url}], [Branch: {branch}],"
-                  "[SourceDirectory: /]",
+            "[SourceDirectory: /]",
             "[AppRunner] Deployment with ID : {deploy_id} started. Triggering event : {event_type}",
             "[AppRunner] Pulling source code from GITHUB Repository ( {repo_url} ).",
             "[AppRunner] Successfully pulled your application source code.",
             "[AppRunner] Health check is successful. Routing traffic to application.",
             "[AppRunner] Your application stopped or failed to start. See logs for more information."
-                  "Container exit code: {exit_code}",
+            "Container exit code: {exit_code}",
         ]
         self.app_event_types = ["SERVICE_CREATE", "SERVICE_UPDATE", "SERVICE_DEPLOY"]
 
@@ -85,7 +85,7 @@ class GenerateAPILog(GenerateLog):
         self.build_templates = [
             "[Build] Downloading {package}-{version}-py3-none-any.whl ({size} kB)",
             "[Build] WARNING: The candidate selected for download or install is a yanked version: '{package}'"
-                  "candidate (version {version})",
+            "candidate (version {version})",
             "[Build] Successfully installed {package}-{version}",
         ]
 
@@ -116,7 +116,7 @@ class GenerateAPILog(GenerateLog):
             503: "Service Unavailable",
         }.get(status, "OK")
 
-        return f"INFO:     {ip}:{port} - \"{method} {endpoint} HTTP/1.1\" {status} {status_text}"
+        return f'INFO:     {ip}:{port} - "{method} {endpoint} HTTP/1.1" {status} {status_text}'
 
     def generate_log_entry(self):
         # Each "size" iteration will produce one event group deterministically
@@ -161,7 +161,6 @@ class GenerateAPILog(GenerateLog):
             if mode == "apprunner":
                 templates = self.random.sample(self.app_events, k=len(self.app_events))  # unique templates
                 for t in ts_group:
-
                     repo_type = self.select_enum(self.repo_types)
                     repo_url = self.select_enum(self.repos)
                     branch = self.select_enum(["main", "dev", "release"])
@@ -204,8 +203,10 @@ class GenerateAPILog(GenerateLog):
 
                     def tpl_func():
                         pkg = self.generate_string(self.generate_integer(5, 10))
-                        version = (f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 10)}"
-                            f".{self.generate_integer(0, 5)}")
+                        version = (
+                            f"{self.generate_integer(0, 3)}.{self.generate_integer(0, 10)}"
+                            f".{self.generate_integer(0, 5)}"
+                        )
                         size_kb = self.generate_integer(50, 400)
                         template = self.random.choice(self.build_templates)
                         return template.format(package=pkg, version=version, size=size_kb)

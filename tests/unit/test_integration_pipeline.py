@@ -3,7 +3,6 @@ Integration tests for full pipeline: raw → parse → classify → provenance.
 """
 
 
-
 class TestPipelineIntegration:
     """Test full pipeline from raw logs to classified output with provenance."""
 
@@ -12,22 +11,22 @@ class TestPipelineIntegration:
         raw_records = [
             {
                 "@timestamp": "2024-03-15T10:30:00Z",
-                "@message": 'INFO:     10.0.0.2:35466 - "GET /api/users HTTP/1.1" 503 Service Unavailable'
+                "@message": 'INFO:     10.0.0.2:35466 - "GET /api/users HTTP/1.1" 503 Service Unavailable',
             }
         ]
-        
+
         results = classifier_pipeline.process_input(raw_records, input_format="raw", schema="core_api")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Check that we got a result with parsed fields
         assert "http_status" in result or "action" in result or "endpoint" in result
-        
+
         # Check classification applied
         assert "provenance" in result
         assert "parser_rule_id" in result["provenance"]
-        
+
         # Should match api-5xx-critical rule
         assert result["level"] == "critical"
         assert result["outcome"] == "failure"
@@ -42,21 +41,17 @@ class TestPipelineIntegration:
                 "outcome": "success",
                 "request_id": "req-123",
                 "meta": {},
-                "usage": {
-                    "prompt_tokens": 9500,
-                    "completion_tokens": 500,
-                    "total_tokens": 10000
-                }
+                "usage": {"prompt_tokens": 9500, "completion_tokens": 500, "total_tokens": 10000},
             }
         ]
-        
+
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="llm")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Check classification - llm-token-budget-exceeded should match
-        assert result["provenance"]["parser_rule_id"] == "llm-token-budget-exceeded" 
+        assert result["provenance"]["parser_rule_id"] == "llm-token-budget-exceeded"
         assert result["level"] in ["warn", "error"]
         assert "token_budget" in result["tags"]
 
@@ -72,17 +67,15 @@ class TestPipelineIntegration:
                 "input_summary": "my input summary",
                 "output_summary": "my output summary",
                 "meta": {},
-                "error": {
-                    "message": "Connection timeout"
-                }
+                "error": {"message": "Connection timeout"},
             }
         ]
-        
+
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="agentic")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Check classification - agentic-tool-failure should match
         assert result["provenance"]["parser_rule_id"] == "agentic-tool-failure"
         assert result["level"] == "error"
@@ -99,21 +92,19 @@ class TestPipelineIntegration:
                 "latency_ms": 2.5,
                 "metrics": "a metric",
                 "model_name": "dalle",
-                "dataset_id": "dataimage1 1", 
+                "dataset_id": "dataimage1 1",
                 "image_count": 1,
                 "batch_size": 1,
                 "hardware": "fast machine",
-                "error": {
-                    "message": "CUDA out of memory: tried to allocate 2.5 GB"
-                }
+                "error": {"message": "CUDA out of memory: tried to allocate 2.5 GB"},
             }
         ]
-        
+
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="cv")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Check classification - cv-gpu-oom should match
         assert result["provenance"]["parser_rule_id"] == "cv-gpu-oom"
         assert result["level"] == "error"
@@ -124,17 +115,14 @@ class TestPipelineIntegration:
     def test_unparsed_log_still_classified(self, classifier_pipeline):
         """Test that unparsed logs still get classified (with default action)."""
         raw_records = [
-            {
-                "@timestamp": "2024-03-15T10:30:00Z",
-                "@message": "Some random unstructured log message that won't parse"
-            }
+            {"@timestamp": "2024-03-15T10:30:00Z", "@message": "Some random unstructured log message that won't parse"}
         ]
-        
+
         results = classifier_pipeline.process_input(raw_records, input_format="raw")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Classification still applied (default action or some rule)
         assert "provenance" in result
         assert "parser_rule_id" in result["provenance"]
@@ -146,15 +134,15 @@ class TestPipelineIntegration:
                 "timestamp": "2024-03-15T10:30:00Z",
                 "http_status": 503,
                 "endpoint": "/api/test",
-                "event_type": "http_request"
+                "event_type": "http_request",
             }
         ]
-        
+
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="core_api")
-        
+
         assert len(results) == 1
         result = results[0]
-        
+
         # Check provenance has version
         assert "provenance" in result
         assert "rule_version" in result["provenance"]
@@ -172,7 +160,7 @@ class TestPipelineIntegration:
                 "meta": {},
                 "outcome": "failure",
                 "service": "service 5",
-                "env": "test"
+                "env": "test",
             },
             {
                 "timestamp": "2024-03-15T10:30:01Z",
@@ -183,7 +171,7 @@ class TestPipelineIntegration:
                 "meta": {},
                 "outcome": "failure",
                 "service": "service 10",
-                "env": "test"
+                "env": "test",
             },
             {
                 "timestamp": "2024-03-15T10:30:02Z",
@@ -194,20 +182,20 @@ class TestPipelineIntegration:
                 "meta": {},
                 "outcome": "success",
                 "service": "service 7",
-                "env": "test"
-            }
+                "env": "test",
+            },
         ]
 
         results = classifier_pipeline.process_input(normalized_records, input_format="json", schema="core_api")
-        
+
         assert len(results) == 3
-        
+
         # First should match api-5xx-critical or all-failure-high
         assert results[0]["provenance"]["parser_rule_id"] == "api-5xx-critical"
         assert results[0]["level"] == "critical"
-        
+
         # Second should match api-4xx-client-error, api-unauthorized, or all-failure-high
         assert results[1]["provenance"]["parser_rule_id"] == "api-4xx-client-error"
-        
+
         # Third should get default action, missing-trace-identifier, or all-failure-high
         assert results[2]["provenance"]["parser_rule_id"] == "core-api-http-2xx-success"

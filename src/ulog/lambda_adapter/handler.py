@@ -8,6 +8,7 @@ from ulog.core import canonical_order, ensure_provenance
 
 # --------- helpers ---------
 
+
 def _filename_schema_hint(filename: Optional[str]) -> Optional[str]:
     """
     Best-effort domain hint from filename.
@@ -58,6 +59,7 @@ def _ensure_list_of_dicts(logs: Any) -> List[Dict[str, Any]]:
 
 
 # --------- public lambda entrypoint ---------
+
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -113,7 +115,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         results = pipeline.process_input(
             input_data=logs,
             input_format=input_format,  # "auto" is fine; pipeline will guess raw/json
-            schema=schema,              # may be None → per-record routing still works
+            schema=schema,  # may be None → per-record routing still works
         )
 
         # Enforce provenance + canonical order to match CLI/HTTP parity
