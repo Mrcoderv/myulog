@@ -88,20 +88,55 @@ def validate_parsed_files() -> dict[str, int]:
     return counts
 
 
-def validate_roundtrip(raw_counts: dict[str, int], parsed_counts: dict[str, int]) -> None:
+def validate_classified_files() -> dict[str, int]:
+    print("✓ Validating classified files...")
+    counts = {}
+
+    for domain in DOMAINS:
+        classified_file = BASELINE_DIR / f"{domain}_baseline_classified.jsonl"
+        records = load_jsonl(classified_file)
+
+        if not records:
+            raise ValidationError(f"No records in {classified_file}")
+
+        # Validate required fields in classified records
+        required_fields = ["record_index", "level", "category", "outcome"]
+        for idx, record in enumerate(records):
+            for field in required_fields:
+                if field not in record:
+                    raise ValidationError(
+                        f"Missing {field} in {classified_file} at record {idx}"
+                    )
+
+        counts[domain] = len(records)
+        print(f"  [{domain}] {len(records)} classified records")
+
+    return counts
+
+
+def validate_roundtrip(
+        raw_counts: dict[str, int], parsed_counts: dict[str, int], classified_counts: dict[str, int]
+    ) -> None:
     print("✓ Validating round-trip alignment...")
 
     for domain in DOMAINS:
         raw_count = raw_counts.get(domain, 0)
         parsed_count = parsed_counts.get(domain, 0)
+        classified_count = classified_counts.get(domain, 0)
 
         if raw_count != parsed_count:
             raise ValidationError(
                 f"Record count mismatch for {domain}: "
                 f"raw={raw_count}, parsed={parsed_count}"
             )
+        
+        if parsed_count != classified_count:
+            raise ValidationError(
+                f"Record count mismatch for {domain}: "
+                f"parsed={parsed_count}, classified={classified_count}"
+            )
 
-        print(f"  [{domain}] ✓ {raw_count} records aligned")
+        print(f"  [{domain}] ✓ {raw_count} records aligned (raw→parsed→classified)")
 
 
 def validate_labels() -> int:
@@ -175,7 +210,8 @@ def main():
     try:
         raw_counts = validate_raw_files()
         parsed_counts = validate_parsed_files()
-        validate_roundtrip(raw_counts, parsed_counts)
+        classified_counts = validate_classified_files()
+        validate_roundtrip(raw_counts, parsed_counts, classified_counts)
         label_count = validate_labels()
         validate_label_alignment(parsed_counts, label_count)
         validate_minimum_requirements(parsed_counts)
