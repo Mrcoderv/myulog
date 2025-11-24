@@ -6,9 +6,11 @@ Deterministic synthetic log generation system supporting all ULog domains with c
 
 The generator produces **paired artifacts** for testing and validation:
 
-1. **Raw logs** (`@timestamp` + `@message`) → `/data/synthetic/raw/`
+1. **Raw logs** (`@timestamp` + `@message`) → `/data/synthetic/baseline/raw/`
 2. **Parsed normalized logs** (via normalizer) → `/data/synthetic/baseline/`
-3. **Labeled logs** (via classifier rules) → `/data/synthetic/baseline_labels.jsonl`
+3. **Classified logs** (per domain, via classifier rules) → `/data/synthetic/baseline/*_classified.jsonl`
+4. **Pre-review labels** (combined, auto-generated) → `/data/synthetic/baseline/pre_review_baseline_labels.jsonl`
+5. **Final baseline labels** (manually reviewed) → `/data/synthetic/baseline_labels.jsonl`
 
 All generation is **deterministic** and **reproducible** via seed control.
 
@@ -156,6 +158,8 @@ The normalizer:
 
 ### 3. Labeling (Parsed → Classified)
 
+The labeling process creates multiple outputs:
+
 ```python
 from tests.rules.conftest import evaluate
 
@@ -164,9 +168,23 @@ event = json.loads(parsed_line)
 label = evaluate(event, rules_doc)
 ```
 
-**Output:** `data/synthetic/baseline_labels.jsonl`
+**Outputs:**
 
-Format:
+1. **Per-domain classified files:** `data/synthetic/baseline/{domain}_baseline_classified.jsonl`
+   - One file per domain (agentic, cv, api, llm)
+   - Contains labels for that domain's parsed logs
+
+2. **Pre-review combined labels:** `data/synthetic/baseline/pre_review_baseline_labels.jsonl`
+   - Combines all domain classified files
+   - Auto-generated, not manually reviewed
+
+3. **Final baseline labels:** `data/synthetic/baseline_labels.jsonl`
+   - Initially a copy of pre-review labels
+   - **Should be manually reviewed and corrected**
+   - Serves as the project baseline (similar to `vocab/controlled_vocabulary.json`)
+   - **Unignored in git** - committed to repository
+
+**Label Format:**
 ```json
 {
   "record_index": 0,
@@ -175,8 +193,31 @@ Format:
   "sub_category": "tool",
   "outcome": "failure",
   "tags": ["agentic", "timeout"],
-  "rule_id": "agentic-tool-slow"
+  "rule_id": "agentic-tool-slow",
+  "provenance": {
+    "rule_id": "agentic-tool-slow",
+    "rule_index": 5
+  }
 }
+```
+
+### 4. Manual Review (Required)
+
+After generation, manually review and correct the final baseline labels:
+
+```bash
+# Generate baseline
+make data.generate.baseline
+
+# Review and edit the final labels file
+vim data/synthetic/baseline_labels.jsonl
+
+# Validate after corrections
+make data.validate.baseline
+
+# Commit the corrected baseline
+git add data/synthetic/baseline_labels.jsonl
+git commit -m "Update baseline labels after manual review"
 ```
 
 ## Manual Generation
@@ -240,10 +281,11 @@ poetry run python data/generator/validate_baseline.py
 Validates:
 1. ✓ Raw files exist with required fields
 2. ✓ Parsed files exist with required fields
-3. ✓ Record counts match (raw ↔ parsed)
-4. ✓ Labels exist and have required fields
-5. ✓ Label count = parsed count (1:1 alignment)
-6. ✓ Minimum requirements met (≥200 total, ≥50/domain)
+3. ✓ Classified files exist with required fields (per domain)
+4. ✓ Record counts match (raw ↔ parsed ↔ classified)
+5. ✓ Final labels exist and have required fields
+6. ✓ Label count = parsed count (1:1 alignment)
+7. ✓ Minimum requirements met (≥200 total, ≥50/domain)
 
 ### CI Validation
 
@@ -264,20 +306,23 @@ GitHub Actions workflow automatically:
 ```
 data/
 ├── generator/
-│   ├── generator.py              # Base class
-│   ├── agentic_generator.py      # Agentic domain
-│   ├── cv_generator.py           # CV domain
-│   ├── api_generator.py          # API domain
-│   ├── llm_generator.py          # LLM domain
-│   ├── main.py                   # CLI entrypoint
-│   ├── generate_baseline.py     # Baseline dataset generator
-│   ├── validate_baseline.py     # Validation suite
-│   └── README.md                 # This file
+│   ├── generator.py                    # Base class
+│   ├── agentic_generator.py            # Agentic domain
+│   ├── cv_generator.py                 # CV domain
+│   ├── api_generator.py                # API domain
+│   ├── llm_generator.py                # LLM domain
+│   ├── main.py                         # CLI entrypoint
+│   ├── generate_baseline.py           # Baseline dataset generator
+│   ├── validate_baseline.py           # Validation suite
+│   └── README.md                       # This file
 ├── synthetic/
-│   ├── raw/                      # Raw logs (@timestamp + @message)
-│   ├── baseline/                 # Parsed normalized logs
-│   └── baseline_labels.jsonl    # Rule classifications
-└── blueprint/                    # Data profiling docs
+│   ├── baseline/
+│   │   ├── raw/                        # Raw logs (@timestamp + @message)
+│   │   ├── *_baseline_parsed.jsonl    # Parsed normalized logs (per domain)
+│   │   ├── *_baseline_classified.jsonl # Classified labels (per domain)
+│   │   └── pre_review_baseline_labels.jsonl # Combined auto-generated labels
+│   └── baseline_labels.jsonl          # Final manually-reviewed labels (committed)
+└── blueprint/                          # Data profiling docs
 ```
 
 ## Make Targets
