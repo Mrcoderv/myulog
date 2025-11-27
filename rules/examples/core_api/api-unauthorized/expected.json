@@ -1,11 +1,14 @@
 {
   "level": "warn",
   "category": "core_api",
-  "sub_category": "user_input",
+  "sub_category": "auth",
   "outcome": "failure",
-  "tags": ["core_api", "4xx"],
+  "tags": [
+    "core_api",
+    "auth"
+  ],
   "provenance": {
-    "rule_id": "api-4xx-client-error",
+    "rule_id": "api-unauthorized",
     "rule_index": 4
   }
 }

@@ -1,11 +1,14 @@
 {
   "level": "warn",
   "category": "core_api",
-  "sub_category": "user_input",
+  "sub_category": "data",
   "outcome": "failure",
-  "tags": ["core_api", "4xx"],
+  "tags": [
+    "core_api",
+    "conflict"
+  ],
   "provenance": {
-    "rule_id": "api-4xx-client-error",
-    "rule_index": 4
+    "rule_id": "api-conflict-error",
+    "rule_index": 5
   }
 }
