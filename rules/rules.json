@@ -149,39 +149,6 @@
       }
     },
     {
-      "rule_id": "api-4xx-client-error",
-      "version": "1.0.0",
-      "name": "Client 4xx errors",
-      "description": "Flag client errors (400-499) as warnings",
-      "applies_to": [
-        "core_api"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "@errorCode",
-            "op": "gte",
-            "value": 400
-          },
-          {
-            "field": "@errorCode",
-            "op": "lt",
-            "value": 500
-          }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "core_api",
-        "sub_category": "user_input",
-        "outcome": "failure",
-        "tags": [
-          "core_api",
-          "4xx"
-        ]
-      }
-    },
-    {
       "rule_id": "api-unauthorized",
       "version": "1.0.0",
       "name": "Authentication failures",
@@ -239,6 +206,39 @@
         "tags": [
           "core_api",
           "conflict"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-4xx-client-error",
+      "version": "1.0.0",
+      "name": "Client 4xx errors",
+      "description": "Flag client errors (400-499) as warnings",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@errorCode",
+            "op": "gte",
+            "value": 400
+          },
+          {
+            "field": "@errorCode",
+            "op": "lt",
+            "value": 500
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "user_input",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "4xx"
         ]
       }
     },
@@ -424,6 +424,53 @@
         "tags": [
           "agentic",
           "guardrail"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-tool-dependency-error",
+      "version": "1.0.0",
+      "name": "Tool dependency missing/import error",
+      "description": "Flags ModuleNotFoundError/ImportError during agent tool runs",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          },
+          {
+            "any": [
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ModuleNotFoundError"
+              },
+              {
+                "field": "error.message",
+                "op": "regex",
+                "value": "(?i)No module named"
+              },
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ImportError"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "agentic",
+        "sub_category": "dependency",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "dependency"
         ]
       }
     },
@@ -738,53 +785,6 @@
         "tags": [
           "cv",
           "oom"
-        ]
-      }
-    },
-    {
-      "rule_id": "agentic-tool-dependency-error",
-      "version": "1.0.0",
-      "name": "Tool dependency missing/import error",
-      "description": "Flags ModuleNotFoundError/ImportError during agent tool runs",
-      "applies_to": [
-        "agentic"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "status",
-            "op": "eq",
-            "value": "failed"
-          },
-          {
-            "any": [
-              {
-                "field": "error.message",
-                "op": "contains",
-                "value": "ModuleNotFoundError"
-              },
-              {
-                "field": "error.message",
-                "op": "regex",
-                "value": "(?i)No module named"
-              },
-              {
-                "field": "error.message",
-                "op": "contains",
-                "value": "ImportError"
-              }
-            ]
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "agentic",
-        "sub_category": "dependency",
-        "outcome": "failure",
-        "tags": [
-          "agentic",
-          "dependency"
         ]
       }
     },
