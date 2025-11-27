@@ -149,39 +149,6 @@
       }
     },
     {
-      "rule_id": "api-4xx-client-error",
-      "version": "1.0.0",
-      "name": "Client 4xx errors",
-      "description": "Flag client errors (400-499) as warnings",
-      "applies_to": [
-        "core_api"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "@errorCode",
-            "op": "gte",
-            "value": 400
-          },
-          {
-            "field": "@errorCode",
-            "op": "lt",
-            "value": 500
-          }
-        ]
-      },
-      "then": {
-        "level": "warn",
-        "category": "core_api",
-        "sub_category": "user_input",
-        "outcome": "failure",
-        "tags": [
-          "core_api",
-          "4xx"
-        ]
-      }
-    },
-    {
       "rule_id": "api-unauthorized",
       "version": "1.0.0",
       "name": "Authentication failures",
@@ -239,6 +206,39 @@
         "tags": [
           "core_api",
           "conflict"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-4xx-client-error",
+      "version": "1.0.0",
+      "name": "Client 4xx errors",
+      "description": "Flag client errors (400-499) as warnings",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "@errorCode",
+            "op": "gte",
+            "value": 400
+          },
+          {
+            "field": "@errorCode",
+            "op": "lt",
+            "value": 500
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "user_input",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "4xx"
         ]
       }
     },
@@ -337,6 +337,156 @@
       }
     },
     {
+      "rule_id": "api-deployment-event",
+      "version": "1.0.0",
+      "name": "Deployment activity",
+      "description": "Flag deployment and service update events",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "event_type",
+            "op": "in",
+            "value": [
+              "apprunner_event",
+              "pipeline_event",
+              "service_deletion",
+              "service_create",
+              "service_update",
+              "service_deploy"
+            ]
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "contains",
+            "value": "Deployment with ID"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "deployment",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "deployment"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-server-lifecycle",
+      "version": "1.0.0",
+      "name": "Server lifecycle events",
+      "description": "Flag server start/stop/reload events",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "event_type",
+            "op": "in",
+            "value": [
+              "server_start",
+              "server_stop",
+              "shutdown",
+              "service_event"
+            ]
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "contains",
+            "value": "Finished server process"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "contains",
+            "value": "Started server process"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "lifecycle"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-python-stacktrace",
+      "version": "1.0.0",
+      "name": "Python stacktrace",
+      "description": "Flag Python stacktraces and exceptions",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "error.type",
+            "op": "eq",
+            "value": "stacktrace"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "contains",
+            "value": "Traceback (most recent call last)"
+          },
+          {
+            "field": "meta.raw_message",
+            "op": "regex",
+            "value": "File \".*\", line [0-9]+, in"
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "core_api",
+        "sub_category": "service",
+        "outcome": "failure",
+        "tags": [
+          "core_api",
+          "stacktrace"
+        ]
+      }
+    },
+    {
+      "rule_id": "api-build-warning",
+      "version": "1.0.0",
+      "name": "Build warning",
+      "description": "Flag warnings during build process",
+      "applies_to": [
+        "core_api"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "event_type",
+            "op": "eq",
+            "value": "build_warning"
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "core_api",
+        "sub_category": "build",
+        "outcome": "success",
+        "tags": [
+          "core_api",
+          "build",
+          "warning"
+        ]
+      }
+    },
+    {
       "rule_id": "core-api-error-rate-high",
       "version": "1.0.0",
       "name": "High error rate detected",
@@ -428,6 +578,53 @@
       }
     },
     {
+      "rule_id": "agentic-tool-dependency-error",
+      "version": "1.0.0",
+      "name": "Tool dependency missing/import error",
+      "description": "Flags ModuleNotFoundError/ImportError during agent tool runs",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "status",
+            "op": "eq",
+            "value": "failed"
+          },
+          {
+            "any": [
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ModuleNotFoundError"
+              },
+              {
+                "field": "error.message",
+                "op": "regex",
+                "value": "(?i)No module named"
+              },
+              {
+                "field": "error.message",
+                "op": "contains",
+                "value": "ImportError"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "error",
+        "category": "agentic",
+        "sub_category": "dependency",
+        "outcome": "failure",
+        "tags": [
+          "agentic",
+          "dependency"
+        ]
+      }
+    },
+    {
       "rule_id": "agentic-tool-failure",
       "version": "1.0.0",
       "name": "Tool execution failure",
@@ -489,6 +686,100 @@
         "tags": [
           "agentic",
           "cost"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-session-start",
+      "version": "1.0.0",
+      "name": "Agent Session Start",
+      "description": "Flag agent session start events",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "session_start"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "agentic",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "agentic",
+          "session"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-configuration",
+      "version": "1.0.0",
+      "name": "Agent Configuration",
+      "description": "Flag agent configuration and safety checks",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "config"
+          },
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "safety_check"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "tools registered"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "agentic",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "agentic",
+          "config"
+        ]
+      }
+    },
+    {
+      "rule_id": "agentic-input-processing",
+      "version": "1.0.0",
+      "name": "Agent Input Processing",
+      "description": "Flag agent input processing events",
+      "applies_to": [
+        "agentic"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "step_kind",
+            "op": "eq",
+            "value": "input_processing"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "agentic",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "agentic",
+          "input"
         ]
       }
     },
@@ -742,53 +1033,6 @@
       }
     },
     {
-      "rule_id": "agentic-tool-dependency-error",
-      "version": "1.0.0",
-      "name": "Tool dependency missing/import error",
-      "description": "Flags ModuleNotFoundError/ImportError during agent tool runs",
-      "applies_to": [
-        "agentic"
-      ],
-      "when": {
-        "all": [
-          {
-            "field": "status",
-            "op": "eq",
-            "value": "failed"
-          },
-          {
-            "any": [
-              {
-                "field": "error.message",
-                "op": "contains",
-                "value": "ModuleNotFoundError"
-              },
-              {
-                "field": "error.message",
-                "op": "regex",
-                "value": "(?i)No module named"
-              },
-              {
-                "field": "error.message",
-                "op": "contains",
-                "value": "ImportError"
-              }
-            ]
-          }
-        ]
-      },
-      "then": {
-        "level": "error",
-        "category": "agentic",
-        "sub_category": "dependency",
-        "outcome": "failure",
-        "tags": [
-          "agentic",
-          "dependency"
-        ]
-      }
-    },
-    {
       "rule_id": "cv-throughput-high",
       "version": "1.0.0",
       "name": "High throughput reported",
@@ -846,6 +1090,87 @@
         "tags": [
           "cv",
           "loss_spike"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-ingest-stream",
+      "version": "1.0.0",
+      "name": "CV Stream Ingest",
+      "description": "Flag video stream opening and connection events",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "phase",
+            "op": "eq",
+            "value": "ingest"
+          },
+          {
+            "any": [
+              {
+                "field": "message",
+                "op": "contains",
+                "value": "Opening video source"
+              },
+              {
+                "field": "message",
+                "op": "contains",
+                "value": "Opened stream"
+              },
+              {
+                "field": "message",
+                "op": "contains",
+                "value": "RTSP connect"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "cv",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "cv",
+          "ingest"
+        ]
+      }
+    },
+    {
+      "rule_id": "cv-ingest-warning",
+      "version": "1.0.0",
+      "name": "CV Ingest Warning",
+      "description": "Flag warnings during ingest phase",
+      "applies_to": [
+        "computer_vision"
+      ],
+      "when": {
+        "all": [
+          {
+            "field": "phase",
+            "op": "eq",
+            "value": "ingest"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Non-monotonous DTS"
+          }
+        ]
+      },
+      "then": {
+        "level": "warn",
+        "category": "cv",
+        "sub_category": "data",
+        "outcome": "success",
+        "tags": [
+          "cv",
+          "ingest",
+          "warning"
         ]
       }
     },
@@ -1100,6 +1425,229 @@
         "tags": [
           "llm",
           "kv_cache"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-lifecycle-event",
+      "version": "1.0.0",
+      "name": "LLM Lifecycle Event",
+      "description": "Flag LLM lifecycle events like init, start, stop",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "LLM initialized"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "LLM started"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "LLM stopped"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "lifecycle"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-server-startup",
+      "version": "1.0.0",
+      "name": "LLM Server Startup",
+      "description": "Flag LLM server startup events",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Starting LLM HTTP server"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "service",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "startup"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-model-loading",
+      "version": "1.0.0",
+      "name": "LLM Model Loading",
+      "description": "Flag model and tokenizer loading events",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Loading tokenizer"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Default model="
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Loaded"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "special tokens"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "model",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "loading"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-model-config",
+      "version": "1.0.0",
+      "name": "LLM Model Configuration",
+      "description": "Flag model configuration and quantization events",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Loading model weights"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "device_map="
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Using safetensors"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "quantization"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "bitsandbytes"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "GPTQ"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "model",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "config"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-kv-cache",
+      "version": "1.0.0",
+      "name": "LLM KV Cache",
+      "description": "Flag KV cache events",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Paged KV enabled"
+          },
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "Eviction triggered"
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "kv_cache",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "cache"
+        ]
+      }
+    },
+    {
+      "rule_id": "llm-generation-config",
+      "version": "1.0.0",
+      "name": "LLM Generation Config",
+      "description": "Flag generation configuration events",
+      "applies_to": [
+        "llm"
+      ],
+      "when": {
+        "any": [
+          {
+            "field": "message",
+            "op": "contains",
+            "value": "generation: max_tokens="
+          }
+        ]
+      },
+      "then": {
+        "level": "info",
+        "category": "llm",
+        "sub_category": "config",
+        "outcome": "success",
+        "tags": [
+          "llm",
+          "generation"
         ]
       }
     },

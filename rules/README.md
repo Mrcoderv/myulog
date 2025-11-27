@@ -125,23 +125,23 @@ Use aliases in conditions to write rules that work across multiple schemas witho
 
 ### Core API (core_api)
 
-**Event Types**: `http_request`, `http_response`, `startup`, `build`, `health_check`, `exception`  
-**Key Fields**: `http_status`, `endpoint`, `latency_ms`, `error.code`
+**Event Types**: `http_request`, `http_response`, `startup`, `build`, `health_check`, `exception`, `deployment`, `lifecycle`  
+**Key Fields**: `http_status`, `endpoint`, `latency_ms`, `error.code`, `stack_trace`
 
 ### LLM Pipeline (llm)
 
-**Stages**: `serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`  
-**Key Fields**: `usage.prompt_tokens`, `usage.completion_tokens`, `safety_flags`, `finish_reason`, `ttft_ms`, `kv_cache_usage_percent`
+**Stages**: `serve`, `tokenizer`, `quant`, `load`, `inference`, `rag_retrieve`, `rag_embed`, `rag_rerank`, `safety_check`, `sampling`, `config`  
+**Key Fields**: `usage.prompt_tokens`, `usage.completion_tokens`, `safety_flags`, `finish_reason`, `ttft_ms`, `kv_cache_usage_percent`, `device_map`
 
 ### Agentic Workflows (agentic)
 
-**Step Kinds**: `plan`, `tool_call`, `inference`, `observation`, `final_answer`  
-**Key Fields**: `step_kind`, `tool_name`, `status`, `duration_ms`, `guardrails_triggered`
+**Step Kinds**: `plan`, `tool_call`, `inference`, `observation`, `final_answer`, `session_start`, `config`, `input_processing`  
+**Key Fields**: `step_kind`, `tool_name`, `status`, `duration_ms`, `guardrails_triggered`, `user_goal`
 
 ### Computer Vision (cv)
 
 **Phases**: `ingest`, `preprocess`, `inference`, `postprocess`, `eval`, `serve`, `track`, `pose`  
-**Key Fields**: `metrics.fps`, `metrics.map`, `metrics.map50_95`, `metrics.loss`, `hardware.accelerator`
+**Key Fields**: `metrics.fps`, `metrics.map`, `metrics.map50_95`, `metrics.loss`, `hardware.accelerator`, `stream_url`
 
 ## Provenance
 

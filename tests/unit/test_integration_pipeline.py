@@ -194,8 +194,8 @@ class TestPipelineIntegration:
         assert results[0]["provenance"]["parser_rule_id"] == "api-5xx-critical"
         assert results[0]["level"] == "critical"
 
-        # Second should match api-4xx-client-error, api-unauthorized, or all-failure-high
-        assert results[1]["provenance"]["parser_rule_id"] == "api-4xx-client-error"
+        # Second should match api-unauthorized (401 status) - more specific than api-4xx-client-error
+        assert results[1]["provenance"]["parser_rule_id"] == "api-unauthorized"
 
         # Third should get default action, missing-trace-identifier, or all-failure-high
         assert results[2]["provenance"]["parser_rule_id"] == "core-api-http-2xx-success"

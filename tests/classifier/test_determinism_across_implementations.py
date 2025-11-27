@@ -51,12 +51,12 @@ EXPECTED = [
         "outcome": "failure",
         "error": {"type": "stacktrace", "message": "Traceback (most recent call last):"},
         "sub_category": "service",
-        "tags": ["core_api", "exception"],
+        "tags": ["core_api", "stacktrace"],
         "meta": {"validation": {"skipped": True}},
         "provenance": {
-            "parser_rule_id": "core-api-generic-exception",
+            "parser_rule_id": "api-python-stacktrace",
             "rule_version": "1.0.0",
-            "rule_name": "Generic exception or error event",
+            "rule_name": "Python stacktrace",
         },
     },
     {
@@ -76,12 +76,12 @@ EXPECTED = [
             "message": ' File "/usr/local/lib/python3.8/site-packages/git/__init__.py", line 140, in <module>',
         },
         "sub_category": "service",
-        "tags": ["core_api", "exception"],
+        "tags": ["core_api", "stacktrace"],
         "meta": {"validation": {"skipped": True}},
         "provenance": {
-            "parser_rule_id": "core-api-generic-exception",
+            "parser_rule_id": "api-python-stacktrace",
             "rule_version": "1.0.0",
-            "rule_name": "Generic exception or error event",
+            "rule_name": "Python stacktrace",
         },
     },
     {
@@ -101,12 +101,12 @@ EXPECTED = [
             "message": ' File "/usr/local/lib/python3.8/site-packages/git/cmd.py", line 456, in refresh',
         },
         "sub_category": "service",
-        "tags": ["core_api", "exception"],
+        "tags": ["core_api", "stacktrace"],
         "meta": {"validation": {"skipped": True}},
         "provenance": {
-            "parser_rule_id": "core-api-generic-exception",
+            "parser_rule_id": "api-python-stacktrace",
             "rule_version": "1.0.0",
-            "rule_name": "Generic exception or error event",
+            "rule_name": "Python stacktrace",
         },
     },
     {
