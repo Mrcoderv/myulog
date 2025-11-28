@@ -1,79 +1,97 @@
+---
 name: E2E Validation
 
 # Run on-demand (manual) and on a scheduled nightly job to avoid heavy runs on every PR.
 on:
-  workflow_dispatch:
-    inputs:
-      use_http:
-        description: 'If true, POST records to HTTP classifier instead of compare-only'
-        required: false
-        default: 'false'
-      http_host:
-        description: 'HTTP classifier host'
-        required: false
-        default: 'localhost'
-      http_port:
-        description: 'HTTP classifier port'
-        required: false
-        default: '8000'
-      cli_cmd:
-        description: 'CLI command template (use {input} and {output})'
-        required: false
-        default: ''
-      enforce_all:
-        description: 'Fail if any canonical domains are missing'
-        required: false
-        default: 'false'
-      thresholds:
-        description: 'JSON dict of thresholds by domain'
-        required: false
-        default: ''
-  schedule:
-    - cron: '0 2 * * *'  # daily at 02:00 UTC
+    workflow_dispatch:
+        inputs:
+            use_http:
+                description: 'If true, POST records to HTTP classifier instead of compare-only'
+                required: false
+                default: 'false'
+            http_host:
+                description: 'HTTP classifier host'
+                required: false
+                default: 'localhost'
+            http_port:
+                description: 'HTTP classifier port'
+                required: false
+                default: '8000'
+            cli_cmd:
+                description: 'CLI command template (use {input} and {output})'
+                required: false
+                default: ''
+            enforce_all:
+                description: 'Fail if any canonical domains are missing'
+                required: false
+                default: 'false'
+            thresholds:
+                description: 'JSON dict of thresholds by domain'
+                required: false
+                default: ''
+    schedule:
+        - cron: '0 2 * * *'  # daily at 02:00 UTC
 
 jobs:
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    e2e:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+            - name: Setup Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.12'
 
-      - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+            - name: Install Poetry
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install poetry
 
-      - name: Install dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --with dev
+            - name: Install dependencies
+              run: |
+                  poetry config virtualenvs.create false
+                  poetry install --no-interaction --with dev
 
-      - name: Run full E2E target
-        shell: bash
-        env:
-          DATA_DIR: data/synthetic/baseline
-          LABELS_FILE: data/synthetic/baseline_labels.jsonl
-          PARSED_FILE: data/synthetic/baseline_parsed.jsonl
-          REPORT_DIR: tests/reports
-        run: |
-          # Build args from workflow inputs. Defaults run compare-only when no classifier
-          ARGS=(--data-dir "$DATA_DIR" --labels-file "$LABELS_FILE" --report-dir "$REPORT_DIR")
-          if [ -n "${{ github.event.inputs.thresholds }}" ] && [ "${{ github.event.inputs.thresholds }}" != "" ]; then
-            ARGS+=(--thresholds "${{ github.event.inputs.thresholds }}")
-          fi
-          if [ "${{ github.event.inputs.enforce_all }}" = 'true' ]; then
-            ARGS+=(--enforce-all)
-          fi
-          if [ "${{ github.event.inputs.cli_cmd }}" != '' ]; then
-            ARGS+=(--cli-cmd "${{ github.event.inputs.cli_cmd }}")
-          fi
-          if [ "${{ github.event.inputs.use_http }}" = 'true' ]; then
-            ARGS+=(--use-http --http-host "${{ github.event.inputs.http_host }}" --http-port "${{ github.event.inputs.http_port }}")
-          fi
-          echo "Running: poetry run python -m tests.e2e.run_local_e2e ${ARGS[*]}"
-          poetry run python -m tests.e2e.run_local_e2e "${ARGS[@]}"
+            - name: Run full E2E target
+              shell: bash
+              env:
+                  DATA_DIR: data/synthetic/baseline
+                  LABELS_FILE: data/synthetic/baseline_labels.jsonl
+                  PARSED_FILE: data/synthetic/baseline_parsed.jsonl
+                  REPORT_DIR: tests/reports
+              run: |
+                  # If HTTP mode requested, build and run the classifier container locally on the runner.
+                  if [ "${{ github.event.inputs.use_http }}" = 'true' ]; then
+                      echo "Building classifier HTTP image..."
+                      docker build -f local_pipeline/classifier/Dockerfile.http -t ulog-classifier-http:ci .
+                      echo "Starting classifier container..."
+                      docker run -d --name ulog-e2e-classifier -p "${{ github.event.inputs.http_port }}:8080" ulog-classifier-http:ci
+                      # Wait for health
+                      for i in $(seq 1 30); do curl -fsS http://localhost:${{ github.event.inputs.http_port }}/health >/dev/null 2>&1 && break || sleep 2; done
+                  fi
+
+                  # Build args from workflow inputs. Defaults run compare-only when no classifier
+                  ARGS=(--data-dir "$DATA_DIR" --labels-file "$LABELS_FILE" --report-dir "$REPORT_DIR")
+                  if [ -n "${{ github.event.inputs.thresholds }}" ] && [ "${{ github.event.inputs.thresholds }}" != "" ]; then
+                      ARGS+=(--thresholds "${{ github.event.inputs.thresholds }}")
+                  fi
+                  if [ "${{ github.event.inputs.enforce_all }}" = 'true' ]; then
+                      ARGS+=(--enforce-all)
+                  fi
+                  if [ "${{ github.event.inputs.cli_cmd }}" != '' ]; then
+                      ARGS+=(--cli-cmd "${{ github.event.inputs.cli_cmd }}")
+                  fi
+                  if [ "${{ github.event.inputs.use_http }}" = 'true' ]; then
+                      ARGS+=(--use-http --http-host "${{ github.event.inputs.http_host }}" --http-port "${{ github.event.inputs.http_port }}")
+                  fi
+                  echo "Running: poetry run python -m tests.e2e.run_local_e2e ${ARGS[*]}"
+                  poetry run python -m tests.e2e.run_local_e2e "${ARGS[@]}"
+
+                  # If we started a test container, stop and remove it
+                  if [ "${{ github.event.inputs.use_http }}" = 'true' ]; then
+                      docker stop ulog-e2e-classifier || true
+                      docker rm ulog-e2e-classifier || true
+                      docker rmi ulog-classifier-http:ci || true
+                  fi

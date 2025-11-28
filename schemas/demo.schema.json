@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Demo schema (wrapper)",
+  "description": "Compatibility wrapper that references the current demo schema",
+  "$ref": "./demo/schema.json"
+}

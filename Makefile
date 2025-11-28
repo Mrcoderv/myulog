@@ -72,7 +72,7 @@ lint: ## Lint with ruff
 	@poetry run ruff check .
 
 test: ## Run tests
-	@poetry run pytest -q
+	@PYTHONPATH=src poetry run pytest -q
 
 test.schemas: ## Run JSON Schema test harness with two-phase flow (writes JUnit XML to tests/reports/)
 	@poetry run python tests/harness/run_harness.py --format junit --output tests/reports/schema_results.xml
@@ -157,7 +157,7 @@ http.screens: ## Capture fresh screenshots into docs/screenshots/
 # E2E validation targets (Ticket 2.5)
 e2e: ## Run E2E validation against synthetic baseline (Ticket 2.5)
 	@mkdir -p tests/reports
-	@poetry run python tests/e2e/run_local_e2e.py \
+	@PYTHONPATH=. poetry run python tests/e2e/run_local_e2e.py \
 		--data-dir data/synthetic/baseline \
 		--labels-file data/synthetic/baseline_labels.jsonl \
 		--parsed-file data/synthetic/baseline_parsed.jsonl \
@@ -165,11 +165,30 @@ e2e: ## Run E2E validation against synthetic baseline (Ticket 2.5)
 
 e2e.http: ## Run E2E validation using HTTP classifier service
 	@mkdir -p tests/reports
-	@poetry run python tests/e2e/run_local_e2e.py \
+	@PYTHONPATH=. poetry run python tests/e2e/run_local_e2e.py \
 		--use-http \
 		--http-host localhost \
-		--http-port 8000 \
+		--http-port 8080 \
+		--labels-file data/synthetic/baseline_labels.jsonl \
+		--parsed-file data/synthetic/baseline_parsed.jsonl \
 		--report-dir tests/reports
+
+e2e.http.local: ## Build classifier image, run container, run E2E HTTP runner (local dev)
+	@mkdir -p tests/reports
+	@docker build -f local_pipeline/classifier/Dockerfile.http -t ulog-classifier-http:local .
+	@docker rm -f ulog-classifier-http-local >/dev/null 2>&1 || true
+	@docker run -d --name ulog-classifier-http-local -p 8080:8080 ulog-classifier-http:local
+	@bash -c 'for i in $$(seq 1 30); do curl -fsS http://localhost:8080/health >/dev/null 2>&1 && exit 0 || sleep 2; done; echo "Classifier did not become healthy"; exit 1'
+	@PYTHONPATH=. poetry run python tests/e2e/run_local_e2e.py \
+		--use-http \
+		--http-host localhost \
+		--http-port 8080 \
+		--labels-file data/synthetic/baseline_labels.jsonl \
+		--parsed-file data/synthetic/baseline_parsed.jsonl \
+		--report-dir tests/reports
+	@docker stop ulog-classifier-http-local || true
+	@docker rm ulog-classifier-http-local || true
+	@docker rmi ulog-classifier-http:local || true
 
 # --- Build & Packaging ---
 build: ## Build all distribution artifacts (wheel, CLI, Lambda ZIP)

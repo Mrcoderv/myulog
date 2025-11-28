@@ -44,3 +44,9 @@ authors = ["Eunice Koid <koid.ernli@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
+jsonschema = ">=4.25.1,<5.0.0"
+click = ">=8.1.0,<9.0.0"
+fastapi = ">=0.115.0,<1.0.0"
+mangum = ">=0.17.0,<1.0.0"
+referencing = ">=0.30.0,<0.40.0"
+uvicorn = ">=0.32.0"

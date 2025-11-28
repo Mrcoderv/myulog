@@ -106,8 +106,18 @@ class LabelComparator:
                 passed = exp_label == act_label
         else:
             exp_label = expected.get("label")
-            act_label = actual.get("label") or _extract_from_raw(actual, "label")
-            passed = exp_label == act_label
+            # Accept either 'label' or 'outcome' from classifier outputs (prefer 'label').
+            act_label = actual.get("label") or actual.get("outcome") or _extract_from_raw(actual, "label") or _extract_from_raw(actual, "outcome")
+            # Normalize case for stable comparison
+            if isinstance(exp_label, str):
+                exp_norm = exp_label.strip().lower()
+            else:
+                exp_norm = exp_label
+            if isinstance(act_label, str):
+                act_norm = act_label.strip().lower()
+            else:
+                act_norm = act_label
+            passed = exp_norm == act_norm
         return ComparisonResult(record_id=rid, domain=domain, expected=expected, actual=actual, passed=passed)
 
     def batch_compare(self, expected_list: Iterable[Dict], actual_list: Iterable[Dict]) -> List[ComparisonResult]:

@@ -1,0 +1,4 @@
+{"id": "llm-1", "domain": "llm", "label": "pending", "rule_id": "default"}
+{"id": "agentic-1", "domain": "agentic", "label": "failure", "rule_id": "all-failure-high"}
+{"id": "cv-1", "domain": "cv", "label": "cancelled", "rule_id": "e6eaf713-b689-4a03-b88a-23fb4ce6dfdc"}
+{"id": "core_api-1", "domain": "core_api", "label": "failure", "rule_id": "all-failure-high"}

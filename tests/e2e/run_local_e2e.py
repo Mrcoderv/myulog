@@ -17,7 +17,6 @@ from typing import Dict, List
 import jsonschema
 from jsonschema import ValidationError
 import requests
-
 from tests.e2e.comparator import LabelComparator
 from tests.e2e.utils import get_record_id, load_jsonl, save_jsonl
 
@@ -42,9 +41,15 @@ def run_http_classifier(host: str, port: int, records: List[Dict]) -> List[Dict]
     url = f"http://{host}:{port}/classify"
     for r in records:
         try:
-            resp = requests.post(url, json=r, timeout=10.0)
+            # The classifier expects a JSON ARRAY for /classify; send a single-item array
+            resp = requests.post(url, json=[r], timeout=10.0)
             resp.raise_for_status()
-            out.append(resp.json())
+            j = resp.json()
+            # The service returns a list of classified events; extract the first item
+            if isinstance(j, list) and len(j) > 0:
+                out.append(j[0])
+            else:
+                out.append(j)
         except Exception as e:
             out.append({"id": get_record_id(r), "error": str(e)})
     return out

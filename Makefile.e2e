@@ -1,0 +1,40 @@
+# E2E Validation Runner targets (append to existing Makefile)
+
+.PHONY: e2e.test
+e2e.test:
+	@echo "Running E2E validation tests..."
+	ULOG_SCHEMAS_DIR=./schemas ULOG_RULES_PATH=./rules/rules.json ULOG_VOCAB_PATH=./vocab/controlled_vocabulary.json pytest tests/test_validation_runner.py -v --tb=short
+
+.PHONY: e2e.test.verbose
+e2e.test.verbose:
+	@echo "Running E2E validation tests (verbose)..."
+	ULOG_SCHEMAS_DIR=./schemas ULOG_RULES_PATH=./rules/rules.json ULOG_VOCAB_PATH=./vocab/controlled_vocabulary.json LOG_LEVEL=DEBUG pytest tests/test_validation_runner.py -vv --tb=long
+
+.PHONY: e2e.test.report
+e2e.test.report:
+	@echo "Running E2E validation tests with report generation..."
+	mkdir -p tests/reports
+	ULOG_SCHEMAS_DIR=./schemas ULOG_RULES_PATH=./rules/rules.json ULOG_VOCAB_PATH=./vocab/controlled_vocabulary.json pytest tests/test_validation_runner.py -v \
+		--junit-xml=tests/reports/e2e-junit.xml \
+		--html=tests/reports/e2e-report.html \
+		--self-contained-html
+
+.PHONY: e2e.test.coverage
+e2e.test.coverage:
+	@echo "Running E2E validation tests with coverage..."
+	ULOG_SCHEMAS_DIR=./schemas ULOG_RULES_PATH=./rules/rules.json ULOG_VOCAB_PATH=./vocab/controlled_vocabulary.json pytest tests/test_validation_runner.py \
+		--cov=src/ulog/validation_runner \
+		--cov-report=html:tests/reports/coverage \
+		--cov-report=term
+
+.PHONY: e2e.run
+e2e.run:
+	@echo "Running E2E validation against all domains..."
+	python -m src.ulog.validation_runner
+
+.PHONY: e2e.clean
+e2e.clean:
+	@echo "Cleaning E2E test artifacts..."
+	rm -rf tests/reports/
+	find tests -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+	find src -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true

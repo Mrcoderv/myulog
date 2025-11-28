@@ -158,3 +158,61 @@ jobs:
               with:
                   name: requirements
                   path: requirements.txt
+
+    e2e-http:
+        runs-on: ubuntu-latest
+        needs: [lint-and-test]
+        timeout-minutes: 20
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install Poetry
+              run: |
+                python -m pip install --upgrade pip
+                pip install poetry
+
+            - name: Install runner deps
+              run: |
+                poetry config virtualenvs.create false
+                poetry install --no-interaction --with dev
+
+            - name: Build classifier HTTP Docker image
+              run: |
+                docker build -f local_pipeline/classifier/Dockerfile.http -t ulog-classifier-http:ci .
+
+            - name: Run classifier container
+              run: |
+                docker run -d --name ulog-ci-classifier -p 8080:8080 ulog-classifier-http:ci
+
+            - name: Wait for classifier health
+              run: |
+                for i in $(seq 1 30); do curl -fsS http://localhost:8080/health >/dev/null 2>&1 && exit 0 || sleep 2; done; echo "Classifier did not become healthy"; exit 1
+
+            - name: Run E2E HTTP-mode runner
+              env:
+                  PARSED_FILE: data/synthetic/baseline_parsed.jsonl
+                  LABELS_FILE: data/synthetic/baseline_labels_http_final.jsonl
+                  REPORT_DIR: tests/reports
+              run: |
+                mkdir -p $REPORT_DIR
+                poetry run python -m tests.e2e.run_local_e2e --use-http --http-host localhost --http-port 8080 --parsed-file $PARSED_FILE --labels-file $LABELS_FILE --report-dir $REPORT_DIR
+
+            - name: Upload e2e reports
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: e2e-reports
+                  path: tests/reports/
+
+            - name: Teardown classifier container
+              if: always()
+              run: |
+                docker stop ulog-ci-classifier || true
+                docker rm ulog-ci-classifier || true
+                docker rmi ulog-classifier-http:ci || true

@@ -57,7 +57,11 @@ class RuleEvaluator:
         self._current_domain = domain
 
         if domain is None:
-            return self._apply_default_action(record)
+            out = self._apply_default_action(record)
+            # Leave 'domain' out of rule evaluation outputs; transport
+            # layers should synthesize it when needed so in-process
+            # outputs remain stable for unit tests.
+            return out
 
         for rule in self.rules:
             if rule.get("disabled", False):
@@ -74,7 +78,10 @@ class RuleEvaluator:
                     continue
 
             if self._evaluate_condition(rule["when"], record):
-                return self._apply_action(record, rule)
+                    out = self._apply_action(record, rule)
+                    # Do not inject 'domain' here; keep evaluation side-effects minimal
+                    # and let higher-level callers attach a domain if required.
+                    return out
 
         return self._apply_default_action(record)
 
@@ -255,6 +262,9 @@ class RuleEvaluator:
             result["sub_category"] = action["sub_category"]
         if "outcome" in action:
             result["outcome"] = action["outcome"]
+            # Keep 'outcome' only here; canonical 'label' is added by
+            # higher-level transport layers (HTTP) to avoid changing
+            # the shape of in-process/CLI outputs used by unit tests.
         if "tags" in action:
             result["tags"] = action["tags"]
 
@@ -277,6 +287,8 @@ class RuleEvaluator:
             result.setdefault("sub_category", self.default_action.get("sub_category", ""))
         if "outcome" in self.default_action:
             result.setdefault("outcome", self.default_action["outcome"])
+            # Do not set 'label' at rule-evaluation time; transport layers
+            # may synthesize a canonical 'label' when returning HTTP responses.
         if "tags" in self.default_action:
             result.setdefault("tags", self.default_action["tags"])
 

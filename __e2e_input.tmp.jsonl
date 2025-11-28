@@ -1,0 +1,4 @@
+{"id": "llm-1", "domain": "llm", "label": "success", "rule_id": "r-llm-1"}
+{"id": "agentic-1", "domain": "agentic", "label": "success", "rule_id": "r-agentic-1"}
+{"id": "cv-1", "domain": "cv", "label": "success", "rule_id": "r-cv-1"}
+{"id": "core-1", "domain": "core_api", "label": "success", "rule_id": "r-core-1"}
